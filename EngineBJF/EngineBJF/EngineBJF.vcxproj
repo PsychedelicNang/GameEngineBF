@@ -148,9 +148,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="D3DInitializer.h" />
     <ClInclude Include="DebugRenderer.h" />
     <ClInclude Include="EngineBJF.h" />
     <ClInclude Include="FbxLibraryDLLLoaderAndFileReader.h" />
+    <ClInclude Include="IncludesBJF.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SceneManager.h" />
@@ -162,6 +164,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="D3DInitializer.cpp" />
     <ClCompile Include="DebugRenderer.cpp" />
     <ClCompile Include="EngineBJF.cpp" />
     <ClCompile Include="FbxLibraryDLLLoaderAndFileReader.cpp" />

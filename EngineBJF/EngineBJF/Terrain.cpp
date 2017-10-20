@@ -84,7 +84,7 @@ bool Terrain::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 			xPos = (float)x;
 			zPos = (float)(y + 1);
 
-			vertices[index].position = XMFLOAT3(xPos, 0.0f, zPos);
+			vertices[index].position = XMFLOAT4(xPos, 0.0f, zPos, 1.0f);
 			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			indices[index] = index;
 			index++;
@@ -93,7 +93,7 @@ bool Terrain::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 			xPos = (float)(x + 1);
 			zPos = (float)(y + 1);
 
-			vertices[index].position = XMFLOAT3(xPos, 0.0f, zPos);
+			vertices[index].position = XMFLOAT4(xPos, 0.0f, zPos, 1.0f);
 			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			indices[index] = index;
 			index++;
@@ -103,7 +103,7 @@ bool Terrain::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 			xPos = (float)(x + 1);
 			zPos = (float)(y + 1);
 
-			vertices[index].position = XMFLOAT3(xPos, 0.0f, zPos);
+			vertices[index].position = XMFLOAT4(xPos, 0.0f, zPos, 1.0f);
 			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			indices[index] = index;
 			index++;
@@ -112,7 +112,7 @@ bool Terrain::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 			xPos = (float)(x + 1);
 			zPos = (float)y;
 
-			vertices[index].position = XMFLOAT3(xPos, 0.0f, zPos);
+			vertices[index].position = XMFLOAT4(xPos, 0.0f, zPos, 1.0f);
 			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			indices[index] = index;
 			index++;
@@ -122,7 +122,7 @@ bool Terrain::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 			xPos = (float)(x + 1);
 			zPos = (float)y;
 
-			vertices[index].position = XMFLOAT3(xPos, 0.0f, zPos);
+			vertices[index].position = XMFLOAT4(xPos, 0.0f, zPos, 1.0f);
 			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			indices[index] = index;
 			index++;
@@ -131,7 +131,7 @@ bool Terrain::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 			xPos = (float)x;
 			zPos = (float)y;
 
-			vertices[index].position = XMFLOAT3(xPos, 0.0f, zPos);
+			vertices[index].position = XMFLOAT4(xPos, 0.0f, zPos, 1.0f);
 			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			indices[index] = index;
 			index++;
@@ -141,7 +141,7 @@ bool Terrain::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 			xPos = (float)x;
 			zPos = (float)y;
 
-			vertices[index].position = XMFLOAT3(xPos, 0.0f, zPos);
+			vertices[index].position = XMFLOAT4(xPos, 0.0f, zPos, 1.0f);
 			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			indices[index] = index;
 			index++;
@@ -150,7 +150,7 @@ bool Terrain::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 			xPos = (float)x;
 			zPos = (float)(y + 1);
 
-			vertices[index].position = XMFLOAT3(xPos, 0.0f, zPos);
+			vertices[index].position = XMFLOAT4(xPos, 0.0f, zPos, 1.0f);
 			vertices[index].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			indices[index] = index;
 			index++;
@@ -171,8 +171,8 @@ bool Terrain::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 	vertexData.SysMemSlicePitch = 0;
 
 	// Now create the vertex buffer.
-	result = _device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
-	if (!result)
+	result = _device->CreateBuffer(&vertexBufferDesc, &vertexData, m_vertexBuffer.GetAddressOf());
+	if (result != S_OK)
 		return false;
 
 	// Set up the description of the static index buffer.
@@ -189,8 +189,8 @@ bool Terrain::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 	indexData.SysMemSlicePitch = 0;
 
 	// Create the index buffer.
-	result = _device->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer);
-	if (!result)
+	result = _device->CreateBuffer(&indexBufferDesc, &indexData, m_indexBuffer.GetAddressOf());
+	if (result != S_OK)
 		return false;
 
 	// Release the arrays now that the buffers have been created and loaded.
@@ -214,7 +214,7 @@ void Terrain::RenderBuffers(ComPtr<ID3D11DeviceContext>& _deviceContext)
 	unsigned int stride = sizeof(VertexPositionColor);
 	unsigned int offset = 0;
 
-	_deviceContext->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
+	_deviceContext->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &stride, &offset);
 	_deviceContext->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 	_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 	_deviceContext->DrawIndexed(m_indexCount, 0, 0);

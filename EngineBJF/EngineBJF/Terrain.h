@@ -8,21 +8,9 @@
 ///////////////////////
 // INCLUDES
 ///////////////////////
-#include <d3d11.h>			// ID3D11 & D3D11
-#pragma comment(lib, "d3d11.lib")
-#include <DirectXMath.h>	// XMFLOAT
-#include <Windows.h>		// For ComPtr
-#include <wrl.h>			// For ComPtr
-
-using namespace DirectX;
-using namespace Microsoft::WRL;
+#include "IncludesBJF.h"
 
 class Terrain {
-	struct VertexPositionColor {
-		XMFLOAT3 position;
-		XMFLOAT4 color;
-	};
-
 public:
 	Terrain();
 	~Terrain();

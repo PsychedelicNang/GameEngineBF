@@ -13,7 +13,7 @@ Camera::Camera()
 
 Camera::~Camera()
 {
-	Shutdown();
+	//Shutdown();
 }
 
 void Camera::Initialize()
@@ -64,9 +64,9 @@ void Camera::Initialize(float _viewportWidth, float _viewportHeight, float _near
 	CreateViewAndPerspectiveMatrix(_viewportWidth, _viewportHeight);
 }
 
-void Camera::Shutdown()
-{
-}
+//void Camera::Shutdown()
+//{
+//}
 
 void Camera::CreateCamera(XMVECTOR _eye, XMVECTOR _at, XMVECTOR _up)
 {
@@ -232,9 +232,14 @@ void Camera::SetCamera(XMFLOAT4X4 _camera)
 	m_camera = _camera;
 }
 
-XMFLOAT4X4 Camera::GetCamera()
+XMFLOAT4X4 Camera::GetCameraFloat4x4()
 {
 	return m_camera;
+}
+
+XMMATRIX Camera::GetCameraMatrix()
+{
+	return XMLoadFloat4x4(&m_camera);
 }
 
 XMVECTOR Camera::GetCameraEye()

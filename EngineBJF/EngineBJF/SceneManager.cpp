@@ -8,8 +8,12 @@ typedef bool(*funcReadInMaterialsFromBinaryFile)(const char*, std::vector<Materi
 
 SceneManager::SceneManager()
 {
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	//_CrtSetBreakAlloc(203);
 	myCube = new Object();
 	myCamera = new Camera();
+	myTerrain = new Terrain();
+	myDebugRenderer = new DebugRenderer();
 	radians = 0.0001f;
 	mouseMove = false;
 	m_cameraState = lookAtOrigin;
@@ -20,7 +24,12 @@ SceneManager::SceneManager()
 SceneManager::~SceneManager()
 {
 	myCube->Shutdown();
-	myCamera->Shutdown();
+	//myCamera->Shutdown();
+	myTerrain->Shutdown();
+	//myDebugRenderer->Shutdown();
+	//if (myCube) delete myCube;
+	//delete myCamera;
+	//delete myTerrain;
 }
 
 void SceneManager::InitViewport(D3D11_VIEWPORT & _viewport)
@@ -135,237 +144,11 @@ void SceneManager::CreateWindowResources(HWND& _hWnd)
 	m_BackBuffer->Release();
 }
 
-//void SceneManager::CreateCube(void)
-//{
-//	// Load mesh vertices. Each vertex has a position and a color.
-//	//VertexPositionColor cubeVertices[] =
-//	//{
-//	//	{ XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
-//	//	{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
-//	//	{ XMFLOAT4(1.0f,  1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
-//	//	{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
-//	//	{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
-//	//	{ XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f)  , XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
-//	//	{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 0.f, 0.f, 1.f) },
-//	//	{ XMFLOAT4(-1.0f, -1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 0.f, 0.f, 1.f) },
-//	//};
-//
-//	//VertexPositionColor cubeVertices[] =
-//	//{
-//	//	////3, 1, 0,
-//	//	//{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-//	//	//{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-//	//	//{ XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-//	//	////2, 1, 3,
-//	//	//{ XMFLOAT4(1.0f,  1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-//	//	//{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-//	//	//{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 0.f, 1.f) },
-//	//	//0, 5, 4,
-//	//	{ XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 1.f, 1.f)},
-//	//	{ XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 1.f, 1.f)},
-//	//	{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(1.f, 0.f, 1.f, 1.f)},
-//	//	//1, 5, 0,
-//	//	{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 1.f, 1.f)},
-//	//	//{ XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 1.f, 1.f)},
-//	//	//{ XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 1.f, 1.f)},
-//	//	////3, 4, 7,
-//	//	//{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 1.f, 1.f) },
-//	//	//{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 1.f, 1.f) },
-//	//	//{ XMFLOAT4(-1.0f, -1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 1.f, 1.f) },
-//	//	////0, 4, 3,
-//	//	//{ XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 1.f, 1.f) },
-//	//	//{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 1.f, 1.f) },
-//	//	//{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 1.f, 1.f) },
-//	//	////1, 6, 5,
-//	//	//{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-//	//	//{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-//	//	//{ XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-//	//	////2, 6, 1,
-//	//	//{ XMFLOAT4(1.0f,  1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-//	//	//{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-//	//	//{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f) },
-//	//	////2, 7, 6,
-//	//	//{ XMFLOAT4(1.0f,  1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
-//	//	//{ XMFLOAT4(-1.0f, -1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
-//	//	//{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
-//	//	////3, 7, 2,
-//	//	//{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
-//	//	//{ XMFLOAT4(-1.0f, -1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
-//	//	//{ XMFLOAT4(1.0f,  1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 0.f, 1.f, 1.f) },
-//	//	////6, 4, 5,
-//	//	//{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 1.f, 0.f, 1.f) },
-//	//	//{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(1.f, 1.f, 0.f, 1.f) },
-//	//	//{ XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 1.f, 0.f, 1.f) },
-//	//	////7, 4, 6,
-//	//	//{ XMFLOAT4(-1.0f, -1.0f,  1.0f, 1.0f) , XMFLOAT4(1.f, 1.f, 0.f, 1.f) },
-//	//	//{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(1.f, 1.f, 0.f, 1.f) },
-//	//	//{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 1.f, 0.f, 1.f) },
-//	//};
-//
-//	VertexPositionColorUVNormal cubeVertices[] =
-//	{
-//		//3, 1, 0,
-//		{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
-//		{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
-//		{ XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
-//		//2, 1, 3,
-//		{ XMFLOAT4(1.0f,  1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
-//		{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
-//		{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
-//		//0, 5, 4,
-//		{ XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f) , XMFLOAT4(1.f, 0.f, 1.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, -1.f, 0.f) },
-//		{ XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(1.f, 0.f, 1.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, -1.f, 0.f) },
-//		{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f), XMFLOAT4(1.f, 0.f, 1.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, -1.f, 0.f) },
-//		//1, 5, 0,
-//		{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 1.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, -1.f, 0.f) },
-//		{ XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 1.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, -1.f, 0.f) },
-//		{ XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 1.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, -1.f, 0.f) },
-//		//3, 4, 7,
-//		{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 1.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(-1.f, 0.f, 0.f, 0.f) },
-//		{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 1.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(-1.f, 0.f, 0.f, 0.f) },
-//		{ XMFLOAT4(-1.0f, -1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 1.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f), XMFLOAT4(-1.f, 0.f, 0.f, 0.f) },
-//		//0, 4, 3,
-//		{ XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 1.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f), XMFLOAT4(-1.f, 0.f, 0.f, 0.f) },
-//		{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 1.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(-1.f, 0.f, 0.f, 0.f) },
-//		{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 1.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(-1.f, 0.f, 0.f, 0.f) },
-//		//1, 6, 5,
-//		{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
-//		{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
-//		{ XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
-//		//2, 6, 1,
-//		{ XMFLOAT4(1.0f,  1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
-//		{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
-//		{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
-//		//2, 7, 6,
-//		{ XMFLOAT4(1.0f,  1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 0.f, 1.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
-//		{ XMFLOAT4(-1.0f, -1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 0.f, 1.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
-//		{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 0.f, 1.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
-//		//3, 7, 2,
-//		{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 0.f, 1.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
-//		{ XMFLOAT4(-1.0f, -1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 0.f, 1.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
-//		{ XMFLOAT4(1.0f,  1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 0.f, 1.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
-//		//6, 4, 5,
-//		{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 1.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, -1.f, 0.f, 0.f) },
-//		{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(1.f, 1.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, -1.f, 0.f, 0.f) },
-//		{ XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 1.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, -1.f, 0.f, 0.f) },
-//		//7, 4, 6,
-//		{ XMFLOAT4(-1.0f, -1.0f,  1.0f, 1.0f) , XMFLOAT4(1.f, 1.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, -1.f, 0.f, 0.f) },
-//		{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(1.f, 1.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, -1.f, 0.f, 0.f) },
-//		{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 1.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, -1.f, 0.f, 0.f) }
-//	};
-//
-//	D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
-//	vertexBufferData.pSysMem = cubeVertices;
-//	vertexBufferData.SysMemPitch = 0;
-//	vertexBufferData.SysMemSlicePitch = 0;
-//	CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(cubeVertices), D3D11_BIND_VERTEX_BUFFER);
-//	m_device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, m_cube.m_vertexBuffer.GetAddressOf());
-//
-//	static const unsigned short cubeIndices[] =
-//	{
-//		3, 1, 0,
-//		2, 1, 3,
-//		0, 5, 4,
-//		1, 5, 0,
-//		3, 4, 7,
-//		0, 4, 3,
-//		1, 6, 5,
-//		2, 6, 1,
-//		2, 7, 6,
-//		3, 7, 2,
-//		6, 4, 5,
-//		7, 4, 6
-//	};
-//
-//	m_cube.m_indexCount = ARRAYSIZE(cubeIndices);
-//
-//	D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
-//	indexBufferData.pSysMem = cubeIndices;
-//	indexBufferData.SysMemPitch = 0;
-//	indexBufferData.SysMemSlicePitch = 0;
-//	CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
-//	m_device->CreateBuffer(&indexBufferDesc, &indexBufferData, m_cube.m_indexBuffer.GetAddressOf());
-//
-//	m_cube.matrix = DirectX::XMFLOAT4X4(
-//		1, 0, 0, 0,
-//		0, 1, 0, 0,
-//		0, 0, 1, 0,
-//		-4, 0, -5, 1);
-//	m_objectsToRender.push_back(&m_cube);
-//}
-////
-
-void SceneManager::CreateCube(Object* _name, float _xPos, float _yPos, float _zPos)
-{
-	ComPtr<ID3D11Buffer> tempVertexBuffer;
-	ComPtr<ID3D11Buffer> tempIndexBuffer;
-
-	// Load mesh vertices. Each vertex has a position and a color.
-	VertexPositionColor cubeVertices[] =
-	{
-		{ XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
-		{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
-		{ XMFLOAT4(1.0f,  1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
-		{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
-		{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
-		{ XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f)  , XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
-		{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 0.f, 0.f, 1.f) },
-		{ XMFLOAT4(-1.0f, -1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 0.f, 0.f, 1.f) },
-	};
-
-	//	-X / +X : Cyan / Red
-	//	 - Y / +Y : Magenta / Green
-	// - Z / +Z : Yellow / Blue
-
-	D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
-	vertexBufferData.pSysMem = cubeVertices;
-	vertexBufferData.SysMemPitch = 0;
-	vertexBufferData.SysMemSlicePitch = 0;
-	CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(cubeVertices), D3D11_BIND_VERTEX_BUFFER);
-	m_device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, tempVertexBuffer.GetAddressOf());
-
-	static const unsigned cubeIndices[] =
-	{
-		3, 1, 0,
-		2, 1, 3,
-
-		0, 5, 4,
-		1, 5, 0,
-
-		3, 4, 7,
-		0, 4, 3,
-
-		1, 6, 5,
-		2, 6, 1,
-
-		2, 7, 6,
-		3, 7, 2,
-
-		6, 4, 5,
-		7, 4, 6,
-	};
-
-	D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
-	indexBufferData.pSysMem = cubeIndices;
-	indexBufferData.SysMemPitch = 0;
-	indexBufferData.SysMemSlicePitch = 0;
-	CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
-	m_device->CreateBuffer(&indexBufferDesc, &indexBufferData, tempIndexBuffer.GetAddressOf());
-
-	DirectX::XMFLOAT4X4 temp = DirectX::XMFLOAT4X4(
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		_xPos, _yPos, _zPos, 1);
-
-	_name->Initialize(tempVertexBuffer, tempIndexBuffer, ARRAYSIZE(cubeIndices), sizeof(VertexPositionColor), DXGI_FORMAT_R32_UINT, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-}
-
 void SceneManager::Update(void)
 {
 	timer.Signal();
 	timeBetweenFrames = timer.Delta();
-
+#pragma region states
 	//switch (m_cameraState)
 	//{
 	//case SceneManager::cameraDefault:
@@ -418,58 +201,28 @@ void SceneManager::Update(void)
 	//default:
 	//	break;
 	//}
-
-	// Vertices
-		//VertexPositionColor vert01 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
-		//XMStoreFloat4(&vert01.pos, XMVector4Transform(XMLoadFloat4(&vert01.pos), XMLoadFloat4x4(&m_cube.matrix)));
-
-		//VertexPositionColor vert02 = { XMFLOAT4(2.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
-		//XMStoreFloat4(&vert02.pos, XMVector4Transform(XMLoadFloat4(&vert02.pos), XMLoadFloat4x4(&m_cube.matrix)));
-
-		//VertexPositionColor vert03 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) };
-		//XMStoreFloat4(&vert03.pos, XMVector4Transform(XMLoadFloat4(&vert03.pos), XMLoadFloat4x4(&m_cube.matrix)));
-
-		//VertexPositionColor vert04 = { XMFLOAT4(0.f, 2.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) };
-		//XMStoreFloat4(&vert04.pos, XMVector4Transform(XMLoadFloat4(&vert04.pos), XMLoadFloat4x4(&m_cube.matrix)));
-
-		//VertexPositionColor vert05 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) };
-		//XMStoreFloat4(&vert05.pos, XMVector4Transform(XMLoadFloat4(&vert05.pos), XMLoadFloat4x4(&m_cube.matrix)));
-
-		//VertexPositionColor vert06 = { XMFLOAT4(0.f, 0.f, 2.f, 1.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) };
-		//XMStoreFloat4(&vert06.pos, XMVector4Transform(XMLoadFloat4(&vert06.pos), XMLoadFloat4x4(&m_cube.matrix)));
-
-		//VertexPositionColor vert07 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
-		//XMStoreFloat4(&vert07.pos, XMVector4Transform(XMLoadFloat4(&vert07.pos), XMLoadFloat4x4(&m_cube02.matrix)));
-
-		//VertexPositionColor vert08 = { XMFLOAT4(2.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
-		//XMStoreFloat4(&vert08.pos, XMVector4Transform(XMLoadFloat4(&vert08.pos), XMLoadFloat4x4(&m_cube02.matrix)));
-
-		//VertexPositionColor vert09 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) };
-		//XMStoreFloat4(&vert09.pos, XMVector4Transform(XMLoadFloat4(&vert09.pos), XMLoadFloat4x4(&m_cube02.matrix)));
-
-		//VertexPositionColor vert10 = { XMFLOAT4(0.f, 2.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) };
-		//XMStoreFloat4(&vert10.pos, XMVector4Transform(XMLoadFloat4(&vert10.pos), XMLoadFloat4x4(&m_cube02.matrix)));
-
-		//VertexPositionColor vert11 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) };
-		//XMStoreFloat4(&vert11.pos, XMVector4Transform(XMLoadFloat4(&vert11.pos), XMLoadFloat4x4(&m_cube02.matrix)));
-
-		//VertexPositionColor vert12 = { XMFLOAT4(0.f, 0.f, 2.f, 1.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) };
-		//XMStoreFloat4(&vert12.pos, XMVector4Transform(XMLoadFloat4(&vert12.pos), XMLoadFloat4x4(&m_cube02.matrix)));
-
-		//m_debugRenderer.AddLine(vert01, vert02);
-		//m_debugRenderer.AddLine(vert03, vert04);
-		//m_debugRenderer.AddLine(vert05, vert06);
-		//m_debugRenderer.AddLine(vert07, vert08);
-		//m_debugRenderer.AddLine(vert09, vert10);
-		//m_debugRenderer.AddLine(vert11, vert12);
-
-	//if (rotateObjects) {
-	//	for (unsigned i = 0; i < m_objectsToRender.size(); i++)
-	//	{
-	//		//XMStoreFloat4x4(&m_objectsToRender[i]->matrix, XMMatrixMultiply(XMMatrixRotationX(radians), XMLoadFloat4x4(&m_objectsToRender[i]->matrix)));
-	//		XMStoreFloat4x4(&m_objectsToRender[i]->matrix, XMMatrixMultiply(XMMatrixRotationY(radians), XMLoadFloat4x4(&m_objectsToRender[i]->matrix)));
-	//	}
-	//}
+#pragma endregion
+	VertexPositionColor vert01 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
+	XMStoreFloat4(&vert01.position, XMVector4Transform(XMLoadFloat4(&vert01.position), myCube->GetObjectMatrix()));
+	
+	VertexPositionColor vert02 = { XMFLOAT4(2.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
+	XMStoreFloat4(&vert02.position, XMVector4Transform(XMLoadFloat4(&vert02.position), myCube->GetObjectMatrix()));
+	
+	VertexPositionColor vert03 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) };
+	XMStoreFloat4(&vert03.position, XMVector4Transform(XMLoadFloat4(&vert03.position), myCube->GetObjectMatrix()));
+	
+	VertexPositionColor vert04 = { XMFLOAT4(0.f, 2.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) };
+	XMStoreFloat4(&vert04.position, XMVector4Transform(XMLoadFloat4(&vert04.position), myCube->GetObjectMatrix()));
+	
+	VertexPositionColor vert05 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) };
+	XMStoreFloat4(&vert05.position, XMVector4Transform(XMLoadFloat4(&vert05.position), myCube->GetObjectMatrix()));
+	
+	VertexPositionColor vert06 = { XMFLOAT4(0.f, 0.f, 2.f, 1.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) };
+	XMStoreFloat4(&vert06.position, XMVector4Transform(XMLoadFloat4(&vert06.position), myCube->GetObjectMatrix()));
+	
+	myDebugRenderer->AddLine(&vert01, &vert02);
+	myDebugRenderer->AddLine(&vert03, &vert04);
+	myDebugRenderer->AddLine(&vert05, &vert06);
 }
 
 void SceneManager::Render(void)
@@ -479,17 +232,27 @@ void SceneManager::Render(void)
 	m_imedContext->OMSetRenderTargets(1, m_defaultPipeline.render_target.GetAddressOf(), m_defaultPipeline.depthStencilView.Get());
 	m_imedContext->ClearRenderTargetView(m_defaultPipeline.render_target.Get(), RGBA);
 	m_imedContext->ClearDepthStencilView(m_defaultPipeline.depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
 	SetPipelineStates(m_defaultPipeline);
 
-	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMLoadFloat4x4(&myCube->GetMatrix())));
+	UpdateConstantBuffer(myCube->GetObjectMatrix());
+	myCube->Render(m_imedContext);
+
+	UpdateConstantBuffer(XMMatrixIdentity());
+	myTerrain->Render(m_imedContext);
+
+	myDebugRenderer->CreateVertexBuffer(m_device);
+	myDebugRenderer->Render(m_device, m_imedContext);
+	m_swapChain->Present(0, 0);
+}
+
+void SceneManager::UpdateConstantBuffer(XMMATRIX _modelsMatrix)
+{
+	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(_modelsMatrix));
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.view)));
 	XMStoreFloat4x4(&m_constantBufferData.projection, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.projection)));
-
 	m_imedContext->UpdateSubresource(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0);
 	m_imedContext->VSSetConstantBuffers(0, 1, m_constantBuffer.GetAddressOf());
-	myCube->Render(m_imedContext);
-	
-	m_swapChain->Present(0, 0);
 }
 
 bool SceneManager::LoadCompiledShaderData(char **byteCode, size_t &byteCodeSize, const char *fileName)
@@ -517,8 +280,10 @@ void SceneManager::RunTaskList(HWND& _hWnd)
 	InitDepthView(m_defaultPipeline.depthStencilView);
 	InitRasterState(m_defaultPipeline.rasterState);
 	InitShadersAndInputLayout(m_defaultPipeline.pixel_shader, m_defaultPipeline.vertex_shader, m_defaultPipeline.input_layout);
-	CreateCube(myCube, 0.f, 0.f, 0.f);
+	
+	myCube->Initialize(m_device);
 	myCamera->Initialize();
+	myTerrain->Initialize(m_device);
 	
 	/*const char* iFilename01 = "terrain.fbx";
 	const char* oFilePath = "terrain.mesh";
@@ -938,11 +703,11 @@ void SceneManager::CheckUserInput(WPARAM wParam)
 //	return false;
 //}
 //
-
-SceneManager::PPVStuff::~PPVStuff()
-{
-	for (unsigned i = 0; i < m_materialsSRVs.size(); i++)
-	{
-		m_materialsSRVs[i]->Release();
-	}
-}
+//
+//SceneManager::PPVStuff::~PPVStuff()
+//{
+//	for (unsigned i = 0; i < m_materialsSRVs.size(); i++)
+//	{
+//		m_materialsSRVs[i]->Release();
+//	}
+//}

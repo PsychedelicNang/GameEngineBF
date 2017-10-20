@@ -22,72 +22,93 @@
     <Filter Include="Shaders\Pixel Shaders">
       <UniqueIdentifier>{322fc30b-3d2e-420c-b842-e3299ca3ec3d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\New classes">
+      <UniqueIdentifier>{f3d2fedc-d53d-4282-a4e6-c8cd2da49de1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Old classes">
+      <UniqueIdentifier>{7fbfbd65-1c13-4729-92ae-1fbb41c8e5c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\New classes">
+      <UniqueIdentifier>{f9a04bf4-fcb0-4f11-a5de-f72937ba81b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Old classes">
+      <UniqueIdentifier>{78dbe1b9-6f5b-442a-902d-382d08e92a5e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EngineBJF.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="XTime.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WICTextureLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FbxLibraryDLLLoaderAndFileReader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Terrain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderStructures.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Camera.h">
+      <Filter>Header Files\New classes</Filter>
     </ClInclude>
     <ClInclude Include="DebugRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\New classes</Filter>
     </ClInclude>
     <ClInclude Include="Object.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\New classes</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineBJF.h">
+      <Filter>Header Files\New classes</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain.h">
+      <Filter>Header Files\New classes</Filter>
+    </ClInclude>
+    <ClInclude Include="FbxLibraryDLLLoaderAndFileReader.h">
+      <Filter>Header Files\Old classes</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files\Old classes</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.h">
+      <Filter>Header Files\Old classes</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderStructures.h">
+      <Filter>Header Files\Old classes</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files\Old classes</Filter>
+    </ClInclude>
+    <ClInclude Include="WICTextureLoader.h">
+      <Filter>Header Files\Old classes</Filter>
+    </ClInclude>
+    <ClInclude Include="XTime.h">
+      <Filter>Header Files\Old classes</Filter>
+    </ClInclude>
+    <ClInclude Include="IncludesBJF.h">
+      <Filter>Header Files\New classes</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DInitializer.h">
+      <Filter>Header Files\New classes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="EngineBJF.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="WICTextureLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="XTime.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FbxLibraryDLLLoaderAndFileReader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Terrain.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source Files\New classes</Filter>
     </ClCompile>
     <ClCompile Include="DebugRenderer.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\New classes</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="EngineBJF.cpp">
+      <Filter>Source Files\New classes</Filter>
     </ClCompile>
     <ClCompile Include="Object.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\New classes</Filter>
+    </ClCompile>
+    <ClCompile Include="Terrain.cpp">
+      <Filter>Source Files\New classes</Filter>
+    </ClCompile>
+    <ClCompile Include="XTime.cpp">
+      <Filter>Source Files\Old classes</Filter>
+    </ClCompile>
+    <ClCompile Include="FbxLibraryDLLLoaderAndFileReader.cpp">
+      <Filter>Source Files\Old classes</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
+      <Filter>Source Files\Old classes</Filter>
+    </ClCompile>
+    <ClCompile Include="WICTextureLoader.cpp">
+      <Filter>Source Files\Old classes</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DInitializer.cpp">
+      <Filter>Source Files\New classes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -8,21 +8,9 @@
 ///////////////////////
 // INCLUDES
 ///////////////////////
-#include <d3d11.h>			// ID3D11 & D3D11
-#pragma comment(lib, "d3d11.lib")
-#include <DirectXMath.h>	// XMFLOAT
-#include <Windows.h>		// For ComPtr
-#include <wrl.h>			// For ComPtr
-
-using namespace DirectX;
-using namespace Microsoft::WRL;
+#include "IncludesBJF.h"
 
 class Camera {
-	struct ModelViewProjectionConstantBuffer {
-		XMFLOAT4X4 model;
-		XMFLOAT4X4 view;
-		XMFLOAT4X4 projection;
-	};
 public:
 	Camera();
 	~Camera();
@@ -46,23 +34,24 @@ public:
 
 	void SetCamera(XMFLOAT4X4 _camera);
 
-	XMFLOAT4X4 GetCamera();
+	XMFLOAT4X4 GetCameraFloat4x4();
+	XMMATRIX GetCameraMatrix();
 	XMVECTOR GetCameraEye();
 	XMVECTOR GetCameraAt();
 	XMVECTOR GetCameraUp();
 	ModelViewProjectionConstantBuffer m_constantBufferData;
 
-	void Shutdown();
+	//void Shutdown();
 private:
 	float m_viewportWidth;
 	float m_viewportHeight;
 	float m_nearPlane;
 	float m_farPlane;
-	XMFLOAT4X4 m_camera;
 	float m_cameraZoom;
 	XMVECTOR m_eye;
 	XMVECTOR m_at;
 	XMVECTOR m_up;
+	XMFLOAT4X4 m_camera;
 
 	void CreateCamera(XMVECTOR _eye, XMVECTOR _at, XMVECTOR _up);
 	void CreateViewAndPerspectiveMatrix(float _viewportWidth, float _viewportHeight);

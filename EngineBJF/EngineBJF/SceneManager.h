@@ -1,10 +1,6 @@
 #pragma once
-#include <d3d11.h>
-#pragma comment(lib, "d3d11.lib")
 #include <iostream>
 #include <fstream> 
-#include <Windows.h>
-#include <wrl.h>
 #include <vector>
 #include <fstream>
 #include "XTime.h"
@@ -16,12 +12,18 @@
 #include "WICTextureLoader.h"
 #include "MeshComponents.h"
 
+#include "IncludesBJF.h"
+#include "DebugRenderer.h"
+#include "Terrain.h"
 #include "Object.h"
 #include "Camera.h"
+
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
 #define WIDTH 1024
 #define HEIGHT 768
-using namespace DirectX;
-using namespace Microsoft::WRL;
 
 class SceneManager {
 public:
@@ -41,14 +43,16 @@ public:
 
 	Object* myCube;
 	Camera* myCamera;
+	Terrain* myTerrain;
+	DebugRenderer* myDebugRenderer;
 	
-	struct PPVStuff {
-		std::vector<ID3D11ShaderResourceView*> m_materialsSRVs;
-		ComPtr<ID3D11PixelShader> m_PS;
-		ComPtr<ID3D11VertexShader> m_VS;
-		ComPtr<ID3D11InputLayout> m_IL;
-		~PPVStuff();
-	} m_PPVStuff, m_AdvancedMeshStuff;
+	//struct PPVStuff {
+	//	std::vector<ID3D11ShaderResourceView*> m_materialsSRVs;
+	//	ComPtr<ID3D11PixelShader> m_PS;
+	//	ComPtr<ID3D11VertexShader> m_VS;
+	//	ComPtr<ID3D11InputLayout> m_IL;
+	//	~PPVStuff();
+	//} m_PPVStuff, m_AdvancedMeshStuff;
 
 	enum CameraState {
 		cameraDefault = 1,
@@ -87,11 +91,11 @@ public:
 	void InitShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, ComPtr<ID3D11VertexShader>& _VS, ComPtr<ID3D11InputLayout>& _IL);
 
 	void CreateWindowResources(HWND& _hWnd);
-	//void CreateCube(void);
-	void CreateCube(Object* _name, float _xPos, float _yPos, float _zPos);
 
 	void Update(void);
 	void Render(void);
+
+	void UpdateConstantBuffer(XMMATRIX _modelsMatrix);
 
 	//bool ReadInBinaryMeshFile(Object& _fillOutObject);
 	//bool ReadInAdvancedBinaryMeshFile(const char* _fileName, Object& _fillOutObject);
