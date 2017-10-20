@@ -147,18 +147,27 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="DebugRenderer.h" />
     <ClInclude Include="EngineBJF.h" />
     <ClInclude Include="FbxLibraryDLLLoaderAndFileReader.h" />
+    <ClInclude Include="Object.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="ShaderStructures.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Terrain.h" />
     <ClInclude Include="WICTextureLoader.h" />
     <ClInclude Include="XTime.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="DebugRenderer.cpp" />
     <ClCompile Include="EngineBJF.cpp" />
     <ClCompile Include="FbxLibraryDLLLoaderAndFileReader.cpp" />
+    <ClCompile Include="Object.cpp" />
     <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="WICTextureLoader.cpp" />
     <ClCompile Include="XTime.cpp" />
   </ItemGroup>

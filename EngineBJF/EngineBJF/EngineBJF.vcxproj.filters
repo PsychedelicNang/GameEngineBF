@@ -16,6 +16,12 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{65d69474-84d1-4b32-8f05-6deed45f15c0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Vertex Shaders">
+      <UniqueIdentifier>{6db708a3-56a4-4d97-ab77-56543f59b75a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Pixel Shaders">
+      <UniqueIdentifier>{322fc30b-3d2e-420c-b842-e3299ca3ec3d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -39,6 +45,21 @@
     <ClInclude Include="FbxLibraryDLLLoaderAndFileReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Terrain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderStructures.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EngineBJF.cpp">
@@ -56,6 +77,18 @@
     <ClCompile Include="FbxLibraryDLLLoaderAndFileReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Terrain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="EngineBJF.rc">
@@ -71,16 +104,32 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
+    <FxCompile Include="PS_AdvancedMesh.hlsl">
+      <Filter>Shaders\Pixel Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PS_Standard.hlsl">
+      <Filter>Shaders\Pixel Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PS_Material.hlsl">
+      <Filter>Shaders\Pixel Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="TestPixelShader.hlsl">
+      <Filter>Shaders\Pixel Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="TestVertexShader.hlsl">
+      <Filter>Shaders\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VS_AdvancedMesh.hlsl">
+      <Filter>Shaders\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VS_Material.hlsl">
+      <Filter>Shaders\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VS_Standard.hlsl">
+      <Filter>Shaders\Vertex Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="PS_AdvancedMesh.hlsl" />
-    <FxCompile Include="PS_Material.hlsl" />
-    <FxCompile Include="PS_Standard.hlsl" />
-    <FxCompile Include="TestPixelShader.hlsl" />
-    <FxCompile Include="TestVertexShader.hlsl" />
-    <FxCompile Include="VS_AdvancedMesh.hlsl" />
-    <FxCompile Include="VS_Material.hlsl" />
-    <FxCompile Include="VS_Standard.hlsl" />
+    <Text Include="ReadMe.txt" />
   </ItemGroup>
 </Project>

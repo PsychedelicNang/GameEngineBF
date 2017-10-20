@@ -221,7 +221,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			float delta_time = sceneManager->timeBetweenFrames;
 			GetCursorPos(&sceneManager->currCursorPos);
 			ScreenToClient(hWnd, &sceneManager->currCursorPos);
-			sceneManager->CameraMouseLook(sceneManager->m_camera, (sceneManager->currCursorPos.x - sceneManager->prevCursorPos.x) * delta_time * 7.f, (sceneManager->currCursorPos.y - sceneManager->prevCursorPos.y) * delta_time * 7.f);
+			//sceneManager->CameraMouseLook(sceneManager->m_camera, (sceneManager->currCursorPos.x - sceneManager->prevCursorPos.x) * delta_time * 7.f, (sceneManager->currCursorPos.y - sceneManager->prevCursorPos.y) * delta_time * 7.f);
 			sceneManager->prevCursorPos = sceneManager->currCursorPos;
 		}
 		GetCursorPos(&sceneManager->prevCursorPos);
