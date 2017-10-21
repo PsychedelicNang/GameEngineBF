@@ -66,7 +66,7 @@ private:
 	bool InitializeRenderTargetView();
 	bool InitializeRasterizerState();
 	bool InitializeViewport(int _screenWidth, int _screenHeight);
-	bool InitializeClassMatrices(int _screenWidth, int _screenHeight, float _screenDepth, float _screenNear);
+	bool InitializeClassMatrices(int _screenWidth, int _screenHeight, float _screenFar, float _screenNear);
 
 	void ShutdownComponents();
 };

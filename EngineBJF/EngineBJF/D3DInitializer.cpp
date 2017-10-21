@@ -19,7 +19,7 @@ D3DInitializer::~D3DInitializer()
 
 // Initializes all D3D11 components
 // Returns false if ANY of the components fail to be created
-bool D3DInitializer::Initialize(int _screenWidth, int _screenHeight, bool _vsync, HWND _hwnd, bool _fullscreen, float _screenDepth, float _screenNear)
+bool D3DInitializer::Initialize(int _screenWidth, int _screenHeight, bool _vsync, HWND _hwnd, bool _fullscreen, float _screenFar, float _screenNear)
 {
 	unsigned refreshRateNumerator, refreshRateDenominator;
 
@@ -45,7 +45,7 @@ bool D3DInitializer::Initialize(int _screenWidth, int _screenHeight, bool _vsync
 	if (!InitializeViewport(_screenWidth, _screenHeight))																					return false;
 
 	// Creates the World, Projection, and an Orthogonal matrix (for HUD and 2D text information) for this class.
-	if (!InitializeClassMatrices(_screenWidth, _screenHeight, _screenDepth, _screenNear))													return false;
+	if (!InitializeClassMatrices(_screenWidth, _screenHeight, _screenFar, _screenNear))													return false;
 
 	return true;
 }
@@ -237,7 +237,6 @@ bool D3DInitializer::InitializeDeviceAndSwapChain(int _screenWidth, int _screenH
 {
 	HRESULT result;
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
-	D3D_FEATURE_LEVEL featureLevel;
 
 	// Initialize the swap chain description.
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
@@ -307,7 +306,7 @@ bool D3DInitializer::InitializeDeviceAndSwapChain(int _screenWidth, int _screenH
 	swapChainDesc.Flags = 0;
 
 	// Create the swap chain, Direct3D device, and Direct3D device context.
-	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, &featureLevel, numFeatureLevels,
+	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, featureLevels, numFeatureLevels,
 		D3D11_SDK_VERSION, &swapChainDesc, m_swapChain.GetAddressOf(), m_device.GetAddressOf(), NULL, m_deviceContext.GetAddressOf());
 	if (FAILED(result))
 	{
@@ -474,7 +473,7 @@ bool D3DInitializer::InitializeViewport(int _screenWidth, int _screenHeight)
 	return true;
 }
 
-bool D3DInitializer::InitializeClassMatrices(int _screenWidth, int _screenHeight, float _screenDepth, float _screenNear)
+bool D3DInitializer::InitializeClassMatrices(int _screenWidth, int _screenHeight, float _screenFar, float _screenNear)
 {
 	float fieldOfView, screenAspect;
 	// Setup the projection matrix.
@@ -482,11 +481,11 @@ bool D3DInitializer::InitializeClassMatrices(int _screenWidth, int _screenHeight
 	screenAspect = (float)_screenWidth / (float)_screenHeight;
 
 	// Create the projection matrix for 3D rendering.
-	m_projectionMatrix = XMMatrixPerspectiveFovLH(fieldOfView, screenAspect, _screenNear, _screenDepth);
+	m_projectionMatrix = XMMatrixPerspectiveFovLH(fieldOfView, screenAspect, _screenNear, _screenFar);
 	m_worldMatrix = XMMatrixIdentity();
 
 	// Create an orthographic projection matrix for 2D rendering.
-	m_orthoMatrix = XMMatrixOrthographicLH((float)_screenWidth, (float)_screenHeight, _screenNear, _screenDepth);
+	m_orthographicMatrix = XMMatrixOrthographicLH((float)_screenWidth, (float)_screenHeight, _screenNear, _screenFar);
 
 	return true;
 }

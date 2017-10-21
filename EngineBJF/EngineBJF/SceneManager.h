@@ -13,6 +13,7 @@
 #include "MeshComponents.h"
 
 #include "IncludesBJF.h"
+#include "D3DInitializer.h"
 #include "DebugRenderer.h"
 #include "Terrain.h"
 #include "Object.h"
@@ -45,6 +46,7 @@ public:
 	Camera* myCamera;
 	Terrain* myTerrain;
 	DebugRenderer* myDebugRenderer;
+	D3DInitializer* myD3DClass;
 	
 	//struct PPVStuff {
 	//	std::vector<ID3D11ShaderResourceView*> m_materialsSRVs;
@@ -66,11 +68,7 @@ public:
 	XTime timer;
 	float timeBetweenFrames;
 
-	ComPtr<ID3D11Device>				m_device;
-	ComPtr<ID3D11DeviceContext>			m_imedContext;
-	ComPtr<IDXGISwapChain>				m_swapChain;
 	ComPtr<ID3D11Buffer>				m_constantBuffer;
-	D3D11_VIEWPORT						m_viewport;
 
 	float radians;
 
@@ -82,15 +80,10 @@ public:
 
 	bool LoadCompiledShaderData(char **byteCode, size_t &byteCodeSize, const char *fileName);
 
-	void InitViewport(D3D11_VIEWPORT& _viewport);
-	void InitDepthBuffer(ComPtr<ID3D11Texture2D>& _depthBuffer);
-	void InitDepthState(ComPtr<ID3D11DepthStencilState>& _depthState);
-	void InitDepthView(ComPtr<ID3D11DepthStencilView>& _depthView);
-	void InitRasterState(ComPtr<ID3D11RasterizerState>& _rasterState);
 	void InitConstantBuffer(ComPtr<ID3D11Buffer>& _buffer);
 	void InitShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, ComPtr<ID3D11VertexShader>& _VS, ComPtr<ID3D11InputLayout>& _IL);
 
-	void CreateWindowResources(HWND& _hWnd);
+	//void CreateWindowResources(HWND& _hWnd);
 
 	void Update(void);
 	void Render(void);
@@ -102,7 +95,7 @@ public:
 	
 	void SetPipelineStates(PipelineState& _pS);
 	void CheckUserInput(WPARAM wParam);
-	void RunTaskList(HWND& _hWnd);
+	void RunTaskList(int _screenWidth, int _screenHeight, bool _vsync, HWND& _hwnd, bool _fullscreen, float _screenFar, float _screenNear);
 	//void RunDebugMessage(void);
 	
 	bool RunFbxLoader(void);

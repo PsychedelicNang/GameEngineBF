@@ -14,6 +14,7 @@ SceneManager::SceneManager()
 	myCamera = new Camera();
 	myTerrain = new Terrain();
 	myDebugRenderer = new DebugRenderer();
+	myD3DClass = new D3DInitializer();
 	radians = 0.0001f;
 	mouseMove = false;
 	m_cameraState = lookAtOrigin;
@@ -26,54 +27,17 @@ SceneManager::~SceneManager()
 	myCube->Shutdown();
 	//myCamera->Shutdown();
 	myTerrain->Shutdown();
+	myD3DClass->Shutdown();
 	//myDebugRenderer->Shutdown();
 	//if (myCube) delete myCube;
 	//delete myCamera;
 	//delete myTerrain;
 }
 
-void SceneManager::InitViewport(D3D11_VIEWPORT & _viewport)
-{
-	_viewport.Width = WIDTH;
-	_viewport.Height = HEIGHT;
-	_viewport.MinDepth = 0.0f;
-	_viewport.MaxDepth = 1.0f;
-	_viewport.TopLeftX = 0;
-	_viewport.TopLeftY = 0;
-	m_imedContext->RSSetViewports(1, &_viewport);
-}
-
-void SceneManager::InitDepthBuffer(ComPtr<ID3D11Texture2D>& _depthBuffer)
-{
-	CD3D11_TEXTURE2D_DESC depthStencilDesc(DXGI_FORMAT_D32_FLOAT, WIDTH, HEIGHT, 1, 0, D3D11_BIND_DEPTH_STENCIL, D3D11_USAGE_DEFAULT, 0, 1, 0);
-	// DXGI_FORMAT_D24_UNORM_S8_UINT or DXGI_FORMAT_D32_FLOAT... must match depth view
-	m_device->CreateTexture2D(&depthStencilDesc, nullptr, _depthBuffer.GetAddressOf());
-}
-
-void SceneManager::InitDepthState(ComPtr<ID3D11DepthStencilState>& _depthState)
-{
-	CD3D11_DEPTH_STENCIL_DESC depthStencilStateDesc = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
-	m_device->CreateDepthStencilState(&depthStencilStateDesc, _depthState.GetAddressOf());
-}
-
-void SceneManager::InitDepthView(ComPtr<ID3D11DepthStencilView>& _depthView)
-{
-	CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D, DXGI_FORMAT_D32_FLOAT, 0);
-	// DXGI_FORMAT_D24_UNORM_S8_UINT or DXGI_FORMAT_D32_FLOAT... must match depth buffer
-	m_device->CreateDepthStencilView(m_defaultPipeline.depthStencilBuffer.Get(), nullptr, _depthView.GetAddressOf());
-}
-
-void SceneManager::InitRasterState(ComPtr<ID3D11RasterizerState>& _rasterState)
-{
-	CD3D11_RASTERIZER_DESC rasterStateDesc = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
-	//rasterStateDesc.CullMode = D3D11_CULL_NONE;
-	m_device->CreateRasterizerState(&rasterStateDesc, _rasterState.GetAddressOf());
-}
-
 void SceneManager::InitConstantBuffer(ComPtr<ID3D11Buffer>& _buffer)
 {
 	CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
-	m_device->CreateBuffer(&constantBufferDesc, nullptr, _buffer.GetAddressOf());
+	myD3DClass->GetDevice()->CreateBuffer(&constantBufferDesc, nullptr, _buffer.GetAddressOf());
 }
 
 void SceneManager::InitShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, ComPtr<ID3D11VertexShader>& _VS, ComPtr<ID3D11InputLayout>& _IL)
@@ -81,67 +45,26 @@ void SceneManager::InitShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, Com
 	char* bytecode = nullptr;
 	size_t byteCodeSize = 0;
 	LoadCompiledShaderData(&bytecode, byteCodeSize, "PS_Standard.cso");
-	m_device->CreatePixelShader(bytecode, byteCodeSize, nullptr, _PS.GetAddressOf());
+	myD3DClass->GetDevice()->CreatePixelShader(bytecode, byteCodeSize, nullptr, _PS.GetAddressOf());
 	delete[] bytecode;
 
 	char* bytecode2 = nullptr;
 	size_t byteCodeSize2 = 0;
 	LoadCompiledShaderData(&bytecode2, byteCodeSize2, "VS_Standard.cso");
-	m_device->CreateVertexShader(bytecode2, byteCodeSize2, nullptr, _VS.GetAddressOf());
+	myD3DClass->GetDevice()->CreateVertexShader(bytecode2, byteCodeSize2, nullptr, _VS.GetAddressOf());
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
-	HRESULT hr = m_device->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), bytecode2, byteCodeSize2, _IL.GetAddressOf());
+	HRESULT hr = myD3DClass->GetDevice()->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), bytecode2, byteCodeSize2, _IL.GetAddressOf());
 	delete[] bytecode2;
 }
 
 void SceneManager::SetPipelineStates(PipelineState& _pipeState)
 {
-	m_imedContext->IASetInputLayout(_pipeState.input_layout.Get());
-	m_imedContext->VSSetShader(_pipeState.vertex_shader.Get(), NULL, 0);
-	m_imedContext->PSSetShader(_pipeState.pixel_shader.Get(), NULL, 0);
-}
-
-void SceneManager::CreateWindowResources(HWND& _hWnd)
-{
-	DXGI_SWAP_CHAIN_DESC swapDesc;
-	ZeroMemory(&swapDesc, sizeof(swapDesc));
-	swapDesc.BufferCount = 1;
-	swapDesc.BufferDesc.Width = WIDTH;
-	swapDesc.BufferDesc.Height = HEIGHT;
-	swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	swapDesc.BufferDesc.RefreshRate.Numerator = 60;
-	swapDesc.BufferDesc.RefreshRate.Denominator = 1;
-	swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapDesc.OutputWindow = _hWnd;
-	swapDesc.SampleDesc.Count = 1;
-	swapDesc.SampleDesc.Quality = 0;
-	swapDesc.Windowed = TRUE;
-
-	D3D_FEATURE_LEVEL featureLevels[] =
-	{
-		D3D_FEATURE_LEVEL_11_1,
-		D3D_FEATURE_LEVEL_11_0,
-		D3D_FEATURE_LEVEL_10_1,
-		D3D_FEATURE_LEVEL_10_0,
-	};
-	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
-
-	UINT createDeviceFlags = 0;
-#ifdef _DEBUG
-	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
-
-	D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, createDeviceFlags, featureLevels, numFeatureLevels,
-		D3D11_SDK_VERSION, &swapDesc, &m_swapChain, &m_device, NULL, &m_imedContext);
-
-	ID3D11Texture2D *m_BackBuffer;
-	CD3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc(D3D11_RTV_DIMENSION_TEXTURE2D);
-	m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&m_BackBuffer);
-	m_device->CreateRenderTargetView(m_BackBuffer, &renderTargetViewDesc, m_defaultPipeline.render_target.GetAddressOf());
-
-	m_BackBuffer->Release();
+	myD3DClass->GetDeviceContext()->IASetInputLayout(_pipeState.input_layout.Get());
+	myD3DClass->GetDeviceContext()->VSSetShader(_pipeState.vertex_shader.Get(), NULL, 0);
+	myD3DClass->GetDeviceContext()->PSSetShader(_pipeState.pixel_shader.Get(), NULL, 0);
 }
 
 void SceneManager::Update(void)
@@ -228,22 +151,20 @@ void SceneManager::Update(void)
 void SceneManager::Render(void)
 {
 	float RGBA[4] = { .25f, .5f, 1.f, 1.f };
-
-	m_imedContext->OMSetRenderTargets(1, m_defaultPipeline.render_target.GetAddressOf(), m_defaultPipeline.depthStencilView.Get());
-	m_imedContext->ClearRenderTargetView(m_defaultPipeline.render_target.Get(), RGBA);
-	m_imedContext->ClearDepthStencilView(m_defaultPipeline.depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	myD3DClass->BeginScene(RGBA);
 
 	SetPipelineStates(m_defaultPipeline);
 
 	UpdateConstantBuffer(myCube->GetObjectMatrix());
-	myCube->Render(m_imedContext);
+	myCube->Render(myD3DClass->GetDeviceContext());
 
 	UpdateConstantBuffer(XMMatrixIdentity());
-	myTerrain->Render(m_imedContext);
+	myTerrain->Render(myD3DClass->GetDeviceContext());
 
-	myDebugRenderer->CreateVertexBuffer(m_device);
-	myDebugRenderer->Render(m_device, m_imedContext);
-	m_swapChain->Present(0, 0);
+	myDebugRenderer->CreateVertexBuffer(myD3DClass->GetDevice());
+	myDebugRenderer->Render(myD3DClass->GetDevice(), myD3DClass->GetDeviceContext());
+
+	myD3DClass->EndScene();
 }
 
 void SceneManager::UpdateConstantBuffer(XMMATRIX _modelsMatrix)
@@ -251,8 +172,8 @@ void SceneManager::UpdateConstantBuffer(XMMATRIX _modelsMatrix)
 	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(_modelsMatrix));
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.view)));
 	XMStoreFloat4x4(&m_constantBufferData.projection, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.projection)));
-	m_imedContext->UpdateSubresource(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0);
-	m_imedContext->VSSetConstantBuffers(0, 1, m_constantBuffer.GetAddressOf());
+	myD3DClass->GetDeviceContext()->UpdateSubresource(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0);
+	myD3DClass->GetDeviceContext()->VSSetConstantBuffers(0, 1, m_constantBuffer.GetAddressOf());
 }
 
 bool SceneManager::LoadCompiledShaderData(char **byteCode, size_t &byteCodeSize, const char *fileName)
@@ -270,20 +191,15 @@ bool SceneManager::LoadCompiledShaderData(char **byteCode, size_t &byteCodeSize,
 	return true;
 }
 
-void SceneManager::RunTaskList(HWND& _hWnd)
+void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync, HWND& _hwnd, bool _fullscreen, float _screenFar, float _screenNear)
 {
-	CreateWindowResources(_hWnd);
-	InitViewport(m_viewport);
+	bool result = myD3DClass->Initialize(_screenWidth, _screenHeight, _vsync, _hwnd, _fullscreen, _screenFar, _screenNear);
 	InitConstantBuffer(m_constantBuffer);
-	InitDepthBuffer(m_defaultPipeline.depthStencilBuffer);
-	InitDepthState(m_defaultPipeline.depthStencilState);
-	InitDepthView(m_defaultPipeline.depthStencilView);
-	InitRasterState(m_defaultPipeline.rasterState);
 	InitShadersAndInputLayout(m_defaultPipeline.pixel_shader, m_defaultPipeline.vertex_shader, m_defaultPipeline.input_layout);
 	
-	myCube->Initialize(m_device);
+	myCube->Initialize(myD3DClass->GetDevice());
 	myCamera->Initialize();
-	myTerrain->Initialize(m_device);
+	myTerrain->Initialize(myD3DClass->GetDevice());
 	
 	/*const char* iFilename01 = "terrain.fbx";
 	const char* oFilePath = "terrain.mesh";

@@ -13,6 +13,11 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 HWND hWnd;
 SceneManager* sceneManager;
 
+const bool FULL_SCREEN = false;
+const bool VSYNC_ENABLED = true;
+const float SCREEN_FAR = 1000.0f;
+const float SCREEN_NEAR = 0.1f;
+
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
@@ -50,7 +55,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	GetCursorPos(&sceneManager->prevCursorPos);
 	ScreenToClient(hWnd, &sceneManager->prevCursorPos);
-	sceneManager->RunTaskList(hWnd);
+	sceneManager->RunTaskList(WIDTH, HEIGHT, VSYNC_ENABLED, hWnd, FULL_SCREEN, SCREEN_FAR, SCREEN_NEAR);
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_ENGINEBJF));
 
