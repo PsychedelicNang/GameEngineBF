@@ -151,8 +151,11 @@
     <ClInclude Include="D3DInitializer.h" />
     <ClInclude Include="DebugRenderer.h" />
     <ClInclude Include="EngineBJF.h" />
-    <ClInclude Include="FbxLibraryDLLLoaderAndFileReader.h" />
+    <ClInclude Include="FbxLibraryDLLMaterialHandler.h" />
+    <ClInclude Include="FbxLibraryDLLMeshHandler.h" />
     <ClInclude Include="IncludesBJF.h" />
+    <ClInclude Include="MaterialComponents.h" />
+    <ClInclude Include="MeshComponents.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SceneManager.h" />
@@ -167,7 +170,8 @@
     <ClCompile Include="D3DInitializer.cpp" />
     <ClCompile Include="DebugRenderer.cpp" />
     <ClCompile Include="EngineBJF.cpp" />
-    <ClCompile Include="FbxLibraryDLLLoaderAndFileReader.cpp" />
+    <ClCompile Include="FbxLibraryDLLMaterialHandler.cpp" />
+    <ClCompile Include="FbxLibraryDLLMeshHandler.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Terrain.cpp" />

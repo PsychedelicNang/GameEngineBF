@@ -16,7 +16,7 @@ namespace MaterialComponents {
 
 		struct properties_t {
 			std::string filePath;	// "WasNotGiven" if there is not file path
-			float4 value;			// any value which is -1 represents no value
+			float4 value;			// any value which is -1 represents no valid value or N/A (meaing -1,-1,-1,.5f would represent the data type is a single floating point value)
 		};
 		std::map<properties, properties_t> m_mapPropValues;
 		std::map<properties, properties_t>::iterator m_mapPropValuesIter;

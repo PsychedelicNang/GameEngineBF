@@ -4,6 +4,8 @@
 #include "SceneManager.h"
 
 #define MAX_LOADSTRING 100
+#define WIDTH 1024
+#define HEIGHT 768
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
@@ -44,7 +46,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	FILE* new_std_in_out;
 	freopen_s(&new_std_in_out, "CONOUT$", "w", stdout);
 	freopen_s(&new_std_in_out, "CONIN$", "r", stdin);
-	std::cout << "Hello world!\n";
+	printf("Project is running in Debug mode\n");
 #endif
 
     // Perform application initialization:

@@ -1,18 +1,19 @@
 #pragma once
-///////////////////////
-// Filename: D3DInitializer.h
-///////////////////////
+/***************************
+ * Filename: D3DInitializer.h
+***************************/
 #ifndef _D3DINITIALIZER_H_
 #define _D3DINITIALIZER_H_
 
-///////////////////////
-// LINKING
+/***************************
+ * LINKING
+/***************************/
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3d11.lib")
 
-///////////////////////
-// INCLUDES
-///////////////////////
+/***************************
+ * INCLUDES
+***************************/
 #include "IncludesBJF.h"
 #include <dxgi.h>
 #include <d3d11.h>

@@ -16,7 +16,7 @@ namespace MeshComponents {
 	};
 
 	struct OutInformation {
-		std::vector<unsigned> oi_indices;
+		std::vector<int> oi_indices;
 		std::vector<VertexPositionColor> oi_vertices;
 	};
 }

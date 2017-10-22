@@ -160,7 +160,6 @@
   <ItemGroup>
     <ClInclude Include="FbxLibraryDLL.h" />
     <ClInclude Include="MaterialComponents.h" />
-    <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshComponents.h" />
   </ItemGroup>
   <ItemGroup>

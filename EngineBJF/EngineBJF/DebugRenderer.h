@@ -1,13 +1,13 @@
 #pragma once
-///////////////////////
-// Filename: DebugRenderer.h
-///////////////////////
+/***************************
+* Filename: DebugRenderer.h
+***************************/
 #ifndef _DEBUGRENDERER_H_
 #define _DEBUGRENDERER_H_
 
-///////////////////////
-// INCLUDES
-///////////////////////
+/***************************
+* INCLUDES
+***************************/
 #include "IncludesBJF.h"
 
 class DebugRenderer {

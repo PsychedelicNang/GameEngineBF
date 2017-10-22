@@ -51,9 +51,6 @@
     <ClInclude Include="Terrain.h">
       <Filter>Header Files\New classes</Filter>
     </ClInclude>
-    <ClInclude Include="FbxLibraryDLLLoaderAndFileReader.h">
-      <Filter>Header Files\Old classes</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files\Old classes</Filter>
     </ClInclude>
@@ -78,6 +75,18 @@
     <ClInclude Include="D3DInitializer.h">
       <Filter>Header Files\New classes</Filter>
     </ClInclude>
+    <ClInclude Include="FbxLibraryDLLMeshHandler.h">
+      <Filter>Header Files\New classes</Filter>
+    </ClInclude>
+    <ClInclude Include="FbxLibraryDLLMaterialHandler.h">
+      <Filter>Header Files\New classes</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialComponents.h">
+      <Filter>Header Files\Old classes</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshComponents.h">
+      <Filter>Header Files\Old classes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp">
@@ -98,9 +107,6 @@
     <ClCompile Include="XTime.cpp">
       <Filter>Source Files\Old classes</Filter>
     </ClCompile>
-    <ClCompile Include="FbxLibraryDLLLoaderAndFileReader.cpp">
-      <Filter>Source Files\Old classes</Filter>
-    </ClCompile>
     <ClCompile Include="SceneManager.cpp">
       <Filter>Source Files\Old classes</Filter>
     </ClCompile>
@@ -108,6 +114,12 @@
       <Filter>Source Files\Old classes</Filter>
     </ClCompile>
     <ClCompile Include="D3DInitializer.cpp">
+      <Filter>Source Files\New classes</Filter>
+    </ClCompile>
+    <ClCompile Include="FbxLibraryDLLMeshHandler.cpp">
+      <Filter>Source Files\New classes</Filter>
+    </ClCompile>
+    <ClCompile Include="FbxLibraryDLLMaterialHandler.cpp">
       <Filter>Source Files\New classes</Filter>
     </ClCompile>
   </ItemGroup>

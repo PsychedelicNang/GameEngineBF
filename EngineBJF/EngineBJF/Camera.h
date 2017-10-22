@@ -1,13 +1,13 @@
 #pragma once
-///////////////////////
-// Filename: Camera.h
-///////////////////////
+/***************************
+* Filename: Camera.h
+***************************/
 #ifndef _CAMERA_H_
 #define _CAMERA_H_
 
-///////////////////////
-// INCLUDES
-///////////////////////
+/***************************
+* INCLUDES
+***************************/
 #include "IncludesBJF.h"
 
 class Camera {

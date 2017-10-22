@@ -1,13 +1,13 @@
 #pragma once
-///////////////////////
-// Filename: IncludesBJF.h
-///////////////////////
+/***************************
+* Filename: IncludesBJF.h
+***************************/
 #ifndef _INCLUDESBJF_H_
 #define _INCLUDESBJF_H_
 
-///////////////////////
-// INCLUDES
-///////////////////////
+/***************************
+* INCLUDES
+***************************/
 #include <d3d11.h>			// ID3D11 & D3D11
 #pragma comment(lib, "d3d11.lib")
 #include <DirectXMath.h>	// XMFLOAT

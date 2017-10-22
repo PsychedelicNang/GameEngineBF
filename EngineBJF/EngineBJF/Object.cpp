@@ -1,16 +1,19 @@
 #include "Object.h"
 Object::Object()
 {
-	ComPtr<ID3D11Buffer>	m_vertexBuffer = nullptr;
-	ComPtr<ID3D11Buffer>	m_indexBuffer = nullptr;
-	int						m_indexCount = 0;
+	m_vertexBuffer = nullptr;
+	m_indexBuffer = nullptr;
+	m_indexCount = 0;
+	m_vertexCount = 0;
+	m_stride = 0;
+	m_hasIndexBuffer = false;
 	m_matrix = {
 		1, 0, 0, 0,
 		0, 1, 0, 0,
 		0, 0, 1, 0,
 		0, 0, 0, 1 };
-	ComPtr<ID3D11Texture2D>				m_texture = nullptr;
-	ComPtr<ID3D11ShaderResourceView>	m_shaderResourceView = nullptr;
+	m_texture = nullptr;
+	m_shaderResourceView = nullptr;
 }
 
 Object::~Object()
@@ -58,44 +61,64 @@ XMMATRIX Object::GetObjectMatrix()
 	return XMLoadFloat4x4(&m_matrix);
 }
 
-void Object::ObjectTranslation(Object& _name, XMVECTOR _traslationAmount)
+void Object::ObjectTranslation(XMVECTOR _traslationAmount)
 {
-	XMStoreFloat4x4(&_name.m_matrix, XMMatrixMultiply(XMLoadFloat4x4(&_name.m_matrix), XMMatrixTranslationFromVector(_traslationAmount)));
+	XMStoreFloat4x4(&m_matrix, XMMatrixMultiply(XMLoadFloat4x4(&m_matrix), XMMatrixTranslationFromVector(_traslationAmount)));
 }
 
-void Object::ObjectTranslationX(Object& _name, float _xDelta)
+void Object::ObjectTranslationX(float _xDelta)
 {
-	XMStoreFloat4x4(&_name.m_matrix, XMMatrixMultiply(XMLoadFloat4x4(&_name.m_matrix), XMMatrixTranslation(_xDelta, 0.f, 0.f)));
+	XMStoreFloat4x4(&m_matrix, XMMatrixMultiply(XMLoadFloat4x4(&m_matrix), XMMatrixTranslation(_xDelta, 0.f, 0.f)));
 }
 
-void Object::ObjectTranslationY(Object& _name, float _yDelta)
+void Object::ObjectTranslationY(float _yDelta)
 {
-	XMStoreFloat4x4(&_name.m_matrix, XMMatrixMultiply(XMLoadFloat4x4(&_name.m_matrix), XMMatrixTranslation(0.f, _yDelta, 0.f)));
+	XMStoreFloat4x4(&m_matrix, XMMatrixMultiply(XMLoadFloat4x4(&m_matrix), XMMatrixTranslation(0.f, _yDelta, 0.f)));
 }
 
-void Object::ObjectTranslationZ(Object& _name, float _zDelta)
+void Object::ObjectTranslationZ(float _zDelta)
 {
-	XMStoreFloat4x4(&_name.m_matrix, XMMatrixMultiply(XMLoadFloat4x4(&_name.m_matrix), XMMatrixTranslation(0.f, 0.f, _zDelta)));
+	XMStoreFloat4x4(&m_matrix, XMMatrixMultiply(XMLoadFloat4x4(&m_matrix), XMMatrixTranslation(0.f, 0.f, _zDelta)));
 }
 
-void Object::ObjectTranslation(Object& _name, float _xDelta, float _yDelta, float _zDelta)
+void Object::ObjectTranslation(float _xDelta, float _yDelta, float _zDelta)
 {
-	XMStoreFloat4x4(&_name.m_matrix, XMMatrixMultiply(XMLoadFloat4x4(&_name.m_matrix), XMMatrixTranslation(_xDelta, _yDelta, _zDelta)));
+	XMStoreFloat4x4(&m_matrix, XMMatrixMultiply(XMLoadFloat4x4(&m_matrix), XMMatrixTranslation(_xDelta, _yDelta, _zDelta)));
 }
 
-void Object::ObjectChangePosition(Object & _name, float _xDelta, float _yDelta, float _zDelta)
+void Object::ObjectChangePosition(float _newXPosition, float _newYPosition, float _newZPosition)
 {
-	XMStoreFloat4x4(&_name.m_matrix, XMMatrixTranslation(_xDelta, _yDelta, _zDelta));
+	m_matrix = XMFLOAT4X4(
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+		_newXPosition, _newYPosition, _newZPosition, 1);
 }
 
-void Object::ObjectRotationY(Object & _name, float _radians)
+void Object::ObjectRotationY(float _radians)
 {
-	XMStoreFloat4x4(&_name.m_matrix, XMMatrixMultiply(XMMatrixRotationY(_radians), XMLoadFloat4x4(&_name.m_matrix)));
+	XMStoreFloat4x4(&m_matrix, XMMatrixMultiply(XMMatrixRotationY(_radians), XMLoadFloat4x4(&m_matrix)));
+}
+
+bool Object::ReadInMeshFromBinaryFile(ComPtr<ID3D11Device>& _device, const char * _fileName)
+{
+	if (!ReadInBinaryMeshFile(_device, _fileName)) return false;
+
+	return true;
+}
+
+bool Object::ReadInAdvancedMeshFromBinaryFile(ComPtr<ID3D11Device>& _device, const char * _fileName)
+{
+	if (!ReadInAdvancedBinaryMeshFile(_device, _fileName)) return false;
+
+	return true;
 }
 
 bool Object::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 {
+#if 0
 	HRESULT result;
+
 	// Load mesh vertices. Each vertex has a position and a color.
 	VertexPositionColor cubeVertices[] =
 	{
@@ -119,7 +142,10 @@ bool Object::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 	vertexBufferData.SysMemSlicePitch = 0;
 	CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(cubeVertices), D3D11_BIND_VERTEX_BUFFER);
 	result = _device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, m_vertexBuffer.GetAddressOf());
-	if (result != S_OK) return false;
+	if (FAILED(result))
+	{
+		return false;
+	}
 
 	static const unsigned cubeIndices[] =
 	{
@@ -150,7 +176,10 @@ bool Object::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 	indexBufferData.SysMemSlicePitch = 0;
 	CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
 	result = _device->CreateBuffer(&indexBufferDesc, &indexBufferData, m_indexBuffer.GetAddressOf());
-	if (result != S_OK) return false;
+	if (FAILED(result))
+	{
+		return false;
+	}
 
 	m_matrix = DirectX::XMFLOAT4X4(
 		1, 0, 0, 0,
@@ -158,8 +187,120 @@ bool Object::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 		0, 0, 1, 0,
 		0, 0, 0, 1);
 
+	m_stride = sizeof(VertexPositionColor);
+	m_hasIndexBuffer = true;
+
 	return true;
+#endif
+
+#if 1
+	HRESULT result;
+
+	VertexPositionColorUVNormal cubeVertices[] =
+	{
+		//3, 1, 0,
+		{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
+		{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
+		{ XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
+		//2, 1, 3,
+		{ XMFLOAT4(1.0f,  1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
+		{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
+		{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) },
+		//0, 5, 4,
+		{ XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f) , XMFLOAT4(1.f, 0.f, 1.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, -1.f, 0.f) },
+		{ XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(1.f, 0.f, 1.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, -1.f, 0.f) },
+		{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f), XMFLOAT4(1.f, 0.f, 1.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, -1.f, 0.f) },
+		//1, 5, 0,
+		{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 1.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, -1.f, 0.f) },
+		{ XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 1.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, -1.f, 0.f) },
+		{ XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 1.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, -1.f, 0.f) },
+		//3, 4, 7,
+		{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 1.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(-1.f, 0.f, 0.f, 0.f) },
+		{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 1.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(-1.f, 0.f, 0.f, 0.f) },
+		{ XMFLOAT4(-1.0f, -1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 1.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f), XMFLOAT4(-1.f, 0.f, 0.f, 0.f) },
+		//0, 4, 3,
+		{ XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f)  , XMFLOAT4(0.f, 1.f, 1.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f), XMFLOAT4(-1.f, 0.f, 0.f, 0.f) },
+		{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 1.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(-1.f, 0.f, 0.f, 0.f) },
+		{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 1.f, 1.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(-1.f, 0.f, 0.f, 0.f) },
+		//1, 6, 5,
+		{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
+		{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
+		{ XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
+		//2, 6, 1,
+		{ XMFLOAT4(1.0f,  1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
+		{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
+		{ XMFLOAT4(1.0f,  1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) },
+		//2, 7, 6,
+		{ XMFLOAT4(1.0f,  1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 0.f, 1.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
+		{ XMFLOAT4(-1.0f, -1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 0.f, 1.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
+		{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 0.f, 1.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
+		//3, 7, 2,
+		{ XMFLOAT4(-1.0f,  1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 0.f, 1.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
+		{ XMFLOAT4(-1.0f, -1.0f,  1.0f, 1.0f) , XMFLOAT4(0.f, 0.f, 1.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
+		{ XMFLOAT4(1.0f,  1.0f,  1.0f, 1.0f)  , XMFLOAT4(0.f, 0.f, 1.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) },
+		//6, 4, 5,
+		{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 1.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, -1.f, 0.f, 0.f) },
+		{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(1.f, 1.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, -1.f, 0.f, 0.f) },
+		{ XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f)  , XMFLOAT4(1.f, 1.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, -1.f, 0.f, 0.f) },
+		//7, 4, 6,
+		{ XMFLOAT4(-1.0f, -1.0f,  1.0f, 1.0f) , XMFLOAT4(1.f, 1.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, -1.f, 0.f, 0.f) },
+		{ XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f) , XMFLOAT4(1.f, 1.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 0.f, 0.f), XMFLOAT4(0.f, -1.f, 0.f, 0.f) },
+		{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 1.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, -1.f, 0.f, 0.f) }
+	};
+
+	D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
+	vertexBufferData.pSysMem = cubeVertices;
+	vertexBufferData.SysMemPitch = 0;
+	vertexBufferData.SysMemSlicePitch = 0;
+	CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(cubeVertices), D3D11_BIND_VERTEX_BUFFER);
+	result = _device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, m_vertexBuffer.GetAddressOf());
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	static const unsigned cubeIndices[] =
+	{
+		0, 1, 2,
+		3, 4, 5,
+		6, 7, 8,
+		9, 10, 11,
+		12, 13, 14,
+		15, 16, 17,
+		18, 19, 20,
+		21, 22, 23,
+		24, 25, 26,
+		27, 28, 29,
+		30, 31, 32,
+		33, 34, 35
+	};
+	
+	m_indexCount = ARRAYSIZE(cubeIndices);
+	
+	D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
+	indexBufferData.pSysMem = cubeIndices;
+	indexBufferData.SysMemPitch = 0;
+	indexBufferData.SysMemSlicePitch = 0;
+	CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
+	result = _device->CreateBuffer(&indexBufferDesc, &indexBufferData, m_indexBuffer.GetAddressOf());
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	m_matrix = DirectX::XMFLOAT4X4(
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		3, 0, -5, 1);
+
+	m_stride = sizeof(VertexPositionColorUVNormal);
+	m_hasIndexBuffer = true;
+
+	return true;
+#endif
 }
+
 
 bool Object::InitializeBuffers(ComPtr<ID3D11Device>& _device, XMFLOAT4X4 _matrix)
 {
@@ -223,11 +364,176 @@ bool Object::InitializeBuffers(ComPtr<ID3D11Device>& _device, XMFLOAT4X4 _matrix
 	return true;
 }
 
+// Reads in a binary mesh file containing vertex and index position data and fills out the object of which this function was called from
+bool Object::ReadInBinaryMeshFile(ComPtr<ID3D11Device>& _device, const char * _fileName)
+{
+	std::fstream file;
+	file.open(_fileName, std::ios_base::binary | std::ios_base::in);
+	
+	if (file.is_open())
+	{
+		unsigned numOfIndices;
+		unsigned numOfVertices;
+	
+		file.read((char*)&numOfIndices, 4);
+	
+		unsigned* indices = new unsigned[numOfIndices];
+	
+		m_indexCount = numOfIndices;
+	
+		for (unsigned i = 0; i < numOfIndices; i++)
+			file.read((char*)(&indices[i]), sizeof(4));
+	
+		D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
+		indexBufferData.pSysMem = indices;
+		indexBufferData.SysMemPitch = 0;
+		indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC indexBufferDesc(sizeof(unsigned) * numOfIndices, D3D11_BIND_INDEX_BUFFER);
+		_device->CreateBuffer(&indexBufferDesc, &indexBufferData, m_indexBuffer.GetAddressOf());
+	
+		delete[] indices;
+	
+		file.read((char*)&numOfVertices, 4);
+	
+		VertexPositionColor* vertices = new VertexPositionColor[numOfVertices];
+	
+		for (unsigned i = 0; i < numOfVertices; i++)
+		{
+			file.read((char*)(&vertices[i].position.x), sizeof(4));
+			file.read((char*)(&vertices[i].position.y), sizeof(4));
+			file.read((char*)(&vertices[i].position.z), sizeof(4));
+			file.read((char*)(&vertices[i].position.w), sizeof(4));
+			//vertices[i].color = XMFLOAT4(1.f, 1.f, 1.f, 1.f);
+			vertices[i].color = XMFLOAT4(((float)i) / numOfVertices, ((float)i) / numOfVertices, ((float)i) / numOfVertices, 1.f);
+		}
+	
+		for (unsigned i = 0; i < numOfVertices; i++)
+			vertices[i].position.w = 1.f;
+	
+		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
+		vertexBufferData.pSysMem = vertices;
+		vertexBufferData.SysMemPitch = 0;
+		vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(VertexPositionColor) * numOfVertices, D3D11_BIND_VERTEX_BUFFER);
+		_device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, m_vertexBuffer.GetAddressOf());
+	
+		m_matrix = DirectX::XMFLOAT4X4(
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1);
+		m_indexCount = numOfIndices;
+		m_vertexCount = numOfVertices;
+		m_stride = sizeof(VertexPositionColor);
+		m_hasIndexBuffer = true;
+
+		delete[] vertices;
+	
+		file.close();
+		return true;
+	}
+	return false;
+}
+
+// Reads in a binary mesh file containing vertex and index Position, UV, and Normal data and fills out the object of which this function was called from
+bool Object::ReadInAdvancedBinaryMeshFile(ComPtr<ID3D11Device>& _device, const char * _fileName)
+{
+		std::fstream file;
+		file.open(_fileName, std::ios_base::binary | std::ios_base::in);
+	
+		if (file.is_open())
+		{
+			unsigned numOfIndices;
+			unsigned numOfVertices;
+	
+			file.read((char*)&numOfIndices, 4);
+	
+			unsigned* indices = new unsigned[numOfIndices];
+	
+			m_indexCount = numOfIndices;
+	
+			for (unsigned i = 0; i < numOfIndices; i++)
+				file.read((char*)(&indices[i]), sizeof(4));
+	
+			D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
+			indexBufferData.pSysMem = indices;
+			indexBufferData.SysMemPitch = 0;
+			indexBufferData.SysMemSlicePitch = 0;
+			CD3D11_BUFFER_DESC indexBufferDesc(sizeof(unsigned) * numOfIndices, D3D11_BIND_INDEX_BUFFER);
+			_device->CreateBuffer(&indexBufferDesc, &indexBufferData, m_indexBuffer.GetAddressOf());
+	
+			delete[] indices;
+	
+			file.read((char*)&numOfVertices, 4);
+	
+			VertexPositionColorUVNormal* vertices = new VertexPositionColorUVNormal[numOfVertices];
+	
+			for (unsigned i = 0; i < numOfVertices; i++)
+			{
+				file.read((char*)(&vertices[i].position.x), sizeof(4));
+				file.read((char*)(&vertices[i].position.y), sizeof(4));
+				file.read((char*)(&vertices[i].position.z), sizeof(4));
+				file.read((char*)(&vertices[i].position.w), sizeof(4));
+				//vertices[i].color = XMFLOAT4(.5f, 1.f, 1.f, 1.f);
+				vertices[i].color = XMFLOAT4(((float)i) / numOfVertices, ((float)i) / numOfVertices, ((float)i) / numOfVertices, 1.f);
+				
+				file.read((char*)(&vertices[i].normal.x), sizeof(4));
+				file.read((char*)(&vertices[i].normal.y), sizeof(4));
+				file.read((char*)(&vertices[i].normal.z), sizeof(4));
+				file.read((char*)(&vertices[i].normal.w), sizeof(4));
+	
+				file.read((char*)(&vertices[i].uv.x), sizeof(4));
+				file.read((char*)(&vertices[i].uv.y), sizeof(4));
+
+				/*************************************************/
+				/*	Subtract the V value from 1 due to
+				*	Because FBX models are created in a
+				*	Right handed coordinate system
+				*	and I'm using a Left handed cooridnate system
+				*/
+				vertices[i].uv.y = 1 - vertices[i].uv.y;
+				/*************************************************/
+
+				vertices[i].uv.z = 0.f;
+				vertices[i].uv.w = 0.f;
+			}
+	
+			for (unsigned i = 0; i < numOfVertices; i++)
+				vertices[i].position.w = 1.f;
+	
+			D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
+			vertexBufferData.pSysMem = vertices;
+			vertexBufferData.SysMemPitch = 0;
+			vertexBufferData.SysMemSlicePitch = 0;
+			CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(VertexPositionColorUVNormal) * numOfVertices, D3D11_BIND_VERTEX_BUFFER);
+			_device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, m_vertexBuffer.GetAddressOf());
+	
+			m_matrix = DirectX::XMFLOAT4X4(
+				1, 0, 0, 0,
+				0, 1, 0, 0,
+				0, 0, 1, 0,
+				0, 0, 0, 1);
+
+			m_indexCount = numOfIndices;
+			m_vertexCount = numOfVertices;
+			m_stride = sizeof(VertexPositionColorUVNormal);
+			m_hasIndexBuffer = true;
+	
+			delete[] vertices;
+	
+			file.close();
+			return true;
+		}
+		return false;
+}
+
 void Object::ShutdownBuffers()
 {
 	m_vertexBuffer.Reset();
 	m_indexBuffer.Reset();
 	m_indexCount = 0;
+	m_stride = 0;
+	m_hasIndexBuffer = false;
 	m_matrix = {
 		1, 0, 0, 0,
 		0, 1, 0, 0,
@@ -243,11 +549,16 @@ void Object::ShutdownTextures()
 
 void Object::RenderBuffers(ComPtr<ID3D11DeviceContext>& _deviceContext)
 {
-	unsigned int stride = sizeof(VertexPositionColor);
 	unsigned int offset = 0;
+	unsigned int stride = m_stride;
 
 	_deviceContext->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &stride, &offset);
-	_deviceContext->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 	_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	_deviceContext->DrawIndexed(m_indexCount, 0, 0);
+
+	if (m_hasIndexBuffer)
+	{
+		_deviceContext->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+		_deviceContext->DrawIndexed(m_indexCount, 0, 0);
+	}
+	else _deviceContext->Draw(m_vertexCount, 0);
 }

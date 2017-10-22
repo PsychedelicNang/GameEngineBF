@@ -1,13 +1,13 @@
 #pragma once
-///////////////////////
-// Filename: Terrain.h
-///////////////////////
+/***************************
+* Filename: Terrain.h
+***************************/
 #ifndef _TERRAIN_H_
 #define _TERRAIN_H_
 
-///////////////////////
-// INCLUDES
-///////////////////////
+/***************************
+* INCLUDES
+***************************/
 #include "IncludesBJF.h"
 
 class Terrain {

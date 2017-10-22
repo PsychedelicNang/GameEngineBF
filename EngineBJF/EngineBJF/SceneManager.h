@@ -1,30 +1,32 @@
 #pragma once
-#include <iostream>
-#include <fstream> 
-#include <vector>
-#include <fstream>
-#include "XTime.h"
-#include "resource.h"
-#include "ShaderStructures.h"
-#include "Mesh.h"
-#include "FbxLibraryDLLLoaderAndFileReader.h"
-#include "MaterialComponents.h"
-#include "WICTextureLoader.h"
-#include "MeshComponents.h"
+/***************************
+* Filename: SceneManager.h
+***************************/
+#ifndef _SCENEMANAGER_H_
+#define _SCENEMANAGER_H_
 
+/***************************
+* INCLUDES
+***************************/
 #include "IncludesBJF.h"
 #include "D3DInitializer.h"
 #include "DebugRenderer.h"
 #include "Terrain.h"
 #include "Object.h"
 #include "Camera.h"
+#include "FbxLibraryDLLMeshHandler.h"
+#include "FbxLibraryDLLMaterialHandler.h"
+
+#include "XTime.h"
+
+#include <fstream>
+#include <vector>
+#include "resource.h"
+#include "WICTextureLoader.h"
 
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
-
-#define WIDTH 1024
-#define HEIGHT 768
 
 class SceneManager {
 public:
@@ -41,20 +43,23 @@ public:
 		ComPtr<ID3D11DepthStencilView>		depthStencilView;
 		ComPtr<ID3D11RasterizerState>		rasterState;
 	} m_defaultPipeline;
-
-	Object* myCube;
-	Camera* myCamera;
-	Terrain* myTerrain;
-	DebugRenderer* myDebugRenderer;
-	D3DInitializer* myD3DClass;
-	
-	//struct PPVStuff {
-	//	std::vector<ID3D11ShaderResourceView*> m_materialsSRVs;
-	//	ComPtr<ID3D11PixelShader> m_PS;
-	//	ComPtr<ID3D11VertexShader> m_VS;
-	//	ComPtr<ID3D11InputLayout> m_IL;
-	//	~PPVStuff();
-	//} m_PPVStuff, m_AdvancedMeshStuff;
+private:
+	Object*							myCube;
+	Object*							myAdvancedMesh;
+	Camera*							myCamera;
+	Terrain*						myTerrain;
+	DebugRenderer*					myDebugRenderer;
+	D3DInitializer*					myD3DClass;
+	FbxLibraryDLLMaterialHandler*	myMaterialHandler;
+	FbxLibraryDLLMeshHandler*		myMeshHandler;
+public:
+	struct PPVStuff {
+		std::vector<ID3D11ShaderResourceView*> m_materialsSRVs;
+		ComPtr<ID3D11PixelShader> m_PS;
+		ComPtr<ID3D11VertexShader> m_VS;
+		ComPtr<ID3D11InputLayout> m_IL;
+		~PPVStuff();
+	} m_PPVStuff, m_AdvancedMeshStuff;
 
 	enum CameraState {
 		cameraDefault = 1,
@@ -70,8 +75,6 @@ public:
 
 	ComPtr<ID3D11Buffer>				m_constantBuffer;
 
-	float radians;
-
 	bool mouseMove;
 	POINT prevCursorPos;
 	POINT currCursorPos;
@@ -83,22 +86,19 @@ public:
 	void InitConstantBuffer(ComPtr<ID3D11Buffer>& _buffer);
 	void InitShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, ComPtr<ID3D11VertexShader>& _VS, ComPtr<ID3D11InputLayout>& _IL);
 
-	//void CreateWindowResources(HWND& _hWnd);
-
 	void Update(void);
 	void Render(void);
 
 	void UpdateConstantBuffer(XMMATRIX _modelsMatrix);
 
-	//bool ReadInBinaryMeshFile(Object& _fillOutObject);
-	//bool ReadInAdvancedBinaryMeshFile(const char* _fileName, Object& _fillOutObject);
-	
 	void SetPipelineStates(PipelineState& _pS);
 	void CheckUserInput(WPARAM wParam);
 	void RunTaskList(int _screenWidth, int _screenHeight, bool _vsync, HWND& _hwnd, bool _fullscreen, float _screenFar, float _screenNear);
-	//void RunDebugMessage(void);
+	void RunDebugMessage(void);
 	
-	bool RunFbxLoader(void);
 	bool RunTaskForPPV(void);
-	bool RunTaskForAdvancedMesh(void);
+
+	void RunDebuggerTask(void);
 };
+
+#endif //!_SCENEMANAGER_H_
