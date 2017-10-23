@@ -3,15 +3,15 @@
 SceneManager::SceneManager()
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	//_CrtSetBreakAlloc(203);
-	myCube = new Object();
-	myCamera = new Camera();
-	myTerrain = new Terrain();
-	myDebugRenderer = new DebugRenderer();
-	myD3DClass = new D3DInitializer();
-	myAdvancedMesh = new Object();
-	myMaterialHandler = new FbxLibraryDLLMaterialHandler();
-	myMeshHandler = new FbxLibraryDLLMeshHandler();
+	//_CrtSetBreakAlloc(452);
+	myCube				= new Object();
+	myCamera			= new Camera();
+	myTerrain			= new Terrain();
+	myDebugRenderer		= new DebugRenderer();
+	myD3DClass			= new D3DInitializer();
+	myAdvancedMesh		= new Object();
+	myMaterialHandler	= new FbxLibraryDLLMaterialHandler();
+	myMeshHandler		= new FbxLibraryDLLMeshHandler();
 	mouseMove = false;
 	m_cameraState = lookAtOrigin;
 	timeBetweenFrames = 0.f;
@@ -20,16 +20,14 @@ SceneManager::SceneManager()
 
 SceneManager::~SceneManager()
 {
-	myCube->Shutdown();
-	myTerrain->Shutdown();
-	myD3DClass->Shutdown();
-	myAdvancedMesh->Shutdown();
-	//myDebugRenderer->Shutdown();
-	//if (myCube) delete myCube;
-	//delete myCamera;
-	//delete myTerrain;
-
-	///myCamera->Shutdown();
+	if (myCube) delete myCube;
+	if (myCamera) delete myCamera;
+	if (myTerrain) delete myTerrain;
+	if (myDebugRenderer) delete myDebugRenderer;
+	if (myD3DClass) delete myD3DClass;
+	if (myAdvancedMesh) delete myAdvancedMesh;
+	if (myMaterialHandler) delete myMaterialHandler;
+	if (myMeshHandler) delete myMeshHandler;
 }
 
 void SceneManager::InitConstantBuffer(ComPtr<ID3D11Buffer>& _buffer)
@@ -68,7 +66,7 @@ void SceneManager::SetPipelineStates(PipelineState& _pipeState)
 void SceneManager::Update(void)
 {
 	timer.Signal();
-	timeBetweenFrames = timer.Delta();
+	timeBetweenFrames = (float)timer.Delta();
 #pragma region states
 	//switch (m_cameraState)
 	//{
@@ -145,7 +143,7 @@ void SceneManager::Render(void)
 
 	m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
 	m_deviceContext->PSSetShaderResources(1, 1, &m_PPVStuff.m_materialsSRVs.data()[1]);	// Skip [2] because we are not using normal mapping right now
-	m_deviceContext->PSSetShaderResources(2, 1, &m_PPVStuff.m_materialsSRVs.data()[3]);
+	m_deviceContext->PSSetShaderResources(2, 1, &m_PPVStuff.m_materialsSRVs.data()[2]);
 
 	// Why does using the file paths change the color values that are sent to the shaders???
 
@@ -261,20 +259,16 @@ void SceneManager::CheckUserInput(WPARAM wParam)
 		m_cameraState = lookAtCube2;
 		break;
 	//case 'A':
-	//	ObjectTranslation(m_cube, -1.f, 0.f, 0.f);
-	//	//RunDebugMessage();
+	//	myCamera->MoveCameraLocalLeft(timeBetweenFrames, 20.f);
 	//	break;
 	//case 'D':
-	//	ObjectTranslation(m_cube, 1.f, 0.f, 0.f);
-	//	//RunDebugMessage();
+	//	myCamera->MoveCameraLocalRight(timeBetweenFrames, 20.f);
 	//	break;
 	//case 'W':
-	//	ObjectTranslation(m_cube, 0.f, 0.f, 1.f);
-	//	//RunDebugMessage();
+	//	myCamera->MoveCameraLocalForward(timeBetweenFrames, 20.f);
 	//	break;
 	//case 'S':
-	//	ObjectTranslation(m_cube, 0.f, 0.f, -1.f);
-	//	//RunDebugMessage();
+	//	myCamera->MoveCameraLocalBackward(timeBetweenFrames, 20.f);
 	//	break;
 	default:
 		break;
@@ -291,34 +285,34 @@ bool SceneManager::RunTaskForPPV(void)
 	std::vector<MaterialComponents::Material> m_VecMaterials;
 	bool result = myMaterialHandler->LoadMaterialsBinary("BattleMage.bin", m_VecMaterials);
 
-	for each (MaterialComponents::Material mat in m_VecMaterials)
-	{
-		for (mat.m_mapPropValuesIter = mat.m_mapPropValues.begin(); mat.m_mapPropValuesIter != mat.m_mapPropValues.end(); ++mat.m_mapPropValuesIter)
-		{
-			MaterialComponents::Material::properties prop = mat.m_mapPropValuesIter->first;
-			MaterialComponents::Material::properties_t prop_t = mat.m_mapPropValuesIter->second;
-			if (prop_t.filePath.compare("WasNotGiven") != 0)	// if we have a file path, get the file path
-			{
-				ID3D11ShaderResourceView * tempSRV;
-				std::wstring widestr = std::wstring(prop_t.filePath.begin(), prop_t.filePath.end());
-				const wchar_t* szName = widestr.c_str();
-				CreateWICTextureFromFile(myD3DClass->GetDevice().Get(), nullptr, szName, nullptr, &tempSRV, 0);
-				m_PPVStuff.m_materialsSRVs.push_back(tempSRV);
-			}
-		}
-	}
+	//for each (MaterialComponents::Material mat in m_VecMaterials)
+	//{
+	//	for (mat.m_mapPropValuesIter = mat.m_mapPropValues.begin(); mat.m_mapPropValuesIter != mat.m_mapPropValues.end(); ++mat.m_mapPropValuesIter)
+	//	{
+	//		MaterialComponents::Material::properties prop = mat.m_mapPropValuesIter->first;
+	//		MaterialComponents::Material::properties_t prop_t = mat.m_mapPropValuesIter->second;
+	//		if (prop_t.filePath.compare("WasNotGiven") != 0)	// if we have a file path, get the file path
+	//		{
+	//			ID3D11ShaderResourceView * tempSRV;
+	//			std::wstring widestr = std::wstring(prop_t.filePath.begin(), prop_t.filePath.end());
+	//			const wchar_t* szName = widestr.c_str();
+	//			CreateWICTextureFromFile(myD3DClass->GetDevice().Get(), nullptr, szName, nullptr, &tempSRV, 0);
+	//			m_PPVStuff.m_materialsSRVs.push_back(tempSRV);
+	//		}
+	//	}
+	//}
 
-	//ID3D11ShaderResourceView * tempSRV01;
-	//CreateWICTextureFromFile(myD3DClass->GetDevice().Get(), nullptr, L"BattleMage.fbm/PPG_3D_Player_D.png", nullptr, &tempSRV01, 0);
-	//m_PPVStuff.m_materialsSRVs.push_back(tempSRV01);
-	//
-	//ID3D11ShaderResourceView * tempSRV02;
-	//CreateWICTextureFromFile(myD3DClass->GetDevice().Get(), nullptr, L"BattleMage.fbm/PPG_3D_Player_emissive.png", nullptr, &tempSRV02, 0);
-	//m_PPVStuff.m_materialsSRVs.push_back(tempSRV02);
-	//
-	//ID3D11ShaderResourceView * tempSRV03;
-	//CreateWICTextureFromFile(myD3DClass->GetDevice().Get(), nullptr, L"BattleMage.fbm/PPG_3D_Player_spec.png", nullptr, &tempSRV03, 0);
-	//m_PPVStuff.m_materialsSRVs.push_back(tempSRV03);
+	ID3D11ShaderResourceView * tempSRV01;
+	CreateWICTextureFromFile(myD3DClass->GetDevice().Get(), nullptr, L"BattleMage.fbm/PPG_3D_Player_D.png", nullptr, &tempSRV01, 0);
+	m_PPVStuff.m_materialsSRVs.push_back(tempSRV01);
+	
+	ID3D11ShaderResourceView * tempSRV02;
+	CreateWICTextureFromFile(myD3DClass->GetDevice().Get(), nullptr, L"BattleMage.fbm/PPG_3D_Player_emissive.png", nullptr, &tempSRV02, 0);
+	m_PPVStuff.m_materialsSRVs.push_back(tempSRV02);
+	
+	ID3D11ShaderResourceView * tempSRV03;
+	CreateWICTextureFromFile(myD3DClass->GetDevice().Get(), nullptr, L"BattleMage.fbm/PPG_3D_Player_spec.png", nullptr, &tempSRV03, 0);
+	m_PPVStuff.m_materialsSRVs.push_back(tempSRV03);
 
 	char* bytecode = nullptr;
 	size_t byteCodeSize = 0;
@@ -374,4 +368,8 @@ SceneManager::PPVStuff::~PPVStuff()
 	{
 		m_materialsSRVs[i]->Release();
 	}
+	m_materialsSRVs.clear();
+	m_PS.Reset();
+	m_VS.Reset();
+	m_IL.Reset();
 }

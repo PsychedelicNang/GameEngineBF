@@ -2,7 +2,7 @@
 std::vector<MaterialComponents::Material> m_materials;
 namespace FbxLibraryDLL
 {
-	bool LoadMeshFromFBXFile(const char* _fileName, std::vector<MeshComponents::BFMesh> & _outVector) {
+	FBXLIBRARY_API bool LoadMeshFromFBXFile(const char* _fileName, std::vector<MeshComponents::BFMesh> & _outVector) {
 		// Initialize the SDK manager. This object handles all our memory management.
 		FbxManager* lSdkManager = FbxManager::Create();
 
@@ -30,7 +30,7 @@ namespace FbxLibraryDLL
 		FbxNode* lRootNode = lScene->GetRootNode();
 		if (lRootNode)
 		{
-			for (unsigned i = 0; i < lRootNode->GetChildCount(); i++)
+			for (int i = 0; i < lRootNode->GetChildCount(); i++)
 			{
 				FbxNode* tNode = lRootNode->GetChild(i);
 				FbxGeometry* geometry = (FbxGeometry*)tNode->GetNodeAttribute();
@@ -54,16 +54,16 @@ namespace FbxLibraryDLL
 					meshInst.indexBuffer.resize(indexCount);
 
 					int* verts = theMesh->GetPolygonVertices();
-					for (unsigned i = 0; i < indexCount; i++)
+					for (int i = 0; i < indexCount; i++)
 						meshInst.indexBuffer[i] = verts[i];
 
-					for (unsigned j = 0; j < geometry->GetControlPointsCount(); j++)
+					for (int j = 0; j < geometry->GetControlPointsCount(); j++)
 					{
 						MeshComponents::Vector4 currPos;
-						currPos.x = theMesh->GetControlPoints()[j][0];
-						currPos.y = theMesh->GetControlPoints()[j][1];
-						currPos.z = theMesh->GetControlPoints()[j][2];
-						currPos.w = theMesh->GetControlPoints()[j][3];
+						currPos.x = (float)theMesh->GetControlPoints()[j][0];
+						currPos.y = (float)theMesh->GetControlPoints()[j][1];
+						currPos.z = (float)theMesh->GetControlPoints()[j][2];
+						currPos.w = (float)theMesh->GetControlPoints()[j][3];
 						meshInst.verticesBuffer.push_back(currPos);
 					}
 					_outVector.push_back(meshInst);
@@ -75,20 +75,20 @@ namespace FbxLibraryDLL
 		return true;
 	}
 
-	void ExportMeshToBinaryFile(const char* _filePath, MeshComponents::BFMesh _mesh) {
+	FBXLIBRARY_API void ExportMeshToBinaryFile(const char* _filePath, MeshComponents::BFMesh _mesh) {
 		std::fstream file;
 		file.open(_filePath, std::ios_base::binary | std::ios_base::out);
 
-		unsigned numOfIndices = _mesh.indexBuffer.size();
+		unsigned numOfIndices = (unsigned)_mesh.indexBuffer.size();
 		file.write((char*)&numOfIndices, sizeof(numOfIndices));
 
-		for (unsigned i = 0; i < _mesh.indexBuffer.size(); i++)
+		for (int i = 0; i < _mesh.indexBuffer.size(); i++)
 			file.write((char*)(&_mesh.indexBuffer[i]), sizeof(_mesh.indexBuffer[i]));
 
-		unsigned numOfVertices = _mesh.verticesBuffer.size();
+		unsigned numOfVertices = (unsigned)_mesh.verticesBuffer.size();
 		file.write((char*)&numOfVertices, sizeof(numOfVertices));
 
-		for (unsigned i = 0; i < _mesh.verticesBuffer.size(); i++)
+		for (int i = 0; i < _mesh.verticesBuffer.size(); i++)
 		{
 			file.write((char*)(&_mesh.verticesBuffer[i].x), sizeof(_mesh.verticesBuffer[i].x));
 			file.write((char*)(&_mesh.verticesBuffer[i].y), sizeof(_mesh.verticesBuffer[i].y));
@@ -99,7 +99,7 @@ namespace FbxLibraryDLL
 		file.close();
 	}
 
-	bool ReadInBinaryMeshFile(const char * _fileName, MeshComponents::OutInformation& _objectToFill)
+	FBXLIBRARY_API bool ReadInBinaryMeshFile(const char * _fileName, MeshComponents::OutInformation& _objectToFill)
 	{
 		std::fstream file;
 		file.open(_fileName, std::ios_base::binary | std::ios_base::in);
@@ -113,7 +113,7 @@ namespace FbxLibraryDLL
 
 			for (unsigned i = 0; i < numOfIndices; i++) {
 				unsigned num = 0;
-				file.read((char*)(&num), sizeof(4));
+				file.read((char*)(&num), sizeof(unsigned));
 				_objectToFill.oi_indices.push_back(num);
 			}
 
@@ -123,10 +123,10 @@ namespace FbxLibraryDLL
 
 			for (unsigned i = 0; i < numOfVertices; i++)
 			{
-				file.read((char*)(&vert.position[0]), sizeof(4));
-				file.read((char*)(&vert.position[1]), sizeof(4));
-				file.read((char*)(&vert.position[2]), sizeof(4));
-				file.read((char*)(&vert.position[3]), sizeof(4));
+				file.read((char*)(&vert.position[0]), sizeof(float));
+				file.read((char*)(&vert.position[1]), sizeof(float));
+				file.read((char*)(&vert.position[2]), sizeof(float));
+				file.read((char*)(&vert.position[3]), sizeof(float));
 				float amount = (float)i / numOfVertices;
 				vert.color[0] = amount;
 				vert.color[1] = amount;
@@ -148,7 +148,7 @@ namespace FbxLibraryDLL
 	* Fills out values for the materials property, both of which are passed into the function.
 	* The _eValue determines the key for the std::map with is being used inside of the Materials structure
 	*/
-	MaterialComponents::Material::properties_t PropertyHelper(MaterialComponents::Material& _material, FbxProperty& _property, MaterialComponents::Material::properties _eValue) {
+	FBXLIBRARY_API MaterialComponents::Material::properties_t PropertyHelper(MaterialComponents::Material& _material, FbxProperty& _property, MaterialComponents::Material::properties _eValue) {
 		_material.m_mapPropValuesIter = _material.m_mapPropValues.find(_eValue);
 		MaterialComponents::Material::properties_t tempProp;
 
@@ -156,12 +156,12 @@ namespace FbxLibraryDLL
 			tempProp = _material.m_mapPropValues[_eValue];							// add to it
 			if (_property.GetPropertyDataType().GetType() == eFbxDouble3) {
 				FbxDouble3 val = _property.Get<FbxDouble3>();
-				tempProp.value[0] = val[0];
-				tempProp.value[1] = val[1];
-				tempProp.value[2] = val[2];
+				tempProp.value[0] = (float)val[0];
+				tempProp.value[1] = (float)val[1];
+				tempProp.value[2] = (float)val[2];
 			}
 			else if (_property.GetPropertyDataType().GetType() == eFbxDouble) {
-				tempProp.value[3] = _property.Get<FbxDouble>();
+				tempProp.value[3] = (float)_property.Get<FbxDouble>();
 			}
 
 			if (tempProp.filePath == "WasNotGiven")
@@ -180,16 +180,16 @@ namespace FbxLibraryDLL
 		else {																		// if the key does not exist, create one
 			if (_property.GetPropertyDataType().GetType() == eFbxDouble3) {
 				FbxDouble3 val = _property.Get<FbxDouble3>();
-				tempProp.value[0] = val[0];
-				tempProp.value[1] = val[1];
-				tempProp.value[2] = val[2];
+				tempProp.value[0] = (float)val[0];
+				tempProp.value[1] = (float)val[1];
+				tempProp.value[2] = (float)val[2];
 				tempProp.value[3] = -1;
 			}
 			else if (_property.GetPropertyDataType().GetType() == eFbxDouble) {
 				tempProp.value[0] = -1;			// -1 represents no value
 				tempProp.value[1] = -1;
 				tempProp.value[2] = -1;
-				tempProp.value[3] = _property.Get<FbxDouble>();
+				tempProp.value[3] = (float)_property.Get<FbxDouble>();
 			}
 
 			FbxFileTexture* lFileTexture = _property.GetSrcObject<FbxFileTexture>();
@@ -204,7 +204,7 @@ namespace FbxLibraryDLL
 		return tempProp;
 	}
 
-	bool LoadMaterialFromFBXFile(const char * _fileName, std::vector<MaterialComponents::Material>& _material)
+	FBXLIBRARY_API bool LoadMaterialFromFBXFile(const char * _fileName, std::vector<MaterialComponents::Material>& _material)
 	{
 		FbxManager* lSdkManager = FbxManager::Create();
 
@@ -225,7 +225,7 @@ namespace FbxLibraryDLL
 		unsigned materialCount = 0;
 
 		if (lRootNode) {
-			for (unsigned i = 0; i < lRootNode->GetChildCount(); i++) {
+			for (int i = 0; i < lRootNode->GetChildCount(); i++) {
 				FbxNode* tNode = lRootNode->GetChild(i);
 				FbxGeometry* geometry = (FbxGeometry*)tNode->GetNodeAttribute();
 				if (geometry) {
@@ -312,20 +312,20 @@ namespace FbxLibraryDLL
 		return true;
 	}
 
-	void ExportMaterialsToBinaryFile(const char* _filePath, std::vector<MaterialComponents::Material> _materials)
+	FBXLIBRARY_API void ExportMaterialsToBinaryFile(const char* _filePath, std::vector<MaterialComponents::Material> _materials)
 	{
 		std::fstream fileOut;
 		fileOut.open(_filePath, std::ios_base::binary | std::ios_base::out);
 
-		unsigned numOfMaterials = _materials.size();
+		unsigned numOfMaterials = (unsigned)_materials.size();
 		fileOut.write((char*)&numOfMaterials, sizeof(numOfMaterials));
 
-		for (unsigned i = 0; i < _materials.size(); i++)
+		for (int i = 0; i < _materials.size(); i++)
 		{
 			int matType = _materials[i].m_materialType;
 			fileOut.write((char*)&matType, sizeof(matType));
 
-			unsigned numOfPropsInMap = _materials[i].m_mapPropValues.size();
+			unsigned numOfPropsInMap = (unsigned)_materials[i].m_mapPropValues.size();
 			fileOut.write((char*)&numOfPropsInMap, sizeof(numOfPropsInMap));
 
 			for (_materials[i].m_mapPropValuesIter = _materials[i].m_mapPropValues.begin(); _materials[i].m_mapPropValuesIter != _materials[i].m_mapPropValues.end(); _materials[i].m_mapPropValuesIter++)
@@ -333,7 +333,7 @@ namespace FbxLibraryDLL
 				int eVal = _materials[i].m_mapPropValuesIter->first;
 				fileOut.write((char*)&eVal, sizeof(eVal));
 
-				unsigned filePathLength = strlen(_materials[i].m_mapPropValuesIter->second.filePath.c_str()) + 1;
+				unsigned filePathLength = (unsigned)strlen(_materials[i].m_mapPropValuesIter->second.filePath.c_str()) + 1;
 				fileOut.write((char*)&filePathLength, sizeof(filePathLength));
 
 				const char * cPtrFilePath = _materials[i].m_mapPropValuesIter->second.filePath.c_str();
@@ -353,7 +353,7 @@ namespace FbxLibraryDLL
 		fileOut.close();
 	}
 
-	bool ReadInMaterialsFromBinaryFile(const char* _filePath, std::vector<MaterialComponents::Material>& _materials)
+	FBXLIBRARY_API bool ReadInMaterialsFromBinaryFile(const char* _filePath, std::vector<MaterialComponents::Material>& _materials)
 	{
 		std::fstream fileIn;
 		fileIn.open(_filePath, std::ios_base::binary | std::ios_base::in);
@@ -400,7 +400,7 @@ namespace FbxLibraryDLL
 		return false;
 	}
 
-	void DisplayMaterialPropertiesText(std::vector<MaterialComponents::Material>& _materials)
+	FBXLIBRARY_API void DisplayMaterialPropertiesText(std::vector<MaterialComponents::Material>& _materials)
 	{
 		for (unsigned i = 0; i < _materials.size(); i++)
 		{
@@ -470,7 +470,7 @@ namespace FbxLibraryDLL
 		}
 	}
 
-	bool LoadAdvancedMeshFromFBXFile(const char * _fileName, std::vector<MeshComponentsAdvanced::OutInformationAdvanced>& _outVector)
+	FBXLIBRARY_API bool LoadAdvancedMeshFromFBXFile(const char * _fileName, std::vector<MeshComponentsAdvanced::OutInformationAdvanced>& _outVector)
 	{
 		// Initialize the SDK manager. This object handles all our memory management.
 		FbxManager* lSdkManager = FbxManager::Create();
@@ -499,7 +499,7 @@ namespace FbxLibraryDLL
 		FbxNode* lRootNode = lScene->GetRootNode();
 		if (lRootNode)
 		{
-			for (unsigned i = 0; i < lRootNode->GetChildCount(); i++)
+			for (int i = 0; i < lRootNode->GetChildCount(); i++)
 			{
 				FbxNode* tNode = lRootNode->GetChild(i);
 				FbxGeometry* geometry = (FbxGeometry*)tNode->GetNodeAttribute();
@@ -685,6 +685,10 @@ namespace FbxLibraryDLL
 						mSubMeshes[lMaterialIndex]->TriangleCount += 1;
 					}
 					_outVector.push_back(meshInst);
+					for (int i = 0; i < mSubMeshes.Size(); i++)
+					{
+						delete mSubMeshes[i];
+					}
 					mSubMeshes.Clear();
 				}
 			}
@@ -694,18 +698,18 @@ namespace FbxLibraryDLL
 		return true;
 	}
 
-	void ExportAdvancedMeshToBinaryFile(const char * _filePath, MeshComponentsAdvanced::OutInformationAdvanced & _mesh)
+	FBXLIBRARY_API void ExportAdvancedMeshToBinaryFile(const char * _filePath, MeshComponentsAdvanced::OutInformationAdvanced & _mesh)
 	{
 		std::fstream file;
 		file.open(_filePath, std::ios_base::binary | std::ios_base::out);
 
-		unsigned numOfIndices = _mesh.indices.size();
+		unsigned numOfIndices = (unsigned)_mesh.indices.size();
 		file.write((char*)&numOfIndices, sizeof(numOfIndices));
 
 		for (unsigned i = 0; i < _mesh.indices.size(); i++)
 			file.write((char*)(&_mesh.indices[i]), sizeof(_mesh.indices[i]));
 
-		unsigned numOfVertices = _mesh.vertices.size();
+		unsigned numOfVertices = (unsigned)_mesh.vertices.size();
 		file.write((char*)&numOfVertices, sizeof(numOfVertices));
 
 		for (unsigned i = 0; i < _mesh.vertices.size(); i++)
@@ -727,7 +731,7 @@ namespace FbxLibraryDLL
 		file.close();
 	}
 
-	bool ReadInAdvancedBinaryMeshFile(const char * _fileName, MeshComponentsAdvanced::OutInformationAdvanced & _objectToFill)
+	FBXLIBRARY_API bool ReadInAdvancedBinaryMeshFile(const char * _fileName, MeshComponentsAdvanced::OutInformationAdvanced & _objectToFill)
 	{
 		std::fstream file;
 		file.open(_fileName, std::ios_base::binary | std::ios_base::in);

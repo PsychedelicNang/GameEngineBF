@@ -15,44 +15,6 @@ struct PixelShaderInput
 
 float4 main(PixelShaderInput input) : SV_TARGET
 {
-	/*Random stuff I tried*/
-
-	//float4 c01 = tex.Sample(envFilter, float3(input.uvs.x, input.uvs.y, 0));
-	//float4 c02 = tex.Sample(envFilter, float3(input.uvs.x, input.uvs.y, 1));
-	//float4 c03 = tex.Sample(envFilter, float3(input.uvs.x, input.uvs.y, 2));
-	//result = env.Sample(envFilter, float3(input.uvs.x, input.uvs.y, 0));
-	//result += env.Sample(envFilter, float3(input.uvs.x, input.uvs.y, 1));
-	//result += env.Sample(envFilter, float3(input.uvs.x, input.uvs.y, 2));
-	//result = env.Sample(envFilter, input.uvs.xyz);
-	//float4 surfaceColor = env.Sample(envFilter, input.uvs.xy);
-	//return color01 * (color02 + color03);
-	//return emissiveColor + diffuseColor + specularColor;
-	//return diffuseColor * (emissiveColor + specularColor);
-	//texture * (light amount + ambient)
-	//float3 viewDir = normalize(cameraPos - modelPos);
-	//float3 lightDir = float3(0.f, 5.f, 0.f);
-	//float3 halfVector = normalize((-lightDir) + viewDir);
-	//float intensity = pow(clamp(dot(normal, halfVector)), specularPower);
-	/****************************************/
-
-	///*These calculations aren't it.. idk why*/
-	//float4 diffuseColor = diffuse.Sample(envFilter, input.uvs.xy);
-	//float4 emissiveColor = emissive.Sample(envFilter, input.uvs.xy);
-	//float4 specularColor = specular.Sample(envFilter, input.uvs.xy);
-	//
-	//float shininess = 6.311791f;
-	//float3 lightDir = float3(0.f, 5.f, 0.f);
-	//float lambertian = max(dot(lightDir, input.normal), 0.0);
-	//float3 viewDir = normalize(input.cameraPos - input.pos);
-	//float3 halfDir = normalize(lightDir + viewDir);
-	//float specAngle = max(dot(halfDir, input.normal), 0.f);
-	//float specular = pow(specAngle, shininess);
-
-	//float3 colorLinear = emissiveColor + 0.8f * diffuseColor + specularColor * specular;
-	//return float4(colorLinear, 0.f);
-	///*************************************/
-
-	/*These calculations might be it*/
 	float shininess = 6.311791f;
 	float4 diffuseColor = diffuse.Sample(envFilter, input.uvs.xy);
 	float4 emissiveColor = emissive.Sample(envFilter, input.uvs.xy);
@@ -61,14 +23,14 @@ float4 main(PixelShaderInput input) : SV_TARGET
 	float3 lightDir02 = float3(0.f, -5.f, 0.f);
 	float3 lightDir = lightDir01 - lightDir02;
 	float diffuse = max(dot(normalize(input.normal), normalize(lightDir)), 0.f);
-	float3 viewDir = normalize(input.cameraPos - input.pos);
+	float4 viewDirResult = normalize(input.cameraPos - input.pos);
+	float3 viewDir = float3(viewDirResult.x, viewDirResult.y, viewDirResult.z);
 	float3 halfDir = normalize(normalize(lightDir) + viewDir);
 	float specular = pow(max(dot(halfDir, normalize(input.normal)), 0.f), shininess);
 
-	float3 coolar = diffuseColor * diffuse + emissiveColor + specularColor * specular;
-	float4 color = float4(coolar, 1.f);
+	float4 color = diffuseColor * diffuse + emissiveColor + specularColor * specular;
+	//float4 color = float4(coolar);
 	return color;
-	/*************************************/
 
 	//float screenGamma = 2.2;
 	//float3 idk = 1.0 / screenGamma;

@@ -185,7 +185,7 @@ bool D3DInitializer::InitializeVideoCardInformation(int _screenWidth, int _scree
 
 	// Now go through all the display modes and find the one that matches the screen width and height.
 	// When a match is found store the numerator and denominator of the refresh rate for that monitor.
-	for (int i = 0; i<numberOfModes; i++)
+	for (unsigned i = 0; i< numberOfModes; i++)
 	{
 		if (displayModeList[i].Width == (unsigned int)_screenWidth)
 		{

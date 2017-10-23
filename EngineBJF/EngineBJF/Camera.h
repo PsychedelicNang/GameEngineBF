@@ -22,6 +22,13 @@ public:
 	void Initialize(float _viewportWidth, float _viewportHeight, float _nearPlane, float _farPlane, float _zoomAmount);
 	void Initialize(float _viewportWidth, float _viewportHeight, float _nearPlane, float _farPlane, float _zoomAmount, XMVECTOR _eye, XMVECTOR _at, XMVECTOR _up);
 
+	void MoveCameraLocalForward(float const _deltaTime, float const _moveSpeed);
+	void MoveCameraLocalBackward(float const _deltaTime, float const _moveSpeed);
+	void MoveCameraLocalLeft(float const _deltaTime, float const _moveSpeed);
+	void MoveCameraLocalRight(float const _deltaTime, float const _moveSpeed);
+	void MoveCameraLocalUp(float const _deltaTime, float const _moveSpeed);
+	void MoveCameraLocalDown(float const _deltaTime, float const _moveSpeed);
+
 	void CameraTranslation(XMVECTOR _traslationAmount);
 	void CameraTranslation(float _xDelta, float _yDelta, float _zDelta);
 	void CameraTranslationX(float _xDelta);

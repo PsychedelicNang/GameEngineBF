@@ -34,7 +34,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-	sceneManager = &SceneManager();
+	sceneManager = new SceneManager();
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -85,7 +85,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 
-	sceneManager->~SceneManager();
+	delete sceneManager;
 #ifndef NDEBUG
 	FreeConsole();
 #endif 
@@ -245,7 +245,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			PostQuitMessage(0);
 			break;
 		}
-		sceneManager->CheckUserInput(wParam);
+		//sceneManager->CheckUserInput(wParam);
 		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);

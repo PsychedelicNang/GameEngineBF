@@ -64,6 +64,54 @@ void Camera::Initialize(float _viewportWidth, float _viewportHeight, float _near
 	CreateViewAndPerspectiveMatrix(_viewportWidth, _viewportHeight);
 }
 
+void Camera::MoveCameraLocalForward(float const _deltaTime, float const _moveSpeed)
+{
+	XMMATRIX translation = XMMatrixTranslation(0.0f, 0.0f, _moveSpeed * _deltaTime);
+	XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera);
+	XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+	XMStoreFloat4x4(&m_camera, result);
+}
+
+void Camera::MoveCameraLocalBackward(float const _deltaTime, float const _moveSpeed)
+{
+	XMMATRIX translation = XMMatrixTranslation(0.0f, 0.0f, -_moveSpeed * _deltaTime);
+	XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera);
+	XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+	XMStoreFloat4x4(&m_camera, result);
+}
+
+void Camera::MoveCameraLocalLeft(float const _deltaTime, float const _moveSpeed)
+{
+	XMMATRIX translation = XMMatrixTranslation(-_moveSpeed * _deltaTime, 0.0f, 0.0f);
+	XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera);
+	XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+	XMStoreFloat4x4(&m_camera, result);
+}
+
+void Camera::MoveCameraLocalRight(float const _deltaTime, float const _moveSpeed)
+{
+	XMMATRIX translation = XMMatrixTranslation(_moveSpeed * _deltaTime, 0.0f, 0.0f);
+	XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera);
+	XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+	XMStoreFloat4x4(&m_camera, result);
+}
+
+void Camera::MoveCameraLocalUp(float const _deltaTime, float const _moveSpeed)
+{
+	XMMATRIX translation = XMMatrixTranslation(0.0f, _moveSpeed * _deltaTime, 0.0f);
+	XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera);
+	XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+	XMStoreFloat4x4(&m_camera, result);
+}
+
+void Camera::MoveCameraLocalDown(float const _deltaTime, float const _moveSpeed)
+{
+	XMMATRIX translation = XMMatrixTranslation(0.0f, -_moveSpeed * _deltaTime, 0.0f);
+	XMMATRIX temp_camera = XMLoadFloat4x4(&m_camera);
+	XMMATRIX result = XMMatrixMultiply(translation, temp_camera);
+	XMStoreFloat4x4(&m_camera, result);
+}
+
 //void Camera::Shutdown()
 //{
 //}

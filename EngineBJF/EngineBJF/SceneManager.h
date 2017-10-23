@@ -32,6 +32,17 @@ class SceneManager {
 public:
 	SceneManager();
 	~SceneManager();
+
+private:
+	Object*							myCube;
+	Object*							myAdvancedMesh;
+	Camera*							myCamera;
+	Terrain*						myTerrain;
+	DebugRenderer*					myDebugRenderer;
+	D3DInitializer*					myD3DClass;
+	FbxLibraryDLLMaterialHandler*	myMaterialHandler;
+	FbxLibraryDLLMeshHandler*		myMeshHandler;
+
 	struct PipelineState
 	{
 		ComPtr<ID3D11InputLayout>			input_layout;
@@ -43,23 +54,16 @@ public:
 		ComPtr<ID3D11DepthStencilView>		depthStencilView;
 		ComPtr<ID3D11RasterizerState>		rasterState;
 	} m_defaultPipeline;
-private:
-	Object*							myCube;
-	Object*							myAdvancedMesh;
-	Camera*							myCamera;
-	Terrain*						myTerrain;
-	DebugRenderer*					myDebugRenderer;
-	D3DInitializer*					myD3DClass;
-	FbxLibraryDLLMaterialHandler*	myMaterialHandler;
-	FbxLibraryDLLMeshHandler*		myMeshHandler;
-public:
+
 	struct PPVStuff {
 		std::vector<ID3D11ShaderResourceView*> m_materialsSRVs;
 		ComPtr<ID3D11PixelShader> m_PS;
 		ComPtr<ID3D11VertexShader> m_VS;
 		ComPtr<ID3D11InputLayout> m_IL;
 		~PPVStuff();
-	} m_PPVStuff, m_AdvancedMeshStuff;
+	} m_PPVStuff;
+
+public:
 
 	enum CameraState {
 		cameraDefault = 1,
