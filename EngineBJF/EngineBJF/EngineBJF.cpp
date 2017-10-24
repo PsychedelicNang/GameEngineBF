@@ -41,13 +41,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     LoadStringW(hInstance, IDC_ENGINEBJF, szWindowClass, MAX_LOADSTRING);
     MyRegisterClass(hInstance);
 
-#ifndef NDEBUG
+//#ifndef NDEBUG
 	AllocConsole();
 	FILE* new_std_in_out;
 	freopen_s(&new_std_in_out, "CONOUT$", "w", stdout);
 	freopen_s(&new_std_in_out, "CONIN$", "r", stdin);
-	printf("Project is running in Debug mode\n");
-#endif
+//#endif
 
     // Perform application initialization:
     if (!InitInstance (hInstance, nCmdShow))
@@ -86,9 +85,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	}
 
 	delete sceneManager;
-#ifndef NDEBUG
+//#ifndef NDEBUG
 	FreeConsole();
-#endif 
+//#endif 
     return (int) msg.wParam;
 }
 
