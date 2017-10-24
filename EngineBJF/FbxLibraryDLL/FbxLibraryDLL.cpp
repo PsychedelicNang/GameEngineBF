@@ -1,7 +1,10 @@
 #include "FbxLibraryDLL.h"
-std::vector<MaterialComponents::Material> m_materials;
+
 namespace FbxLibraryDLL
 {
+	std::vector<MaterialComponents::Material> m_materials;
+	MaterialComponents::Material::properties_t PropertyHelper(MaterialComponents::Material& _material, FbxProperty& _property, MaterialComponents::Material::properties _eValue);
+
 	FBXLIBRARY_API bool LoadMeshFromFBXFile(const char* _fileName, std::vector<MeshComponents::BFMesh> & _outVector) {
 		// Initialize the SDK manager. This object handles all our memory management.
 		FbxManager* lSdkManager = FbxManager::Create();
@@ -148,7 +151,7 @@ namespace FbxLibraryDLL
 	* Fills out values for the materials property, both of which are passed into the function.
 	* The _eValue determines the key for the std::map with is being used inside of the Materials structure
 	*/
-	FBXLIBRARY_API MaterialComponents::Material::properties_t PropertyHelper(MaterialComponents::Material& _material, FbxProperty& _property, MaterialComponents::Material::properties _eValue) {
+	MaterialComponents::Material::properties_t PropertyHelper(MaterialComponents::Material& _material, FbxProperty& _property, MaterialComponents::Material::properties _eValue) {
 		_material.m_mapPropValuesIter = _material.m_mapPropValues.find(_eValue);
 		MaterialComponents::Material::properties_t tempProp;
 

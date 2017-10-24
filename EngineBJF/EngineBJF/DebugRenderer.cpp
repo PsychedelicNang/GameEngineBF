@@ -16,7 +16,6 @@ DebugRenderer::~DebugRenderer()
 	Shutdown();
 }
 
-
 bool DebugRenderer::CreateVertexBuffer(ComPtr<ID3D11Device>& _device)
 {
 	if (!CreateVertexBufferTask(_device)) return false;

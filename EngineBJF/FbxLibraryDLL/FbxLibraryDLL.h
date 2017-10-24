@@ -18,9 +18,6 @@ extern "C" {
 		FBXLIBRARY_API void ExportMeshToBinaryFile(const char* _filePath, MeshComponents::BFMesh _mesh);
 		FBXLIBRARY_API bool ReadInBinaryMeshFile(const char * _fileName, MeshComponents::OutInformation& _objectToFill);
 		
-		// Helper function which is never to be explicitly called by the user
-		FBXLIBRARY_API MaterialComponents::Material::properties_t PropertyHelper(MaterialComponents::Material& _material, FbxProperty& _property, MaterialComponents::Material::properties _eValue);
-		
 		FBXLIBRARY_API bool LoadMaterialFromFBXFile(const char* _fileName, std::vector<MaterialComponents::Material>& _material);
 		FBXLIBRARY_API void ExportMaterialsToBinaryFile(const char* _filePath, std::vector<MaterialComponents::Material> _materials);
 		FBXLIBRARY_API bool ReadInMaterialsFromBinaryFile(const char* _filePath, std::vector<MaterialComponents::Material>& _materials);

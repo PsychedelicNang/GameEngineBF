@@ -43,13 +43,13 @@ void SceneManager::InitShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, Com
 {
 	char* bytecode = nullptr;
 	size_t byteCodeSize = 0;
-	LoadCompiledShaderData(&bytecode, byteCodeSize, "PS_Standard.cso");
+	LoadCompiledShaderData(&bytecode, byteCodeSize, "Shaders/Pixel Shaders/PS_Standard.cso");
 	myD3DClass->GetDevice()->CreatePixelShader(bytecode, byteCodeSize, nullptr, _PS.GetAddressOf());
 	delete[] bytecode;
 
 	char* bytecode2 = nullptr;
 	size_t byteCodeSize2 = 0;
-	LoadCompiledShaderData(&bytecode2, byteCodeSize2, "VS_Standard.cso");
+	LoadCompiledShaderData(&bytecode2, byteCodeSize2, "Shaders/Vertex Shaders/VS_Standard.cso");
 	myD3DClass->GetDevice()->CreateVertexShader(bytecode2, byteCodeSize2, nullptr, _VS.GetAddressOf());
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -244,8 +244,8 @@ void SceneManager::CheckUserInput(WPARAM wParam)
 		CameraTranslation(0.f, -1.f, 0.f);
 		m_cameraState = cameraDefault;
 		RunDebugMessage();
-		break;*/
-	/*case 'O':
+		break;
+	case 'O':
 		rotateObjects = true;
 		break;
 	case 'P':
@@ -316,13 +316,13 @@ bool SceneManager::RunTaskForPPV(void)
 
 	char* bytecode = nullptr;
 	size_t byteCodeSize = 0;
-	LoadCompiledShaderData(&bytecode, byteCodeSize, "PS_Material.cso");
+	LoadCompiledShaderData(&bytecode, byteCodeSize, "Shaders/Pixel Shaders/PS_Material.cso");
 	myD3DClass->GetDevice()->CreatePixelShader(bytecode, byteCodeSize, nullptr, m_PPVStuff.m_PS.GetAddressOf());
 	delete[] bytecode;
 
 	char* bytecode2 = nullptr;
 	size_t byteCodeSize2 = 0;
-	LoadCompiledShaderData(&bytecode2, byteCodeSize2, "VS_Material.cso");
+	LoadCompiledShaderData(&bytecode2, byteCodeSize2, "Shaders/Vertex Shaders/VS_Material.cso");
 	myD3DClass->GetDevice()->CreateVertexShader(bytecode2, byteCodeSize2, nullptr, m_PPVStuff.m_VS.GetAddressOf());
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },

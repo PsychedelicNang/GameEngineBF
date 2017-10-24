@@ -137,32 +137,32 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="PS_AdvancedMesh.hlsl">
-      <Filter>Shaders\Pixel Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="PS_Standard.hlsl">
-      <Filter>Shaders\Pixel Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="PS_Material.hlsl">
-      <Filter>Shaders\Pixel Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="TestPixelShader.hlsl">
-      <Filter>Shaders\Pixel Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="TestVertexShader.hlsl">
-      <Filter>Shaders\Vertex Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="VS_AdvancedMesh.hlsl">
-      <Filter>Shaders\Vertex Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="VS_Material.hlsl">
-      <Filter>Shaders\Vertex Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="VS_Standard.hlsl">
-      <Filter>Shaders\Vertex Shaders</Filter>
-    </FxCompile>
+    <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
+    <FxCompile Include="Shaders\Vertex Shaders\TestVertexShader.hlsl">
+      <Filter>Shaders\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Vertex Shaders\VS_AdvancedMesh.hlsl">
+      <Filter>Shaders\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Vertex Shaders\VS_Material.hlsl">
+      <Filter>Shaders\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Vertex Shaders\VS_Standard.hlsl">
+      <Filter>Shaders\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Pixel Shaders\PS_AdvancedMesh.hlsl">
+      <Filter>Shaders\Pixel Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Pixel Shaders\PS_Material.hlsl">
+      <Filter>Shaders\Pixel Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Pixel Shaders\PS_Standard.hlsl">
+      <Filter>Shaders\Pixel Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Pixel Shaders\TestPixelShader.hlsl">
+      <Filter>Shaders\Pixel Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
