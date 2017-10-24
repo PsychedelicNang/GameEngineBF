@@ -4,6 +4,9 @@ SceneManager::SceneManager()
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	//_CrtSetBreakAlloc(452);
+	libraryLoadedMaterial = false;
+	libraryLoadedMesh = false;
+
 	myCube				= new Object();
 	myCamera			= new Camera();
 	myTerrain			= new Terrain();
@@ -140,12 +143,13 @@ void SceneManager::Render(void)
 	m_deviceContext->IASetInputLayout(m_PPVStuff.m_IL.Get());
 	m_deviceContext->VSSetShader(m_PPVStuff.m_VS.Get(), NULL, 0);
 	m_deviceContext->PSSetShader(m_PPVStuff.m_PS.Get(), NULL, 0);
-
-	m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
-	m_deviceContext->PSSetShaderResources(1, 1, &m_PPVStuff.m_materialsSRVs.data()[1]);	// Skip [2] because we are not using normal mapping right now
-	m_deviceContext->PSSetShaderResources(2, 1, &m_PPVStuff.m_materialsSRVs.data()[2]);
-
-	// Why does using the file paths change the color values that are sent to the shaders???
+	
+	if (libraryLoadedMesh && libraryLoadedMesh)
+	{
+		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[1]); // 1, 0, 3 because of the input from shaders... diffuse, emissive, specular
+		m_deviceContext->PSSetShaderResources(1, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);	// Skip [2] because we are not using normal mapping right now
+		m_deviceContext->PSSetShaderResources(2, 1, &m_PPVStuff.m_materialsSRVs.data()[3]);
+	}
 
 	// also, should I just do 	ComPtr<ID3D11DeviceContext> m_deviceContext = myD3DClass->GetDeviceContext() & ComPtr<ID3D11Device> m_device = myD3DClass->GetDevice();
 	// when I first make the class or do I need to update the device and context because it changes?
@@ -153,8 +157,10 @@ void SceneManager::Render(void)
 	UpdateConstantBuffer(myCube->GetObjectMatrix());
 	myCube->Render(m_deviceContext);
 
-	UpdateConstantBuffer(myAdvancedMesh->GetObjectMatrix());
-	myAdvancedMesh->Render(m_deviceContext);
+	if (libraryLoadedMesh) {
+		UpdateConstantBuffer(myAdvancedMesh->GetObjectMatrix());
+		myAdvancedMesh->Render(m_deviceContext);
+	}
 
 	SetPipelineStates(m_defaultPipeline);
 	UpdateConstantBuffer(XMMatrixIdentity());
@@ -199,19 +205,18 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 	InitConstantBuffer(m_constantBuffer);
 	InitShadersAndInputLayout(m_defaultPipeline.pixel_shader, m_defaultPipeline.vertex_shader, m_defaultPipeline.input_layout);
 	
-	bool result = myCube->Initialize(myD3DClass->GetDevice());
+	myCube->Initialize(myD3DClass->GetDevice());
 	myCamera->Initialize();
 	myTerrain->Initialize(myD3DClass->GetDevice());
 
-	myMaterialHandler->Initialize();
 	RunTaskForPPV();
 
-	myMeshHandler->Initialize();
+	libraryLoadedMesh = myMeshHandler->Initialize();
 
 	std::vector<MeshComponentsAdvanced::OutInformationAdvanced> meshes;
-	result = myMeshHandler->LoadAdvancedMeshFBX("BattleMage.fbx", meshes);
-	if (result) myMeshHandler->ExportAdvancedMesh("BattleMageAdv.bin", meshes[0]);
-	if (result) result = myAdvancedMesh->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "BattleMageAdv.bin");
+	if (libraryLoadedMesh) libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshFBX("BattleMage.fbx", meshes);
+	if (libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("BattleMageAdv.bin", meshes[0]);
+	if (libraryLoadedMesh) libraryLoadedMesh = myAdvancedMesh->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "BattleMageAdv.bin");
 
 	myAdvancedMesh->ObjectChangePosition(0.f, -2.f, -5.f);
 }
@@ -282,37 +287,32 @@ void SceneManager::RunDebugMessage(void)
 
 bool SceneManager::RunTaskForPPV(void)
 {
-	std::vector<MaterialComponents::Material> m_VecMaterials;
-	bool result = myMaterialHandler->LoadMaterialsBinary("BattleMage.bin", m_VecMaterials);
+	libraryLoadedMaterial = myMaterialHandler->Initialize();
 
-	//for each (MaterialComponents::Material mat in m_VecMaterials)
-	//{
-	//	for (mat.m_mapPropValuesIter = mat.m_mapPropValues.begin(); mat.m_mapPropValuesIter != mat.m_mapPropValues.end(); ++mat.m_mapPropValuesIter)
-	//	{
-	//		MaterialComponents::Material::properties prop = mat.m_mapPropValuesIter->first;
-	//		MaterialComponents::Material::properties_t prop_t = mat.m_mapPropValuesIter->second;
-	//		if (prop_t.filePath.compare("WasNotGiven") != 0)	// if we have a file path, get the file path
-	//		{
-	//			ID3D11ShaderResourceView * tempSRV;
-	//			std::wstring widestr = std::wstring(prop_t.filePath.begin(), prop_t.filePath.end());
-	//			const wchar_t* szName = widestr.c_str();
-	//			CreateWICTextureFromFile(myD3DClass->GetDevice().Get(), nullptr, szName, nullptr, &tempSRV, 0);
-	//			m_PPVStuff.m_materialsSRVs.push_back(tempSRV);
-	//		}
-	//	}
-	//}
+	if (libraryLoadedMaterial)
+	{
+		std::vector<MaterialComponents::Material> m_VecMaterials;
+		bool result = myMaterialHandler->LoadMaterialsBinary("BattleMage.bin", m_VecMaterials);
 
-	ID3D11ShaderResourceView * tempSRV01;
-	CreateWICTextureFromFile(myD3DClass->GetDevice().Get(), nullptr, L"BattleMage.fbm/PPG_3D_Player_D.png", nullptr, &tempSRV01, 0);
-	m_PPVStuff.m_materialsSRVs.push_back(tempSRV01);
-	
-	ID3D11ShaderResourceView * tempSRV02;
-	CreateWICTextureFromFile(myD3DClass->GetDevice().Get(), nullptr, L"BattleMage.fbm/PPG_3D_Player_emissive.png", nullptr, &tempSRV02, 0);
-	m_PPVStuff.m_materialsSRVs.push_back(tempSRV02);
-	
-	ID3D11ShaderResourceView * tempSRV03;
-	CreateWICTextureFromFile(myD3DClass->GetDevice().Get(), nullptr, L"BattleMage.fbm/PPG_3D_Player_spec.png", nullptr, &tempSRV03, 0);
-	m_PPVStuff.m_materialsSRVs.push_back(tempSRV03);
+		for each (MaterialComponents::Material mat in m_VecMaterials)
+		{
+			for (mat.m_mapPropValuesIter = mat.m_mapPropValues.begin(); mat.m_mapPropValuesIter != mat.m_mapPropValues.end(); ++mat.m_mapPropValuesIter)
+			{
+				MaterialComponents::Material::properties prop = mat.m_mapPropValuesIter->first;
+				MaterialComponents::Material::properties_t prop_t = mat.m_mapPropValuesIter->second;
+				if (prop_t.filePath.compare("WasNotGiven") != 0)	// if we have a file path, get the file path
+				{
+					ID3D11ShaderResourceView * tempSRV;
+					std::wstring widestr = std::wstring(prop_t.filePath.begin(), prop_t.filePath.end());
+					const wchar_t* szName = widestr.c_str();
+					CreateWICTextureFromFile(myD3DClass->GetDevice().Get(), nullptr, szName, nullptr, &tempSRV, 0);
+					m_PPVStuff.m_materialsSRVs.push_back(tempSRV);
+				}
+			}
+		}
+
+		myMaterialHandler->DisplayMaterialPropertiesInText(m_VecMaterials);
+	}
 
 	char* bytecode = nullptr;
 	size_t byteCodeSize = 0;

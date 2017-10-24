@@ -188,28 +188,36 @@
   <ItemGroup>
     <FxCompile Include="PS_AdvancedMesh.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputFileName)\Shaders%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="PS_Material.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputFileName)\Shaders%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="PS_Standard.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputFileName)\Shaders%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="TestPixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputFileName)\Shaders%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="TestVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputFileName)\Shaders%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="VS_AdvancedMesh.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputFileName)\Shaders%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="VS_Material.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputFileName)\Shaders%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="VS_Standard.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(InputFileName)\Shaders%(Filename).cso</ObjectFileOutput>
     </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

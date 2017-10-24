@@ -34,6 +34,8 @@ public:
 	~SceneManager();
 
 private:
+	bool libraryLoadedMaterial;
+	bool libraryLoadedMesh;
 	Object*							myCube;
 	Object*							myAdvancedMesh;
 	Camera*							myCamera;
