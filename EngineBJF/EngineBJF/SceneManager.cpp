@@ -4,8 +4,8 @@ SceneManager::SceneManager()
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	//_CrtSetBreakAlloc(452);
-	libraryLoadedMaterial = false;
-	libraryLoadedMesh = false;
+	m_libraryLoadedMaterial = false;
+	m_libraryLoadedMesh = false;
 
 	myCube				= new Object();
 	myCamera			= new Camera();
@@ -16,9 +16,10 @@ SceneManager::SceneManager()
 	myMaterialHandler	= new FbxLibraryDLLMaterialHandler();
 	myMeshHandler		= new FbxLibraryDLLMeshHandler();
 	mouseMove = false;
+	m_rotate = false;
 	m_cameraState = lookAtOrigin;
-	timeBetweenFrames = 0.f;
-	timer.Restart();
+	m_timeBetweenFrames = 0.f;
+	m_timer.Restart();
 }
 
 SceneManager::~SceneManager()
@@ -68,67 +69,92 @@ void SceneManager::SetPipelineStates(PipelineState& _pipeState)
 
 void SceneManager::Update(void)
 {
-	timer.Signal();
-	timeBetweenFrames = (float)timer.Delta();
-#pragma region states
-	//switch (m_cameraState)
-	//{
-	//case SceneManager::cameraDefault:
-	//{
-	//	VertexPositionColor vert01 = { XMFLOAT4(XMLoadFloat4x4(&m_cube.matrix).r[3].m128_f32), XMFLOAT4(1.f, 1.f, 0.f, 0.f) };
-	//	VertexPositionColor vert02 = { XMFLOAT4(XMLoadFloat4x4(&m_cube02.matrix).r[3].m128_f32), XMFLOAT4(1.f, 1.f, 0.f, 0.f) };
-
-	//	m_debugRenderer.AddLine(vert01, vert02);
-	//}
-	//break;
-	//case SceneManager::lookAtOrigin:
-	//{
-	//	XMStoreFloat4x4(&m_camera, CameraLookAt(XMLoadFloat4x4(&m_camera).r[3], at, up));
-	//	m_cameraState = cameraDefault;
-
-	//	VertexPositionColor vert01 = { XMFLOAT4(XMLoadFloat4x4(&m_cube.matrix).r[3].m128_f32), XMFLOAT4(1.f, 1.f, 0.f, 0.f) };
-	//	VertexPositionColor vert02 = { XMFLOAT4(XMLoadFloat4x4(&m_cube02.matrix).r[3].m128_f32), XMFLOAT4(1.f, 1.f, 0.f, 0.f) };
-
-	//	m_debugRenderer.AddLine(vert01, vert02);
-	//}
-	//break;
-	//case SceneManager::lookAtCube1:
-	//	XMStoreFloat4x4(&m_camera, CameraLookAt(XMLoadFloat4x4(&m_camera).r[3], XMLoadFloat4x4(&m_cube.matrix).r[3], up));
-	//	m_cameraState = cameraDefault;
-	//	break;
-	//case SceneManager::lookAtCube2:
-	//	XMStoreFloat4x4(&m_camera, CameraLookAt(XMLoadFloat4x4(&m_camera).r[3], XMLoadFloat4x4(&m_cube02.matrix).r[3], up));
-	//	m_cameraState = cameraDefault;
-	//	break;
-	//case SceneManager::turnToCube1:
-	//{
-	//	XMStoreFloat4x4(&m_camera, CameraTurnTo(XMLoadFloat4x4(&m_camera), XMLoadFloat4x4(&m_cube.matrix).r[3], timeBetweenFrames * 5.f));
-
-	//	VertexPositionColor vert01 = { XMFLOAT4(XMLoadFloat4x4(&m_cube.matrix).r[3].m128_f32), XMFLOAT4(1.f, 1.f, 0.f, 0.f) };
-	//	VertexPositionColor vert02 = { XMFLOAT4(XMLoadFloat4x4(&m_cube02.matrix).r[3].m128_f32), XMFLOAT4(1.f, 1.f, 0.f, 0.f) };
-
-	//	m_debugRenderer.AddLine(vert01, vert02);
-	//}
-	//	break;
-	//case SceneManager::turnToCube2:
-	//{
-	//	XMStoreFloat4x4(&m_camera, CameraTurnTo(XMLoadFloat4x4(&m_camera), XMLoadFloat4x4(&m_cube02.matrix).r[3], timeBetweenFrames * 5.f));
-
-	//	VertexPositionColor vert01 = { XMFLOAT4(XMLoadFloat4x4(&m_cube.matrix).r[3].m128_f32), XMFLOAT4(1.f, 1.f, 0.f, 0.f) };
-	//	VertexPositionColor vert02 = { XMFLOAT4(XMLoadFloat4x4(&m_cube02.matrix).r[3].m128_f32), XMFLOAT4(1.f, 1.f, 0.f, 0.f) };
-
-	//	m_debugRenderer.AddLine(vert01, vert02);
-	//}
-	//	break;
-	//default:
-	//	break;
-	//}
-#pragma endregion
+	m_timer.Signal();
+	m_timeBetweenFrames = (float)m_timer.Delta();
+	
+	switch (m_cameraState)
+	{
+		case SceneManager::cameraDefault:
+			break;
+		case SceneManager::lookAtOrigin:
+		{
+			XMVECTOR at = { 0.f, 0.f, 0.f, 1.f };
+			XMVECTOR up = { 0.f, 1.f, 0.f, 1.f };
+			myCamera->SetCamera(myCamera->CameraLookAt(myCamera->GetCameraMatrix().r[3], at, up));
+			m_cameraState = cameraDefault;
+		}
+		break;
+		case SceneManager::lookAtCube:
+		{
+			XMVECTOR up = { 0.f, 1.f, 0.f, 1.f };
+			myCamera->SetCamera(myCamera->CameraLookAt(myCamera->GetCameraMatrix().r[3], myCube->GetObjectMatrix().r[3], up));
+			m_cameraState = cameraDefault;
+		}
+			break;
+		case SceneManager::lookAtMesh:
+		{
+			XMVECTOR up = { 0.f, 1.f, 0.f, 1.f };
+			myCamera->SetCamera(myCamera->CameraLookAt(myCamera->GetCameraMatrix().r[3], myAdvancedMesh->GetObjectMatrix().r[3], up));
+			m_cameraState = cameraDefault;
+		}
+			break;
+		case SceneManager::turnToCube:
+			myCamera->SetCamera(myCamera->CameraTurnTo(myCamera->GetCameraMatrix(), myCube->GetObjectMatrix().r[3], m_timeBetweenFrames * 5.f));
+			break;
+		case SceneManager::turnToMesh:
+			myCamera->SetCamera(myCamera->CameraTurnTo(myCamera->GetCameraMatrix(), myAdvancedMesh->GetObjectMatrix().r[3], m_timeBetweenFrames * 5.f));
+			break;
+		default:
+			break;
+	}
 
 	RunDebuggerTask();
 
-	myCube->ObjectRotationY(0.50f * timeBetweenFrames);
-	myAdvancedMesh->ObjectRotationY(0.5f * timeBetweenFrames);
+	if (m_rotate)
+	{
+		myCube->ObjectRotationY(0.50f * m_timeBetweenFrames);
+		myAdvancedMesh->ObjectRotationY(0.5f * m_timeBetweenFrames);
+	}
+
+	myCamera->CreateViewAndPerspectiveMatrix();
+	
+	/*switch (m_currentInput)
+	{
+	case 'T':
+		m_cameraState = turnToCube1;
+		break;
+	case 'Y':
+		m_cameraState = turnToCube2;
+		break;
+	case 'K':
+		m_cameraState = lookAtCube1;
+		break;
+	case 'L':
+		m_cameraState = lookAtCube2;
+		break;
+	case 'A':
+		myCamera->MoveCameraLocalLeft(timeBetweenFrames, 20.f);
+		break;
+	case 'D':
+		myCamera->MoveCameraLocalRight(timeBetweenFrames, 20.f);
+		break;
+	case 'W':
+		myCamera->MoveCameraLocalForward(timeBetweenFrames, 20.f);
+		break;
+	case 'S':
+		myCamera->MoveCameraLocalBackward(timeBetweenFrames, 20.f);
+		break;
+	case VK_SPACE:
+		myCamera->MoveCameraLocalUp(timeBetweenFrames, 20.f);
+		break;
+	case 'X':
+		myCamera->MoveCameraLocalDown(timeBetweenFrames, 20.f);
+		break;
+	case 'R':
+		m_rotate = !m_rotate;
+	default:
+		break;
+	}*/
 }
 
 void SceneManager::Render(void)
@@ -144,20 +170,17 @@ void SceneManager::Render(void)
 	m_deviceContext->VSSetShader(m_PPVStuff.m_VS.Get(), NULL, 0);
 	m_deviceContext->PSSetShader(m_PPVStuff.m_PS.Get(), NULL, 0);
 	
-	if (libraryLoadedMesh && libraryLoadedMesh)
+	if (m_libraryLoadedMesh && m_libraryLoadedMesh)
 	{
 		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[1]); // 1, 0, 3 because of the input from shaders... diffuse, emissive, specular
 		m_deviceContext->PSSetShaderResources(1, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);	// Skip [2] because we are not using normal mapping right now
 		m_deviceContext->PSSetShaderResources(2, 1, &m_PPVStuff.m_materialsSRVs.data()[3]);
 	}
 
-	// also, should I just do 	ComPtr<ID3D11DeviceContext> m_deviceContext = myD3DClass->GetDeviceContext() & ComPtr<ID3D11Device> m_device = myD3DClass->GetDevice();
-	// when I first make the class or do I need to update the device and context because it changes?
-
 	UpdateConstantBuffer(myCube->GetObjectMatrix());
 	myCube->Render(m_deviceContext);
 
-	if (libraryLoadedMesh) {
+	if (m_libraryLoadedMesh) {
 		UpdateConstantBuffer(myAdvancedMesh->GetObjectMatrix());
 		myAdvancedMesh->Render(m_deviceContext);
 	}
@@ -211,70 +234,67 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 
 	RunTaskForPPV();
 
-	libraryLoadedMesh = myMeshHandler->Initialize();
+	m_libraryLoadedMesh = myMeshHandler->Initialize();
 
 	std::vector<MeshComponentsAdvanced::OutInformationAdvanced> meshes;
-	if (libraryLoadedMesh) libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshFBX("BattleMage.fbx", meshes);
-	if (libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("BattleMageAdv.bin", meshes[0]);
-	if (libraryLoadedMesh) libraryLoadedMesh = myAdvancedMesh->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "BattleMageAdv.bin");
+	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshFBX("BattleMage.fbx", meshes);
+	if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("BattleMageAdv.bin", meshes[0]);
+	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myAdvancedMesh->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "BattleMageAdv.bin");
 
 	myAdvancedMesh->ObjectChangePosition(0.f, -2.f, -5.f);
 }
 
+float SceneManager::GetTimeBetweenFrames()
+{
+	return m_timeBetweenFrames;
+}
+
+Camera * SceneManager::GetCamera()
+{
+	return myCamera;
+}
+
 void SceneManager::CheckUserInput(WPARAM wParam)
 {
+	//m_currentInput = wParam;
+
+	// also, should I just do 	ComPtr<ID3D11DeviceContext> m_deviceContext = myD3DClass->GetDeviceContext() & ComPtr<ID3D11Device> m_device = myD3DClass->GetDevice();
+	// when I first make the class or do I need to update the device and context because it changes?
+
 	switch (wParam)
 	{
-	/*case VK_LEFT:
-		CameraTranslation(-1.f, 0.f, 0.f);
-		RunDebugMessage();
-		m_cameraState = cameraDefault;
-		break;
-	case VK_RIGHT:
-		CameraTranslation(1.f, 0.f, 0.f);
-		m_cameraState = cameraDefault;
-		RunDebugMessage();
-		break;
-	case VK_UP:
-		CameraTranslation(0.f, 1.f, 0.f);
-		m_cameraState = cameraDefault;
-		RunDebugMessage();
-		break;
-	case VK_DOWN:
-		CameraTranslation(0.f, -1.f, 0.f);
-		m_cameraState = cameraDefault;
-		RunDebugMessage();
-		break;
-	case 'O':
-		rotateObjects = true;
-		break;
-	case 'P':
-		rotateObjects = false;
-		break;*/
 	case 'T':
-		m_cameraState = turnToCube1;
+		m_cameraState = turnToCube;
 		break;
 	case 'Y':
-		m_cameraState = turnToCube2;
+		m_cameraState = turnToMesh;
 		break;
 	case 'K':
-		m_cameraState = lookAtCube1;
+		m_cameraState = lookAtCube;
 		break;
 	case 'L':
-		m_cameraState = lookAtCube2;
+		m_cameraState = lookAtMesh;
 		break;
-	//case 'A':
-	//	myCamera->MoveCameraLocalLeft(timeBetweenFrames, 20.f);
-	//	break;
-	//case 'D':
-	//	myCamera->MoveCameraLocalRight(timeBetweenFrames, 20.f);
-	//	break;
-	//case 'W':
-	//	myCamera->MoveCameraLocalForward(timeBetweenFrames, 20.f);
-	//	break;
-	//case 'S':
-	//	myCamera->MoveCameraLocalBackward(timeBetweenFrames, 20.f);
-	//	break;
+	case 'A':
+		myCamera->MoveCameraLocalLeft(m_timeBetweenFrames, 20.f);
+		break;
+	case 'D':
+		myCamera->MoveCameraLocalRight(m_timeBetweenFrames, 20.f);
+		break;
+	case 'W':
+		myCamera->MoveCameraLocalForward(m_timeBetweenFrames, 20.f);
+		break;
+	case 'S':
+		myCamera->MoveCameraLocalBackward(m_timeBetweenFrames, 20.f);
+		break;
+	case VK_SPACE:
+		myCamera->MoveCameraLocalUp(m_timeBetweenFrames, 20.f);
+		break;
+	case 'X':
+		myCamera->MoveCameraLocalDown(m_timeBetweenFrames, 20.f);
+		break;
+	case 'R':
+		m_rotate = !m_rotate;
 	default:
 		break;
 	}
@@ -282,14 +302,18 @@ void SceneManager::CheckUserInput(WPARAM wParam)
 
 void SceneManager::RunDebugMessage(void)
 {
-	//printf();
+	//printf(myCamera->GetCameraEye().m128_f32[0]);
+	std::cout << myCamera->GetCameraFloat4x4()._11 << ", " << myCamera->GetCameraFloat4x4()._12 << ", " << myCamera->GetCameraFloat4x4()._13 << ", " << myCamera->GetCameraFloat4x4()._14 << "\n";
+	std::cout << myCamera->GetCameraFloat4x4()._21 << ", " << myCamera->GetCameraFloat4x4()._22 << ", " << myCamera->GetCameraFloat4x4()._23 << ", " << myCamera->GetCameraFloat4x4()._24 << "\n";
+	std::cout << myCamera->GetCameraFloat4x4()._31 << ", " << myCamera->GetCameraFloat4x4()._32 << ", " << myCamera->GetCameraFloat4x4()._33 << ", " << myCamera->GetCameraFloat4x4()._34 << "\n";
+	std::cout << myCamera->GetCameraFloat4x4()._41 << ", " << myCamera->GetCameraFloat4x4()._42 << ", " << myCamera->GetCameraFloat4x4()._43 << ", " << myCamera->GetCameraFloat4x4()._44 << "\n\n";
 }
 
 bool SceneManager::RunTaskForPPV(void)
 {
-	libraryLoadedMaterial = myMaterialHandler->Initialize();
+	m_libraryLoadedMaterial = myMaterialHandler->Initialize();
 
-	if (libraryLoadedMaterial)
+	if (m_libraryLoadedMaterial)
 	{
 		std::vector<MaterialComponents::Material> m_VecMaterials;
 		bool result = myMaterialHandler->LoadMaterialsBinary("BattleMage.bin", m_VecMaterials);

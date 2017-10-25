@@ -23,6 +23,7 @@
 #include <vector>
 #include "resource.h"
 #include "WICTextureLoader.h"
+#include <iostream>
 
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -34,8 +35,8 @@ public:
 	~SceneManager();
 
 private:
-	bool libraryLoadedMaterial;
-	bool libraryLoadedMesh;
+	bool m_libraryLoadedMaterial;
+	bool m_libraryLoadedMesh;
 	Object*							myCube;
 	Object*							myAdvancedMesh;
 	Camera*							myCamera;
@@ -44,6 +45,12 @@ private:
 	D3DInitializer*					myD3DClass;
 	FbxLibraryDLLMaterialHandler*	myMaterialHandler;
 	FbxLibraryDLLMeshHandler*		myMeshHandler;
+	//WPARAM							m_currentInput;
+	bool m_rotate;
+	XTime m_timer;
+	float m_timeBetweenFrames;
+
+	ComPtr<ID3D11Buffer>				m_constantBuffer;
 
 	struct PipelineState
 	{
@@ -66,44 +73,40 @@ private:
 	} m_PPVStuff;
 
 public:
+	void Update(void);
+	void Render(void);
 
+	void CheckUserInput(WPARAM wParam);
+	void RunTaskList(int _screenWidth, int _screenHeight, bool _vsync, HWND& _hwnd, bool _fullscreen, float _screenFar, float _screenNear);
+	float GetTimeBetweenFrames();
+	Camera* GetCamera();
+
+	void RunDebugMessage(void);
+
+public:
 	enum CameraState {
 		cameraDefault = 1,
 		lookAtOrigin,
-		lookAtCube1,
-		lookAtCube2,
-		turnToCube1,
-		turnToCube2
+		lookAtCube,
+		lookAtMesh,
+		turnToCube,
+		turnToMesh
 	} m_cameraState;
-
-	XTime timer;
-	float timeBetweenFrames;
-
-	ComPtr<ID3D11Buffer>				m_constantBuffer;
 
 	bool mouseMove;
 	POINT prevCursorPos;
 	POINT currCursorPos;
 
 	ModelViewProjectionConstantBuffer m_constantBufferData;
-
-	bool LoadCompiledShaderData(char **byteCode, size_t &byteCodeSize, const char *fileName);
-
+private:
 	void InitConstantBuffer(ComPtr<ID3D11Buffer>& _buffer);
 	void InitShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, ComPtr<ID3D11VertexShader>& _VS, ComPtr<ID3D11InputLayout>& _IL);
 
-	void Update(void);
-	void Render(void);
-
+	bool LoadCompiledShaderData(char **byteCode, size_t &byteCodeSize, const char *fileName);
 	void UpdateConstantBuffer(XMMATRIX _modelsMatrix);
-
 	void SetPipelineStates(PipelineState& _pS);
-	void CheckUserInput(WPARAM wParam);
-	void RunTaskList(int _screenWidth, int _screenHeight, bool _vsync, HWND& _hwnd, bool _fullscreen, float _screenFar, float _screenNear);
-	void RunDebugMessage(void);
-	
-	bool RunTaskForPPV(void);
 
+	bool RunTaskForPPV(void);
 	void RunDebuggerTask(void);
 };
 

@@ -22,6 +22,9 @@ public:
 	void Initialize(float _viewportWidth, float _viewportHeight, float _nearPlane, float _farPlane, float _zoomAmount);
 	void Initialize(float _viewportWidth, float _viewportHeight, float _nearPlane, float _farPlane, float _zoomAmount, XMVECTOR _eye, XMVECTOR _at, XMVECTOR _up);
 
+	void CreateViewAndPerspectiveMatrix();
+	void CreateViewAndPerspectiveMatrix(float _viewportWidth, float _viewportHeight);
+
 	void MoveCameraLocalForward(float const _deltaTime, float const _moveSpeed);
 	void MoveCameraLocalBackward(float const _deltaTime, float const _moveSpeed);
 	void MoveCameraLocalLeft(float const _deltaTime, float const _moveSpeed);
@@ -40,6 +43,7 @@ public:
 	XMFLOAT4X4 CameraMouseLook(XMFLOAT4X4 _viewerMatrix, float _xDelta, float _yDelta);
 
 	void SetCamera(XMFLOAT4X4 _camera);
+	void SetCamera(XMMATRIX _camera);
 
 	XMFLOAT4X4 GetCameraFloat4x4();
 	XMMATRIX GetCameraMatrix();
@@ -48,7 +52,7 @@ public:
 	XMVECTOR GetCameraUp();
 	ModelViewProjectionConstantBuffer m_constantBufferData;
 
-	//void Shutdown();
+	void Shutdown();
 private:
 	float m_viewportWidth;
 	float m_viewportHeight;
@@ -61,7 +65,7 @@ private:
 	XMFLOAT4X4 m_camera;
 
 	void CreateCamera(XMVECTOR _eye, XMVECTOR _at, XMVECTOR _up);
-	void CreateViewAndPerspectiveMatrix(float _viewportWidth, float _viewportHeight);
+	void ShutdownCamera();
 };
 
 #endif // !_CAMERA_H_

@@ -224,10 +224,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_MOUSEMOVE:
 		if (sceneManager->mouseMove)
 		{
-			float delta_time = sceneManager->timeBetweenFrames;
+			float delta_time = sceneManager->GetTimeBetweenFrames();
 			GetCursorPos(&sceneManager->currCursorPos);
 			ScreenToClient(hWnd, &sceneManager->currCursorPos);
-			//sceneManager->CameraMouseLook(sceneManager->m_camera, (sceneManager->currCursorPos.x - sceneManager->prevCursorPos.x) * delta_time * 7.f, (sceneManager->currCursorPos.y - sceneManager->prevCursorPos.y) * delta_time * 7.f);
+			sceneManager->GetCamera()->CameraMouseLook(sceneManager->GetCamera()->GetCameraFloat4x4(), (sceneManager->currCursorPos.x - sceneManager->prevCursorPos.x) * delta_time, (sceneManager->currCursorPos.y - sceneManager->prevCursorPos.y) * delta_time);
 			sceneManager->prevCursorPos = sceneManager->currCursorPos;
 		}
 		GetCursorPos(&sceneManager->prevCursorPos);
@@ -244,7 +244,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			PostQuitMessage(0);
 			break;
 		}
-		//sceneManager->CheckUserInput(wParam);
+		sceneManager->CheckUserInput(wParam);
 		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);

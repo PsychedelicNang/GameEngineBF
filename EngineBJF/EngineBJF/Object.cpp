@@ -6,7 +6,6 @@ Object::Object()
 	m_indexCount = 0;
 	m_vertexCount = 0;
 	m_stride = 0;
-	m_hasIndexBuffer = false;
 	m_matrix = {
 		1, 0, 0, 0,
 		0, 1, 0, 0,
@@ -248,6 +247,8 @@ bool Object::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 		{ XMFLOAT4(1.0f, -1.0f,  1.0f, 1.0f)  , XMFLOAT4(1.f, 1.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 0.f, 0.f), XMFLOAT4(0.f, -1.f, 0.f, 0.f) }
 	};
 
+	m_vertexCount = ARRAYSIZE(cubeVertices);
+
 	D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
 	vertexBufferData.pSysMem = cubeVertices;
 	vertexBufferData.SysMemPitch = 0;
@@ -295,7 +296,6 @@ bool Object::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 		3, 0, -5, 1);
 
 	m_stride = sizeof(VertexPositionColorUVNormal);
-	m_hasIndexBuffer = true;
 
 	return true;
 #endif
@@ -425,7 +425,6 @@ bool Object::ReadInBinaryMeshFile(ComPtr<ID3D11Device>& _device, const char * _f
 		m_indexCount = numOfIndices;
 		m_vertexCount = numOfVertices;
 		m_stride = sizeof(VertexPositionColor);
-		m_hasIndexBuffer = true;
 
 		delete[] vertices;
 	
@@ -517,7 +516,6 @@ bool Object::ReadInAdvancedBinaryMeshFile(ComPtr<ID3D11Device>& _device, const c
 			m_indexCount = numOfIndices;
 			m_vertexCount = numOfVertices;
 			m_stride = sizeof(VertexPositionColorUVNormal);
-			m_hasIndexBuffer = true;
 	
 			delete[] vertices;
 	
@@ -533,7 +531,6 @@ void Object::ShutdownBuffers()
 	m_indexBuffer.Reset();
 	m_indexCount = 0;
 	m_stride = 0;
-	m_hasIndexBuffer = false;
 	m_matrix = {
 		1, 0, 0, 0,
 		0, 1, 0, 0,
@@ -555,7 +552,7 @@ void Object::RenderBuffers(ComPtr<ID3D11DeviceContext>& _deviceContext)
 	_deviceContext->IASetVertexBuffers(0, 1, m_vertexBuffer.GetAddressOf(), &stride, &offset);
 	_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	if (m_hasIndexBuffer)
+	if (m_indexBuffer)
 	{
 		_deviceContext->IASetIndexBuffer(m_indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 		_deviceContext->DrawIndexed(m_indexCount, 0, 0);

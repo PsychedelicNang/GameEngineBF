@@ -13,26 +13,23 @@ Camera::Camera()
 
 Camera::~Camera()
 {
-	//Shutdown();
+	Shutdown();
 }
 
 void Camera::Initialize()
 {
 	CreateCamera(m_eye, m_at, m_up);
-	CreateViewAndPerspectiveMatrix(m_viewportWidth, m_viewportHeight);
 }
 
 void Camera::Initialize(float _viewportWidth, float _viewportHeight)
 {
 	CreateCamera(m_eye, m_at, m_up);
-	CreateViewAndPerspectiveMatrix(_viewportWidth, _viewportHeight);
 }
 
 void Camera::Initialize(float _viewportWidth, float _viewportHeight, float _zoomAmount)
 {
 	m_cameraZoom = _zoomAmount;
 	CreateCamera(m_eye, m_at, m_up);
-	CreateViewAndPerspectiveMatrix(_viewportWidth, _viewportHeight);
 }
 
 void Camera::Initialize(float _viewportWidth, float _viewportHeight, float _nearPlane, float _farPlane)
@@ -40,7 +37,6 @@ void Camera::Initialize(float _viewportWidth, float _viewportHeight, float _near
 	m_nearPlane = _nearPlane;
 	m_farPlane = _farPlane;
 	CreateCamera(m_eye, m_at, m_up);
-	CreateViewAndPerspectiveMatrix(_viewportWidth, _viewportHeight);
 }
 
 void Camera::Initialize(float _viewportWidth, float _viewportHeight, float _nearPlane, float _farPlane, float _zoomAmount)
@@ -49,7 +45,6 @@ void Camera::Initialize(float _viewportWidth, float _viewportHeight, float _near
 	m_farPlane = _farPlane;
 	m_cameraZoom = _zoomAmount;
 	CreateCamera(m_eye, m_at, m_up);
-	CreateViewAndPerspectiveMatrix(_viewportWidth, _viewportHeight);
 }
 
 void Camera::Initialize(float _viewportWidth, float _viewportHeight, float _nearPlane, float _farPlane, float _zoomAmount, XMVECTOR _eye, XMVECTOR _at, XMVECTOR _up)
@@ -61,7 +56,6 @@ void Camera::Initialize(float _viewportWidth, float _viewportHeight, float _near
 	m_at = _at;
 	m_up = _up;
 	CreateCamera(_eye, _at, _up);
-	CreateViewAndPerspectiveMatrix(_viewportWidth, _viewportHeight);
 }
 
 void Camera::MoveCameraLocalForward(float const _deltaTime, float const _moveSpeed)
@@ -112,13 +106,27 @@ void Camera::MoveCameraLocalDown(float const _deltaTime, float const _moveSpeed)
 	XMStoreFloat4x4(&m_camera, result);
 }
 
-//void Camera::Shutdown()
-//{
-//}
+void Camera::Shutdown()
+{
+	ShutdownCamera();
+}
 
 void Camera::CreateCamera(XMVECTOR _eye, XMVECTOR _at, XMVECTOR _up)
 {
 	XMStoreFloat4x4(&m_camera, CameraLookAt(_eye, _at, _up));
+	CreateViewAndPerspectiveMatrix();
+}
+
+void Camera::CreateViewAndPerspectiveMatrix()
+{
+	float fovAngleY = m_cameraZoom * XM_PI / 180.0f;
+	float aspectRatio = m_viewportWidth / m_viewportHeight;
+	XMMATRIX perspectiveMatrix = XMMatrixPerspectiveFovLH(fovAngleY, aspectRatio, m_nearPlane, m_farPlane);
+
+	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixIdentity());
+
+	XMStoreFloat4x4(&m_constantBufferData.projection, perspectiveMatrix);
+	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera)));
 }
 
 void Camera::CreateViewAndPerspectiveMatrix(float _viewportWidth, float _viewportHeight)
@@ -134,6 +142,22 @@ void Camera::CreateViewAndPerspectiveMatrix(float _viewportWidth, float _viewpor
 
 	XMStoreFloat4x4(&m_constantBufferData.projection, perspectiveMatrix);
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera)));
+}
+
+void Camera::ShutdownCamera()
+{
+	m_viewportWidth = 0.f;
+	m_viewportHeight = 0.f;
+	m_nearPlane = 0.f;
+	m_farPlane = 0.f;
+	m_cameraZoom = 0.f;
+	m_eye = { 0.f, 0.f, 0.f, 0.f };
+	m_at = { 0.f, 0.f, 0.f, 0.f };
+	m_up = { 0.f, 0.f, 0.f, 0.f };
+	XMStoreFloat4x4(&m_camera, XMMatrixIdentity());
+	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixIdentity());
+	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixIdentity());
+	XMStoreFloat4x4(&m_constantBufferData.projection, XMMatrixIdentity());
 }
 
 void Camera::CameraTranslation(XMVECTOR _traslationAmount)
@@ -265,7 +289,7 @@ XMFLOAT4X4 Camera::CameraMouseLook(XMFLOAT4X4 _viewerMatrix, float _xDelta, floa
 	temp_camera.r[0] = xAxisForOut;
 	temp_camera.r[1] = yAxisForOut;
 
-	//XMStoreFloat4x4(&m_camera, temp_camera);
+	XMStoreFloat4x4(&m_camera, temp_camera);
 
 	m_camera._41 = pos.x;
 	m_camera._42 = pos.y;
@@ -278,6 +302,11 @@ XMFLOAT4X4 Camera::CameraMouseLook(XMFLOAT4X4 _viewerMatrix, float _xDelta, floa
 void Camera::SetCamera(XMFLOAT4X4 _camera)
 {
 	m_camera = _camera;
+}
+
+void Camera::SetCamera(XMMATRIX _camera)
+{
+	XMStoreFloat4x4(&m_camera, _camera);
 }
 
 XMFLOAT4X4 Camera::GetCameraFloat4x4()

@@ -41,7 +41,6 @@ private:
 	ComPtr<ID3D11Buffer>				m_vertexBuffer;
 	ComPtr<ID3D11Buffer>				m_indexBuffer;
 	int m_indexCount, m_vertexCount, m_stride;
-	bool m_hasIndexBuffer;
 	XMFLOAT4X4 m_matrix;
 	ComPtr<ID3D11Texture2D>				m_texture;
 	ComPtr<ID3D11ShaderResourceView>	m_shaderResourceView;
