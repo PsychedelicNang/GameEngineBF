@@ -16,6 +16,7 @@
 #include "Camera.h"
 #include "FbxLibraryDLLMeshHandler.h"
 #include "FbxLibraryDLLMaterialHandler.h"
+#include "FbxLibraryDLLAnimationHandler.h"
 
 #include "XTime.h"
 
@@ -45,24 +46,42 @@ private:
 	D3DInitializer*					myD3DClass;
 	FbxLibraryDLLMaterialHandler*	myMaterialHandler;
 	FbxLibraryDLLMeshHandler*		myMeshHandler;
+	FbxLibraryDLLAnimationHandler*	myAnimationHandler;
 	//WPARAM							m_currentInput;
 	bool m_rotate;
 	XTime m_timer;
 	float m_timeBetweenFrames;
 
 	ComPtr<ID3D11Buffer>				m_constantBuffer;
+	ComPtr<ID3D11Buffer>				m_tessellationConstantBuffer;
+	ComPtr<ID3D11SamplerState>			m_samplerState;
 
 	struct PipelineState
 	{
 		ComPtr<ID3D11InputLayout>			input_layout;
 		ComPtr<ID3D11VertexShader>			vertex_shader;
 		ComPtr<ID3D11PixelShader>			pixel_shader;
-		ComPtr<ID3D11RenderTargetView>		render_target;
+		/*ComPtr<ID3D11RenderTargetView>	render_target;
 		ComPtr<ID3D11Texture2D>				depthStencilBuffer;
 		ComPtr<ID3D11DepthStencilState>		depthStencilState;
 		ComPtr<ID3D11DepthStencilView>		depthStencilView;
-		ComPtr<ID3D11RasterizerState>		rasterState;
+		ComPtr<ID3D11RasterizerState>		rasterState;*/
 	} m_defaultPipeline;
+
+	struct TessellationStuff {
+		ComPtr<ID3D11InputLayout>	inputLayout;
+		ComPtr<ID3D11VertexShader>	vertexShader;
+		ComPtr<ID3D11PixelShader>	pixelShader;
+		ComPtr<ID3D11HullShader>	hullShader;
+		ComPtr<ID3D11DomainShader>  domainShader;
+		ComPtr<ID3D11Buffer> m_quadVertexBuffer;
+		ComPtr<ID3D11Buffer> m_modelCameraConstantBuffer;
+
+		struct ModelCameraConstantBuffer {
+			float tessellationAmount;
+			XMFLOAT3 padding;
+		} m_modelCameraConstantBufferData;
+	} m_tessellationStuff;
 
 	struct PPVStuff {
 		std::vector<ID3D11ShaderResourceView*> m_materialsSRVs;
@@ -98,6 +117,8 @@ public:
 	POINT currCursorPos;
 
 	ModelViewProjectionConstantBuffer m_constantBufferData;
+	ModelViewProjectionConstantBuffer m_tessellationConstantBufferData;
+
 private:
 	void InitConstantBuffer(ComPtr<ID3D11Buffer>& _buffer);
 	void InitShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, ComPtr<ID3D11VertexShader>& _VS, ComPtr<ID3D11InputLayout>& _IL);
@@ -108,6 +129,7 @@ private:
 
 	bool RunTaskForPPV(void);
 	void RunDebuggerTask(void);
+	void Tessellation(void);
 };
 
 #endif //!_SCENEMANAGER_H_

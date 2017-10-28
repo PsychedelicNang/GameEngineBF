@@ -16,6 +16,9 @@ struct PixelShaderInput
 float4 main(PixelShaderInput input) : SV_TARGET
 {
 	float shininess = 6.311791f;
+	//float4 diffuseColor = tex[1].Sample(envFilter, input.uvs.xy);
+	//float4 emissiveColor = tex[0].Sample(envFilter, input.uvs.xy);
+	//float4 specularColor = tex[2].Sample(envFilter, input.uvs.xy);
 	float4 diffuseColor = diffuse.Sample(envFilter, input.uvs.xy);
 	float4 emissiveColor = emissive.Sample(envFilter, input.uvs.xy);
 	float4 specularColor = specular.Sample(envFilter, input.uvs.xy);

@@ -165,6 +165,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AnimationComponents.h" />
     <ClInclude Include="FbxLibraryDLL.h" />
     <ClInclude Include="MaterialComponents.h" />
     <ClInclude Include="MeshComponents.h" />

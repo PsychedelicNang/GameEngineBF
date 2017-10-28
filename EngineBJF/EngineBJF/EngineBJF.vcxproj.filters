@@ -34,6 +34,12 @@
     <Filter Include="Source Files\Old classes">
       <UniqueIdentifier>{78dbe1b9-6f5b-442a-902d-382d08e92a5e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Domain Shaders">
+      <UniqueIdentifier>{1a8a7d76-97d5-48b3-809b-52840cdbb5ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Hull Shaders">
+      <UniqueIdentifier>{8673c8f5-73e4-4e7e-9e5c-23f5d31ec48a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -87,6 +93,12 @@
     <ClInclude Include="MeshComponents.h">
       <Filter>Header Files\Old classes</Filter>
     </ClInclude>
+    <ClInclude Include="AnimationComponents.h">
+      <Filter>Header Files\Old classes</Filter>
+    </ClInclude>
+    <ClInclude Include="FbxLibraryDLLAnimationHandler.h">
+      <Filter>Header Files\New classes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp">
@@ -120,6 +132,9 @@
       <Filter>Source Files\New classes</Filter>
     </ClCompile>
     <ClCompile Include="FbxLibraryDLLMaterialHandler.cpp">
+      <Filter>Source Files\New classes</Filter>
+    </ClCompile>
+    <ClCompile Include="FbxLibraryDLLAnimationHandler.cpp">
       <Filter>Source Files\New classes</Filter>
     </ClCompile>
   </ItemGroup>
@@ -163,6 +178,18 @@
     </FxCompile>
     <FxCompile Include="Shaders\Pixel Shaders\TestPixelShader.hlsl">
       <Filter>Shaders\Pixel Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Pixel Shaders\PS_Tessellation.hlsl">
+      <Filter>Shaders\Pixel Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Vertex Shaders\VS_Tessellation.hlsl">
+      <Filter>Shaders\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Domain Shaders\DS_Standard.hlsl">
+      <Filter>Shaders\Domain Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Hull Shaders\HS_Standard.hlsl">
+      <Filter>Shaders\Hull Shaders</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

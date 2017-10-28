@@ -8,7 +8,7 @@
 /***************************
 * INCLUDES
 ***************************/
-#include "IncludesBJF.h"
+#include <Windows.h>
 #include "MeshComponents.h"
 
 class FbxLibraryDLLMeshHandler {

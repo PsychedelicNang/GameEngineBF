@@ -10,6 +10,7 @@
 #include <fstream>
 #include "MaterialComponents.h"
 #include "MeshComponents.h"
+#include "AnimationComponents.h"
 
 extern "C" {
 	namespace FbxLibraryDLL
@@ -26,5 +27,7 @@ extern "C" {
 		FBXLIBRARY_API bool LoadAdvancedMeshFromFBXFile(const char* _fileName, std::vector<MeshComponentsAdvanced::OutInformationAdvanced>& _outVector);
 		FBXLIBRARY_API void ExportAdvancedMeshToBinaryFile(const char* _filePath, MeshComponentsAdvanced::OutInformationAdvanced & _mesh);
 		FBXLIBRARY_API bool ReadInAdvancedBinaryMeshFile(const char * _fileName, MeshComponentsAdvanced::OutInformationAdvanced& _objectToFill);
+
+		FBXLIBRARY_API bool LoadAnimationFromFBXFile(const char* _fileName, AnimationComponents::AnimationClip& _animationClip);
 	}
 }

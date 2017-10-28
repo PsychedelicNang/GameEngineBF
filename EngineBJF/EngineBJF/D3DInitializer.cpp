@@ -94,8 +94,6 @@ void D3DInitializer::EndScene()
 		// Present as fast as possible.
 		m_swapChain->Present(0, 0);
 	}
-
-	return;
 }
 
 ComPtr<ID3D11Device> D3DInitializer::GetDevice()
@@ -332,6 +330,7 @@ bool D3DInitializer::InitializeDepthBufferViewAndState(int _screenWidth, int _sc
 	depthBufferDesc.MipLevels = 1;
 	depthBufferDesc.ArraySize = 1;
 	depthBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	//depthBufferDesc.Format = DXGI_FORMAT_D32_FLOAT;
 	depthBufferDesc.SampleDesc.Count = 1;
 	depthBufferDesc.SampleDesc.Quality = 0;
 	depthBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -384,6 +383,7 @@ bool D3DInitializer::InitializeDepthBufferViewAndState(int _screenWidth, int _sc
 
 	// Set up the depth stencil view description.
 	depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	//depthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
 	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	depthStencilViewDesc.Texture2D.MipSlice = 0;
 
@@ -438,7 +438,8 @@ bool D3DInitializer::InitializeRasterizerState()
 	rasterDesc.DepthBias = 0;
 	rasterDesc.DepthBiasClamp = 0.0f;
 	rasterDesc.DepthClipEnable = true;
-	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	//rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
 	rasterDesc.FrontCounterClockwise = false;
 	rasterDesc.MultisampleEnable = false;
 	rasterDesc.ScissorEnable = false;

@@ -241,7 +241,7 @@ namespace FbxLibraryDLL
 			}
 		}
 
-		for (unsigned i = 0; i <materialCount; i++)
+		for (unsigned i = 0; i < materialCount; i++)
 		{
 			MaterialComponents::Material m_tempMaterial;
 
@@ -782,8 +782,169 @@ namespace FbxLibraryDLL
 		}
 		return false;
 	}
-}
 
+	FBXLIBRARY_API bool LoadAnimationFromFBXFile(const char * _fileName, AnimationComponents::AnimationClip& _animationClip)
+	{
+		struct MyFBXJoint {
+			FbxNode* node;
+			int parentIndex;
+			MyFBXJoint() {
+				node = nullptr;
+				parentIndex = 0;
+			}
+			MyFBXJoint(FbxNode* _node, int _parentIndex) {
+				node = _node;
+				parentIndex = _parentIndex;
+			}
+			//~MyFBXJoint() {
+			//	node->Destroy();
+			//	parentIndex = 0;
+			//}
+		};
+
+		struct JustAJoint {
+			float globalTransform[16];
+			int parentIndex;
+		};
+
+		std::vector<MyFBXJoint*> fbxJoints;
+		std::vector<JustAJoint*> skelJoints;
+		//AnimationComponents::AnimationClip animClip = AnimationComponents::AnimationClip();
+
+		// Initialize the SDK manager. This object handles all our memory management.
+		FbxManager* lSdkManager = FbxManager::Create();
+
+		// Create the IO settings object.
+		FbxIOSettings *ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
+		lSdkManager->SetIOSettings(ios);
+
+		// Create an importer using the SDK manager.
+		FbxImporter* lImporter = FbxImporter::Create(lSdkManager, "");
+
+		// Use the first argument as the filename for the importer.
+		if (!lImporter->Initialize(_fileName, -1, lSdkManager->GetIOSettings())) {
+			return false;
+		}
+
+		// Create a new scene so that it can be populated by the imported file.
+		FbxScene* lScene = FbxScene::Create(lSdkManager, "myScene");
+
+		// Import the contents of the file into the scene.
+		lImporter->Import(lScene);
+
+		// The file is imported; so get rid of the importer.
+		lImporter->Destroy();
+
+		int poseCount = lScene->GetPoseCount();
+
+		//for (int i = 0; i < poseCount; i++)
+		//{
+		FbxPose* currentPose = lScene->GetPose(0);
+		if (currentPose->IsBindPose())
+		{
+			int nodeCount = currentPose->GetCount();
+			for (int j = 0; j < nodeCount; j++)
+			{
+				FbxNode* currentNode = currentPose->GetNode(j);
+				FbxSkeleton* currentSkeleton = currentNode->GetSkeleton();
+				if (currentSkeleton)
+				{
+					bool isSkeletonRoot = currentSkeleton->IsSkeletonRoot();
+					if (isSkeletonRoot)
+					{
+						MyFBXJoint* rootSkelNode = new MyFBXJoint(currentNode, -1);
+						fbxJoints.push_back(rootSkelNode);
+
+						JustAJoint* rootSkelTransform = new JustAJoint();
+						FbxMatrix currentMatrix = currentNode->EvaluateGlobalTransform();
+						int count = 0;
+						for (int y = 0; y < 4; y++)
+						{
+							for (int x = 0; x < 4; x++)
+							{
+								rootSkelTransform->globalTransform[count++] = (float)currentMatrix.GetRow(y)[x];
+							}
+						}
+						rootSkelTransform->parentIndex = -1;
+						skelJoints.push_back(rootSkelTransform);
+					}
+				}
+			}
+		}
+		
+		for (size_t k = 0; k < fbxJoints.size(); k++)
+		{
+			for (int l = 0; l < fbxJoints[k]->node->GetChildCount(); l++)
+			{
+				FbxNode* currentChild = fbxJoints[k]->node->GetChild(l);
+				FbxSkeleton* currentChildSkeleton = currentChild->GetSkeleton();
+				if (currentChildSkeleton)
+				{
+					MyFBXJoint* currentChildJoint = new MyFBXJoint(currentChild, (int)k);
+					fbxJoints.push_back(currentChildJoint);
+
+					JustAJoint* rootSkelTransform = new JustAJoint();
+					FbxMatrix currentMatrix = fbxJoints[k]->node->EvaluateGlobalTransform();
+					int count = 0;
+					for (int y = 0; y < 4; y++)
+					{
+						for (int x = 0; x < 4; x++)
+						{
+							rootSkelTransform->globalTransform[count++] = (float)currentMatrix.GetRow(y)[x];
+						}
+					}
+					rootSkelTransform->parentIndex = (int)k;
+					skelJoints.push_back(rootSkelTransform);
+				}
+			}
+		}
+
+		FbxAnimStack* currentAnimStack = lScene->GetCurrentAnimationStack();
+
+		FbxTimeSpan localTimeSpan = currentAnimStack->GetLocalTimeSpan();
+		FbxTime animDuration = localTimeSpan.GetDuration();
+		//FbxTime::EMode::eFrames24 gives 24 frames per second
+		FbxLongLong frameCount = animDuration.GetFrameCount(FbxTime::EMode::eFrames24);
+		//_animationClip.duration = animDuration.GetSecondDouble();
+
+		for (FbxLongLong i = 0; i < frameCount; i++)
+		{
+			// skip bind pose at frame number 0
+			AnimationComponents::Keyframe currentKeyframe = AnimationComponents::Keyframe();
+			animDuration.SetFrame(i, FbxTime::EMode::eFrames24);
+			currentKeyframe.time = animDuration.GetSecondDouble();
+			for each (MyFBXJoint* theJoint in fbxJoints)
+			{
+				FbxMatrix currentMatrix = theJoint->node->EvaluateGlobalTransform(currentKeyframe.time);
+				int count = 0;
+				for (int y = 0; y < 4; y++)
+				{
+					for (int x = 0; x < 4; x++)
+					{
+						currentKeyframe.joints[count++] = (float)currentMatrix.GetRow(y)[x];
+					}
+				}
+			}
+			_animationClip.frames.push_back(currentKeyframe);
+		}
+
+		for (size_t i = 0; i < fbxJoints.size(); i++)
+		{
+			delete fbxJoints[i];
+		}
+		fbxJoints.clear();
+
+		for (size_t i = 0; i < skelJoints.size(); i++)
+		{
+			delete skelJoints[i];
+		}
+		skelJoints.clear();
+
+		// Destroy the SDK manager and all the other objects it was handling.
+		lSdkManager->Destroy();
+		return true;
+	}
+}
 
 /*Works but the normal data is not correct*/
 //if (lRootNode)

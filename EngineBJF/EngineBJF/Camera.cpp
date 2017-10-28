@@ -6,7 +6,7 @@ Camera::Camera()
 	m_cameraZoom = 70.0f;
 	m_nearPlane = 0.1f;
 	m_farPlane = 10000.0f;
-	m_eye = { 0.0f, 2.f, -10.f, 1.0f };
+	m_eye = { 0.0f, 2.f, -3.f, 1.0f };
 	m_at = { 0.0f, 0.f, 0.f, 1.0f };
 	m_up = { 0.0f, 1.0f, 0.0f, 1.0f };
 }
