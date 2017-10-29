@@ -78,8 +78,8 @@ private:
 		ComPtr<ID3D11Buffer> m_modelCameraConstantBuffer;
 
 		struct ModelCameraConstantBuffer {
-			float tessellationAmount;
-			XMFLOAT3 padding;
+			XMFLOAT4 cameraPos;
+			XMFLOAT4X4 model;
 		} m_modelCameraConstantBufferData;
 	} m_tessellationStuff;
 
@@ -124,7 +124,8 @@ private:
 	void InitShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, ComPtr<ID3D11VertexShader>& _VS, ComPtr<ID3D11InputLayout>& _IL);
 
 	bool LoadCompiledShaderData(char **byteCode, size_t &byteCodeSize, const char *fileName);
-	void UpdateConstantBuffer(XMMATRIX _modelsMatrix);
+	void UpdateStandardConstantBuffer(XMMATRIX _modelsMatrix);
+	void UpdateTessellationConstantBuffer(void);
 	void SetPipelineStates(PipelineState& _pS);
 
 	bool RunTaskForPPV(void);

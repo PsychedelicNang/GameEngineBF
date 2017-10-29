@@ -4,21 +4,11 @@ cbuffer ModelViewProjectConstantBuffer : register(b2)
 	matrix view;
 	matrix projection;
 }
-
-struct DS_OUTPUT
-{
-	float4 position  : SV_POSITION;
-	float4 color	: COLOR;
-
-	// TODO: change/add other stuff
-};
-
 // Output control point
 struct HS_CONTROL_POINT_OUTPUT
 {
 	float4 position : POSITION;
 	float4 color	: COLOR;
-
 };
 
 // Output patch constant data.
@@ -26,8 +16,14 @@ struct HS_CONSTANT_DATA_OUTPUT
 {
 	float EdgeTessFactor[3]		: SV_TessFactor; // e.g. would be [4] for a quad domain
 	float InsideTessFactor		: SV_InsideTessFactor; // e.g. would be Inside[2] for a quad domain
-	// TODO: change/add other stuff
 };
+
+struct DS_OUTPUT
+{
+	float4 position  : SV_POSITION;
+	float4 color	: COLOR;
+};
+
 
 //#define NUM_CONTROL_POINTS 3
 

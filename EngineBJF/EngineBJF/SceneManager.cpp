@@ -164,7 +164,6 @@ void SceneManager::Render(void)
 	ComPtr<ID3D11DeviceContext> m_deviceContext = myD3DClass->GetDeviceContext();
 	ComPtr<ID3D11Device> m_device = myD3DClass->GetDevice();
 	
-#if 1
 	m_deviceContext->IASetInputLayout(m_PPVStuff.m_IL.Get());
 	m_deviceContext->HSSetShader(NULL, NULL, 0);
 	m_deviceContext->DSSetShader(NULL, NULL, 0);
@@ -181,26 +180,22 @@ void SceneManager::Render(void)
 		m_deviceContext->PSSetShaderResources(2, 1, &m_PPVStuff.m_materialsSRVs.data()[3]);
 	}
 	m_deviceContext->PSSetShaderResources(3, 1, m_PPVStuff.m_materialsSRVs.data());
-	UpdateConstantBuffer(myCube->GetObjectMatrix());
+	UpdateStandardConstantBuffer(myCube->GetObjectMatrix());
 	myCube->Render(m_deviceContext);
 	
 	if (m_libraryLoadedMesh) {
-		UpdateConstantBuffer(myAdvancedMesh->GetObjectMatrix());
+		UpdateStandardConstantBuffer(myAdvancedMesh->GetObjectMatrix());
 		myAdvancedMesh->Render(m_deviceContext);
 	}
 	
 	SetPipelineStates(m_defaultPipeline);
-	UpdateConstantBuffer(XMMatrixIdentity());
+	UpdateStandardConstantBuffer(XMMatrixIdentity());
 	myTerrain->Render(m_deviceContext);
 	
 	myDebugRenderer->CreateVertexBuffer(m_device);
 	myDebugRenderer->Render(m_device, m_deviceContext);
-#endif
 
-#if 1
 	/********************Tessellation******************************/
-
-
 	m_deviceContext->IASetInputLayout(m_tessellationStuff.inputLayout.Get());
 	
 	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
@@ -213,38 +208,39 @@ void SceneManager::Render(void)
 	m_deviceContext->HSSetShader(m_tessellationStuff.hullShader.Get(), NULL, 0);
 	m_deviceContext->DSSetShader(m_tessellationStuff.domainShader.Get(), NULL, 0);
 	
-	//XMStoreFloat4x4(&m_tessellationStuff.m_modelCameraConstantBufferData.model, XMMatrixTranspose(XMMatrixIdentity()));
-	//XMVECTOR camPos = myCamera->GetCameraMatrix().r[3];
-	//m_tessellationStuff.m_modelCameraConstantBufferData.cameraPos = XMFLOAT4(camPos.m128_f32[0], camPos.m128_f32[1], camPos.m128_f32[2], camPos.m128_f32[3]);
-	
-	m_tessellationStuff.m_modelCameraConstantBufferData.tessellationAmount = 32;
-	m_tessellationStuff.m_modelCameraConstantBufferData.padding = XMFLOAT3(0.f, 0.f, 0.f);
-
-	myD3DClass->GetDeviceContext()->UpdateSubresource(m_tessellationStuff.m_modelCameraConstantBuffer.Get(), 0, NULL, &m_tessellationStuff.m_modelCameraConstantBufferData, 0, 0);
-	myD3DClass->GetDeviceContext()->HSSetConstantBuffers(1, 1, m_tessellationStuff.m_modelCameraConstantBuffer.GetAddressOf());
-
-	XMStoreFloat4x4(&m_tessellationConstantBufferData.model, XMMatrixTranspose(XMMatrixTranslation(0.f, 0.f, 10.f)));
-	XMStoreFloat4x4(&m_tessellationConstantBufferData.view, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.view)));
-	XMStoreFloat4x4(&m_tessellationConstantBufferData.projection, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.projection)));
-	myD3DClass->GetDeviceContext()->UpdateSubresource(m_tessellationConstantBuffer.Get(), 0, NULL, &m_tessellationConstantBufferData, 0, 0);
-	myD3DClass->GetDeviceContext()->DSSetConstantBuffers(2, 1, m_tessellationConstantBuffer.GetAddressOf());
-	
 	m_deviceContext->Draw(3, 0);
-#endif
-	
+	/********************Tessellation******************************/
+
 	m_deviceContext.Reset();
 	m_device.Reset();
 
 	myD3DClass->EndScene();
 }
 
-void SceneManager::UpdateConstantBuffer(XMMATRIX _modelsMatrix)
+void SceneManager::UpdateStandardConstantBuffer(XMMATRIX _modelsMatrix)
 {
 	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(_modelsMatrix));
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.view)));
 	XMStoreFloat4x4(&m_constantBufferData.projection, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.projection)));
 	myD3DClass->GetDeviceContext()->UpdateSubresource(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0);
 	myD3DClass->GetDeviceContext()->VSSetConstantBuffers(0, 1, m_constantBuffer.GetAddressOf());
+}
+
+void SceneManager::UpdateTessellationConstantBuffer(void)
+{
+	XMMATRIX triangleModel = XMMatrixTranslation(0.f, 0.f, 10.f);
+	XMStoreFloat4x4(&m_tessellationStuff.m_modelCameraConstantBufferData.model, XMMatrixTranspose(triangleModel));
+	XMVECTOR camPos = myCamera->GetCameraMatrix().r[3];
+	m_tessellationStuff.m_modelCameraConstantBufferData.cameraPos = XMFLOAT4(camPos.m128_f32[0], camPos.m128_f32[1], camPos.m128_f32[2], camPos.m128_f32[3]);
+
+	myD3DClass->GetDeviceContext()->UpdateSubresource(m_tessellationStuff.m_modelCameraConstantBuffer.Get(), 0, NULL, &m_tessellationStuff.m_modelCameraConstantBufferData, 0, 0);
+	XMStoreFloat4x4(&m_tessellationConstantBufferData.model, XMMatrixTranspose(triangleModel));
+	XMStoreFloat4x4(&m_tessellationConstantBufferData.view, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.view)));
+	XMStoreFloat4x4(&m_tessellationConstantBufferData.projection, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.projection)));
+	myD3DClass->GetDeviceContext()->UpdateSubresource(m_tessellationConstantBuffer.Get(), 0, NULL, &m_tessellationConstantBufferData, 0, 0);
+
+	myD3DClass->GetDeviceContext()->HSSetConstantBuffers(1, 1, m_tessellationStuff.m_modelCameraConstantBuffer.GetAddressOf());
+	myD3DClass->GetDeviceContext()->DSSetConstantBuffers(2, 1, m_tessellationConstantBuffer.GetAddressOf());
 }
 
 bool SceneManager::LoadCompiledShaderData(char **byteCode, size_t &byteCodeSize, const char *fileName)
