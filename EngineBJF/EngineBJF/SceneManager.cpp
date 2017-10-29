@@ -222,14 +222,8 @@ void SceneManager::Render(void)
 
 	myD3DClass->GetDeviceContext()->UpdateSubresource(m_tessellationStuff.m_modelCameraConstantBuffer.Get(), 0, NULL, &m_tessellationStuff.m_modelCameraConstantBufferData, 0, 0);
 	myD3DClass->GetDeviceContext()->HSSetConstantBuffers(1, 1, m_tessellationStuff.m_modelCameraConstantBuffer.GetAddressOf());
-	
-	XMMATRIX theMatrix = XMMATRIX(
-		1.f, 0.f, 0.f, 1.f,
-		0.f, 1.f, 0.f, 1.f,
-		0.f, 0.f, 1.f, 1.f,
-		0.f, 0.f, 0.f, 1.f
-	);
-	XMStoreFloat4x4(&m_tessellationConstantBufferData.model, XMMatrixTranspose(theMatrix));
+
+	XMStoreFloat4x4(&m_tessellationConstantBufferData.model, XMMatrixTranspose(XMMatrixTranslation(0.f, 0.f, 10.f)));
 	XMStoreFloat4x4(&m_tessellationConstantBufferData.view, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.view)));
 	XMStoreFloat4x4(&m_tessellationConstantBufferData.projection, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.projection)));
 	myD3DClass->GetDeviceContext()->UpdateSubresource(m_tessellationConstantBuffer.Get(), 0, NULL, &m_tessellationConstantBufferData, 0, 0);
@@ -476,9 +470,9 @@ void SceneManager::Tessellation(void)
 
 	VertexPositionColor vertices[] = 
 	{
-		XMFLOAT4{ +12.f, 0.f, 0.f, 1.f }, XMFLOAT4{ 1.f, 1.f, 1.f, 1.f },
-		XMFLOAT4{ -0.f, 0.f, 0.f, 1.f }, XMFLOAT4{ 1.f, 1.f, 1.f, 1.f },
-		XMFLOAT4{ -1.f, 5.f, 0.f, 1.f }, XMFLOAT4{ 1.f, 1.f, 1.f, 1.f },
+		{ XMFLOAT4(+10.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 1.f, 1.f) },
+		{ XMFLOAT4(-10.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 1.f, 1.f) },
+		{ XMFLOAT4(-0.f, 10.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 1.f, 1.f) }
 	};
 
 	D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };

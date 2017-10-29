@@ -44,8 +44,8 @@ DS_OUTPUT main(
 	//float4 v1 = lerp(quad[0].vPosition, quad[1].vPosition, 1 - uv.y);
 	//float4 v2 = lerp(quad[3].vPosition, quad[1].vPosition, 1 - uv.y);
 	//float3 position = lerp(v1, v2, uv.x);
-	//Output.vPosition = float4( patch[0].vPosition*domain.x+patch[1].vPosition*domain.y+patch[2].vPosition*domain.z,1);
-	Output.position = domain.x * patch[0].position + domain.y * patch[1].position + domain.z * patch[2].position;
+	Output.position = patch[0].position * domain.x + patch[1].position * domain.y + patch[2].position * domain.z;
+	//Output.position = domain.x * patch[0].position + domain.y * patch[1].position + domain.z * patch[2].position;
 
 	float4 pos = Output.position;
 
