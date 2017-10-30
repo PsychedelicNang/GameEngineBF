@@ -18,6 +18,7 @@
 #include <dxgi.h>
 #include <d3d11.h>
 #include <DirectXMath.h>	// XMFLOAT & XMMATRIX
+#include "../Gateware Middleware/Interface/G_System/GInput.h"
 
 using namespace DirectX;
 class D3DInitializer {
@@ -27,11 +28,16 @@ public:
 
 	bool Initialize(int _screenWidth, int _screenHeight, bool _vsync, HWND _hwnd, bool _fullscreen,
 		float _screenDepth, float _screenNear);
-	void Shutdown();
 
 	void BeginScene(float _red, float _green, float _blue, float _alpha);
 	void BeginScene(float _color[4]);
+
+	void EnableZBuffer();
+	void DisableZBuffer();
+
 	void EndScene();
+
+	void Shutdown();
 
 	ComPtr<ID3D11Device> GetDevice();
 	ComPtr<ID3D11DeviceContext> GetDeviceContext();
@@ -52,12 +58,15 @@ private:
 	ComPtr<ID3D11RenderTargetView>		m_renderTargetView;
 	ComPtr<ID3D11Texture2D>				m_depthStencilBuffer;
 	ComPtr<ID3D11DepthStencilState>		m_depthStencilState;
+	ComPtr<ID3D11DepthStencilState>		m_depthDisabledStencilState;
 	ComPtr<ID3D11DepthStencilView>		m_depthStencilView;
 	ComPtr<ID3D11RasterizerState>		m_rasterState;
 	D3D11_VIEWPORT						m_viewport;
 	XMMATRIX m_projectionMatrix;
 	XMMATRIX m_worldMatrix;
 	XMMATRIX m_orthographicMatrix;
+public:
+	GW::SYSTEM::GInput*				myGInput;
 	// View matrix is inside of Camera.h
 
 private:

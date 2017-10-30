@@ -47,7 +47,7 @@ private:
 	FbxLibraryDLLMaterialHandler*	myMaterialHandler;
 	FbxLibraryDLLMeshHandler*		myMeshHandler;
 	FbxLibraryDLLAnimationHandler*	myAnimationHandler;
-	//WPARAM							m_currentInput;
+	GW::SYSTEM::GInput*				myGInput;
 	bool m_rotate;
 	XTime m_timer;
 	float m_timeBetweenFrames;
@@ -95,7 +95,7 @@ public:
 	void Update(void);
 	void Render(void);
 
-	void CheckUserInput(WPARAM wParam);
+	void CheckUserInput();
 	void RunTaskList(int _screenWidth, int _screenHeight, bool _vsync, HWND& _hwnd, bool _fullscreen, float _screenFar, float _screenNear);
 	float GetTimeBetweenFrames();
 	Camera* GetCamera();

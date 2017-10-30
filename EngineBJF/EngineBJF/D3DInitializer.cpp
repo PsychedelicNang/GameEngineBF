@@ -2,14 +2,15 @@
 
 D3DInitializer::D3DInitializer()
 {
-	m_swapChain				= nullptr;
-	m_device				= nullptr;
-	m_deviceContext			= nullptr;
-	m_renderTargetView		= nullptr;
-	m_depthStencilBuffer	= nullptr;
-	m_depthStencilState		= nullptr;
-	m_depthStencilView		= nullptr;
-	m_rasterState			= nullptr;
+	m_swapChain					= nullptr;
+	m_device					= nullptr;
+	m_deviceContext				= nullptr;
+	m_renderTargetView			= nullptr;
+	m_depthStencilBuffer		= nullptr;
+	m_depthStencilState			= nullptr;
+	m_depthDisabledStencilState = nullptr;
+	m_depthStencilView			= nullptr;
+	m_rasterState				= nullptr;
 }
 
 D3DInitializer::~D3DInitializer()
@@ -45,7 +46,10 @@ bool D3DInitializer::Initialize(int _screenWidth, int _screenHeight, bool _vsync
 	if (!InitializeViewport(_screenWidth, _screenHeight))																					return false;
 
 	// Creates the World, Projection, and an Orthogonal matrix (for HUD and 2D text information) for this class.
-	if (!InitializeClassMatrices(_screenWidth, _screenHeight, _screenFar, _screenNear))													return false;
+	if (!InitializeClassMatrices(_screenWidth, _screenHeight, _screenFar, _screenNear))														return false;
+
+	GW::SYSTEM::CreateGInput(_hwnd, sizeof(_hwnd), &myGInput);
+	if (!myGInput)																															return false;
 
 	return true;
 }
@@ -79,6 +83,16 @@ void D3DInitializer::BeginScene(float _color[4])
 
 	// Clear the depth buffer.
 	m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+}
+
+void D3DInitializer::EnableZBuffer()
+{
+	m_deviceContext->OMSetDepthStencilState(m_depthStencilState.Get(), 1);
+}
+
+void D3DInitializer::DisableZBuffer()
+{
+	m_deviceContext->OMSetDepthStencilState(m_depthDisabledStencilState.Get(), 1);
 }
 
 void D3DInitializer::EndScene()
@@ -319,6 +333,7 @@ bool D3DInitializer::InitializeDepthBufferViewAndState(int _screenWidth, int _sc
 	HRESULT result;
 	D3D11_TEXTURE2D_DESC depthBufferDesc;
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+	D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc;
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
 
 	// Initialize the description of the depth buffer.
@@ -345,6 +360,7 @@ bool D3DInitializer::InitializeDepthBufferViewAndState(int _screenWidth, int _sc
 		return false;
 	}
 
+	/************************3D Depth Stencil State/************************/
 	// Initialize the description of the stencil state.
 	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
 
@@ -375,6 +391,40 @@ bool D3DInitializer::InitializeDepthBufferViewAndState(int _screenWidth, int _sc
 	{
 		return false;
 	}
+	/************************3D Depth Stencil State/************************/
+
+
+	/************************2D Depth Stencil State/************************/
+	ZeroMemory(&depthDisabledStencilDesc, sizeof(depthDisabledStencilDesc));
+
+	// Set up the description of the stencil state.
+	depthDisabledStencilDesc.DepthEnable = false;
+	depthDisabledStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthDisabledStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	depthDisabledStencilDesc.StencilEnable = true;
+	depthDisabledStencilDesc.StencilReadMask = 0xFF;
+	depthDisabledStencilDesc.StencilWriteMask = 0xFF;
+
+	// Stencil operations if pixel is front-facing.
+	depthDisabledStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthDisabledStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+	depthDisabledStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthDisabledStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+	// Stencil operations if pixel is back-facing.
+	depthDisabledStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthDisabledStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+	depthDisabledStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthDisabledStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+		// Create the state using the device.
+	result = m_device->CreateDepthStencilState(&depthDisabledStencilDesc, &m_depthDisabledStencilState);
+	if (FAILED(result))
+	{
+		return false;
+	}
+	/************************2D Depth Stencil State/************************/
+
 	// Set the depth stencil state.
 	m_deviceContext->OMSetDepthStencilState(m_depthStencilState.Get(), 1);
 
@@ -498,7 +548,9 @@ void D3DInitializer::ShutdownComponents()
 	m_deviceContext.Reset();
 	m_renderTargetView.Reset();
 	m_depthStencilBuffer.Reset();
+	m_depthDisabledStencilState.Reset();
 	m_depthStencilState.Reset();
 	m_depthStencilView.Reset();
 	m_rasterState.Reset();
+	myGInput->DecrementCount();
 }

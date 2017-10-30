@@ -44,8 +44,8 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_CONTROL_POINT_OUTPUT,
 	
 	float dist = distance(centerWorld, cameraPos);
 	
-	const float d0 = 20.f;
-	const float d1 = 50.f;
+	const float d0 = 10.f;
+	const float d1 = 40.f;
 	float tessellationAmount = 64.f * saturate((d1 - dist) / (d1 - d0));
 
 	// Insert code to compute Output here

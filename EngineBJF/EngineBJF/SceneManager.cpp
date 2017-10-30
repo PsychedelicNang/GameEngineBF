@@ -21,6 +21,7 @@ SceneManager::SceneManager()
 	m_cameraState = cameraDefault;
 	m_timeBetweenFrames = 0.f;
 	m_timer.Restart();
+	// Decrement count of GInput
 }
 
 SceneManager::~SceneManager()
@@ -70,7 +71,9 @@ void SceneManager::SetPipelineStates(PipelineState& _pipeState)
 }
 
 void SceneManager::Update(void)
-{
+{	
+	CheckUserInput();
+
 	m_timer.Signal();
 	m_timeBetweenFrames = (float)m_timer.Delta();
 	
@@ -116,44 +119,6 @@ void SceneManager::Update(void)
 	}
 
 	myCamera->CreateViewAndPerspectiveMatrix();
-	
-	/*switch (m_currentInput)
-	{
-	case 'T':
-		m_cameraState = turnToCube1;
-		break;
-	case 'Y':
-		m_cameraState = turnToCube2;
-		break;
-	case 'K':
-		m_cameraState = lookAtCube1;
-		break;
-	case 'L':
-		m_cameraState = lookAtCube2;
-		break;
-	case 'A':
-		myCamera->MoveCameraLocalLeft(timeBetweenFrames, 20.f);
-		break;
-	case 'D':
-		myCamera->MoveCameraLocalRight(timeBetweenFrames, 20.f);
-		break;
-	case 'W':
-		myCamera->MoveCameraLocalForward(timeBetweenFrames, 20.f);
-		break;
-	case 'S':
-		myCamera->MoveCameraLocalBackward(timeBetweenFrames, 20.f);
-		break;
-	case VK_SPACE:
-		myCamera->MoveCameraLocalUp(timeBetweenFrames, 20.f);
-		break;
-	case 'X':
-		myCamera->MoveCameraLocalDown(timeBetweenFrames, 20.f);
-		break;
-	case 'R':
-		m_rotate = !m_rotate;
-	default:
-		break;
-	}*/
 }
 
 void SceneManager::Render(void)
@@ -202,6 +167,7 @@ void SceneManager::Render(void)
 	UINT stride = sizeof(VertexPositionColor);
 	UINT offset = 0;
 	
+	UpdateTessellationConstantBuffer();
 	m_deviceContext->IASetVertexBuffers(0, 1, m_tessellationStuff.m_quadVertexBuffer.GetAddressOf(), &stride, &offset);
 	m_deviceContext->VSSetShader(m_tessellationStuff.vertexShader.Get(), NULL, 0);
 	m_deviceContext->PSSetShader(m_tessellationStuff.pixelShader.Get(), NULL, 0);
@@ -261,6 +227,8 @@ bool SceneManager::LoadCompiledShaderData(char **byteCode, size_t &byteCodeSize,
 void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync, HWND& _hwnd, bool _fullscreen, float _screenFar, float _screenNear)
 {
 	myD3DClass->Initialize(_screenWidth, _screenHeight, _vsync, _hwnd, _fullscreen, _screenFar, _screenNear);
+
+	myGInput = myD3DClass->myGInput;
 	InitConstantBuffer(m_constantBuffer);
 	InitShadersAndInputLayout(m_defaultPipeline.pixel_shader, m_defaultPipeline.vertex_shader, m_defaultPipeline.input_layout);
 	
@@ -319,54 +287,48 @@ Camera * SceneManager::GetCamera()
 	return myCamera;
 }
 
-void SceneManager::CheckUserInput(WPARAM wParam)
+void SceneManager::CheckUserInput()
 {
-	//m_currentInput = wParam;
+	float returnValue;
 
-	// also, should I just do 	ComPtr<ID3D11DeviceContext> m_deviceContext = myD3DClass->GetDeviceContext() & ComPtr<ID3D11Device> m_device = myD3DClass->GetDevice();
-	// when I first make the class or do I need to update the device and context because it changes?
-	switch (wParam)
-	{
-	case 'P':
-		m_cameraState = cameraDefault;
-		break;
-	case 'T':
-		m_cameraState = turnToCube;
-		break;
-	case 'Y':
-		m_cameraState = turnToMesh;
-		break;
-	case 'K':
-		m_cameraState = lookAtCube;
-		break;
-	case 'L':
-		m_cameraState = lookAtMesh;
-		break;
-	case 'O':
-		m_cameraState = lookAtOrigin;
-	case 'A':
-		myCamera->MoveCameraLocalLeft(m_timeBetweenFrames, 20.f);
-		break;
-	case 'D':
-		myCamera->MoveCameraLocalRight(m_timeBetweenFrames, 20.f);
-		break;
-	case 'W':
-		myCamera->MoveCameraLocalForward(m_timeBetweenFrames, 20.f);
-		break;
-	case 'S':
-		myCamera->MoveCameraLocalBackward(m_timeBetweenFrames, 20.f);
-		break;
-	case VK_SPACE:
-		myCamera->MoveCameraLocalUp(m_timeBetweenFrames, 20.f);
-		break;
-	case 'X':
-		myCamera->MoveCameraLocalDown(m_timeBetweenFrames, 20.f);
-		break;
-	case 'R':
-		m_rotate = !m_rotate;
-	default:
-		break;
-	}
+	myGInput->GetState(G_KEY_A, returnValue);
+	if (returnValue) myCamera->MoveCameraLocalLeft(m_timeBetweenFrames, 20.f);
+
+	myGInput->GetState(G_KEY_D, returnValue);
+	if (returnValue) myCamera->MoveCameraLocalRight(m_timeBetweenFrames, 20.f);
+
+	myGInput->GetState(G_KEY_W, returnValue);
+	if (returnValue) myCamera->MoveCameraLocalForward(m_timeBetweenFrames, 20.f);
+
+	myGInput->GetState(G_KEY_S, returnValue);
+	if (returnValue) myCamera->MoveCameraLocalBackward(m_timeBetweenFrames, 20.f);
+
+	myGInput->GetState(G_KEY_SPACE, returnValue);
+	if (returnValue) myCamera->MoveCameraLocalUp(m_timeBetweenFrames, 20.f);
+
+	myGInput->GetState(G_KEY_X, returnValue);
+	if (returnValue) myCamera->MoveCameraLocalDown(m_timeBetweenFrames, 20.f);
+
+	myGInput->GetState(G_KEY_P, returnValue);
+	if (returnValue) m_cameraState = cameraDefault;
+
+	myGInput->GetState(G_KEY_T, returnValue);
+	if (returnValue) m_cameraState = turnToCube;
+
+	myGInput->GetState(G_KEY_Y, returnValue);
+	if (returnValue) m_cameraState = turnToMesh;
+
+	myGInput->GetState(G_KEY_K, returnValue);
+	if (returnValue) m_cameraState = lookAtCube;
+
+	myGInput->GetState(G_KEY_L, returnValue);
+	if (returnValue) m_cameraState = lookAtMesh;
+
+	myGInput->GetState(G_KEY_O, returnValue);
+	if (returnValue) m_cameraState = lookAtOrigin;
+
+	myGInput->GetState(G_KEY_R, returnValue);
+	if (returnValue) m_rotate = !m_rotate;
 }
 
 void SceneManager::RunDebugMessage(void)
