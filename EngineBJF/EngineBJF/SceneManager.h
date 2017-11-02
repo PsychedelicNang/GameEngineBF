@@ -56,6 +56,10 @@ private:
 	ComPtr<ID3D11Buffer>				m_tessellationConstantBuffer;
 	ComPtr<ID3D11SamplerState>			m_samplerState;
 
+	AnimationComponents::AnimationClip animClip;
+	std::vector<AnimationComponents::SkeletonJoints> skelJoints;
+	std::vector<XMMATRIX> jointMatrices;
+
 	struct PipelineState
 	{
 		ComPtr<ID3D11InputLayout>			input_layout;
@@ -74,8 +78,8 @@ private:
 		ComPtr<ID3D11PixelShader>	pixelShader;
 		ComPtr<ID3D11HullShader>	hullShader;
 		ComPtr<ID3D11DomainShader>  domainShader;
-		ComPtr<ID3D11Buffer> m_quadVertexBuffer;
-		ComPtr<ID3D11Buffer> m_modelCameraConstantBuffer;
+		ComPtr<ID3D11Buffer>		m_quadVertexBuffer;
+		ComPtr<ID3D11Buffer>		m_modelCameraConstantBuffer;
 
 		struct ModelCameraConstantBuffer {
 			XMFLOAT4 cameraPos;

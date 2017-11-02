@@ -94,9 +94,19 @@ void Object::ObjectChangePosition(float _newXPosition, float _newYPosition, floa
 		_newXPosition, _newYPosition, _newZPosition, 1);
 }
 
+void Object::ObjectRotationX(float _radians)
+{
+	XMStoreFloat4x4(&m_matrix, XMMatrixMultiply(XMMatrixRotationX(_radians), XMLoadFloat4x4(&m_matrix)));
+}
+
 void Object::ObjectRotationY(float _radians)
 {
 	XMStoreFloat4x4(&m_matrix, XMMatrixMultiply(XMMatrixRotationY(_radians), XMLoadFloat4x4(&m_matrix)));
+}
+
+void Object::ObjectRotationZ(float _radians)
+{
+	XMStoreFloat4x4(&m_matrix, XMMatrixMultiply(XMMatrixRotationZ(_radians), XMLoadFloat4x4(&m_matrix)));
 }
 
 bool Object::ReadInMeshFromBinaryFile(ComPtr<ID3D11Device>& _device, const char * _fileName)
@@ -499,6 +509,13 @@ bool Object::ReadInAdvancedBinaryMeshFile(ComPtr<ID3D11Device>& _device, const c
 	
 			for (unsigned i = 0; i < numOfVertices; i++)
 				vertices[i].position.w = 1.f;
+
+			for (size_t i = 0; i < numOfVertices; i++)
+			{
+				vertices[i].position.x *= 0.02f;
+				vertices[i].position.y *= 0.02f;
+				vertices[i].position.z *= 0.02f;
+			}
 	
 			D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
 			vertexBufferData.pSysMem = vertices;

@@ -255,7 +255,7 @@ namespace FbxLibraryDLL
 			while (lProperty.IsValid())
 			{
 				FbxString fbxName = lProperty.GetName();
-
+				
 				const char * cPtr = fbxName.Buffer();
 				std::string strName = std::string(cPtr);
 
@@ -783,7 +783,7 @@ namespace FbxLibraryDLL
 		return false;
 	}
 
-	FBXLIBRARY_API bool LoadAnimationFromFBXFile(const char * _fileName, AnimationComponents::AnimationClip& _animationClip)
+	FBXLIBRARY_API bool LoadAnimationFromFBXFile(const char * _fileName, AnimationComponents::AnimationClip& _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints)
 	{
 		struct MyFBXJoint {
 			FbxNode* node;
@@ -796,19 +796,9 @@ namespace FbxLibraryDLL
 				node = _node;
 				parentIndex = _parentIndex;
 			}
-			//~MyFBXJoint() {
-			//	node->Destroy();
-			//	parentIndex = 0;
-			//}
 		};
-
-		struct JustAJoint {
-			float globalTransform[16];
-			int parentIndex;
-		};
-
 		std::vector<MyFBXJoint*> fbxJoints;
-		std::vector<JustAJoint*> skelJoints;
+		//std::vector<AnimationComponents::SkeletonJoints*> skelJoints;
 		//AnimationComponents::AnimationClip animClip = AnimationComponents::AnimationClip();
 
 		// Initialize the SDK manager. This object handles all our memory management.
@@ -839,6 +829,7 @@ namespace FbxLibraryDLL
 
 		//for (int i = 0; i < poseCount; i++)
 		//{
+		// Get the root of the skeleton
 		FbxPose* currentPose = lScene->GetPose(0);
 		if (currentPose->IsBindPose())
 		{
@@ -855,18 +846,21 @@ namespace FbxLibraryDLL
 						MyFBXJoint* rootSkelNode = new MyFBXJoint(currentNode, -1);
 						fbxJoints.push_back(rootSkelNode);
 
-						JustAJoint* rootSkelTransform = new JustAJoint();
+						AnimationComponents::SkeletonJoints* rootSkelTransform = new AnimationComponents::SkeletonJoints();
 						FbxMatrix currentMatrix = currentNode->EvaluateGlobalTransform();
 						int count = 0;
 						for (int y = 0; y < 4; y++)
 						{
 							for (int x = 0; x < 4; x++)
 							{
-								rootSkelTransform->globalTransform[count++] = (float)currentMatrix.GetRow(y)[x];
+								rootSkelTransform->globalTransformArray[count++] = (float)currentMatrix.GetRow(y)[x];
+								rootSkelTransform->globalTransform4x4[y][x] = (float)currentMatrix.GetRow(y)[x];
 							}
 						}
 						rootSkelTransform->parentIndex = -1;
-						skelJoints.push_back(rootSkelTransform);
+						rootSkelTransform->jointName = std::string(currentNode->GetName());
+						_skelJoints.push_back(*rootSkelTransform);
+						delete rootSkelTransform;
 					}
 				}
 			}
@@ -883,18 +877,21 @@ namespace FbxLibraryDLL
 					MyFBXJoint* currentChildJoint = new MyFBXJoint(currentChild, (int)k);
 					fbxJoints.push_back(currentChildJoint);
 
-					JustAJoint* rootSkelTransform = new JustAJoint();
+					AnimationComponents::SkeletonJoints* rootSkelTransform = new AnimationComponents::SkeletonJoints();
 					FbxMatrix currentMatrix = fbxJoints[k]->node->EvaluateGlobalTransform();
 					int count = 0;
 					for (int y = 0; y < 4; y++)
 					{
 						for (int x = 0; x < 4; x++)
 						{
-							rootSkelTransform->globalTransform[count++] = (float)currentMatrix.GetRow(y)[x];
+							rootSkelTransform->globalTransformArray[count++] = (float)currentMatrix.GetRow(y)[x];
+							rootSkelTransform->globalTransform4x4[y][x] = (float)currentMatrix.GetRow(y)[x];
 						}
 					}
 					rootSkelTransform->parentIndex = (int)k;
-					skelJoints.push_back(rootSkelTransform);
+					rootSkelTransform->jointName = std::string(currentChild->GetName());
+					_skelJoints.push_back(*rootSkelTransform);
+					delete rootSkelTransform;
 				}
 			}
 		}
@@ -903,16 +900,21 @@ namespace FbxLibraryDLL
 
 		FbxTimeSpan localTimeSpan = currentAnimStack->GetLocalTimeSpan();
 		FbxTime animDuration = localTimeSpan.GetDuration();
+
 		//FbxTime::EMode::eFrames24 gives 24 frames per second
 		FbxLongLong frameCount = animDuration.GetFrameCount(FbxTime::EMode::eFrames24);
-		//_animationClip.duration = animDuration.GetSecondDouble();
+		_animationClip.duration = animDuration.GetSecondDouble();
 
 		for (FbxLongLong i = 0; i < frameCount; i++)
 		{
 			// skip bind pose at frame number 0
 			AnimationComponents::Keyframe currentKeyframe = AnimationComponents::Keyframe();
+
+			currentKeyframe.joints.resize(_skelJoints.size());
+
 			animDuration.SetFrame(i, FbxTime::EMode::eFrames24);
 			currentKeyframe.time = animDuration.GetSecondDouble();
+			int index = 0;
 			for each (MyFBXJoint* theJoint in fbxJoints)
 			{
 				FbxMatrix currentMatrix = theJoint->node->EvaluateGlobalTransform(currentKeyframe.time);
@@ -921,9 +923,14 @@ namespace FbxLibraryDLL
 				{
 					for (int x = 0; x < 4; x++)
 					{
-						currentKeyframe.joints[count++] = (float)currentMatrix.GetRow(y)[x];
+						currentKeyframe.joints[index].globalTransformArray[count] = (float)currentMatrix.GetRow(y)[x];
+						currentKeyframe.joints[index].globalTransform4x4[y][x] = (float)currentMatrix.GetRow(y)[x];
+						currentKeyframe.joints[index].jointName = _skelJoints[index].jointName;
+						currentKeyframe.joints[index].parentIndex = _skelJoints[index].parentIndex;
+						++count;
 					}
 				}
+				++index;
 			}
 			_animationClip.frames.push_back(currentKeyframe);
 		}
@@ -933,12 +940,6 @@ namespace FbxLibraryDLL
 			delete fbxJoints[i];
 		}
 		fbxJoints.clear();
-
-		for (size_t i = 0; i < skelJoints.size(); i++)
-		{
-			delete skelJoints[i];
-		}
-		skelJoints.clear();
 
 		// Destroy the SDK manager and all the other objects it was handling.
 		lSdkManager->Destroy();

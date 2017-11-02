@@ -30,7 +30,9 @@ public:
 	void ObjectTranslationY(float _yDelta);
 	void ObjectTranslationZ(float _zDelta);
 	void ObjectChangePosition(float _newXPosition, float _newYPosition, float _newZPosition);
+	void ObjectRotationX(float _radians);
 	void ObjectRotationY(float _radians);
+	void ObjectRotationZ(float _radians);
 
 	// Reads in a binary mesh file containing vertex and index position data and fills out the object of which this function was called from
 	bool ReadInMeshFromBinaryFile(ComPtr<ID3D11Device>& _device, const char * _fileName);

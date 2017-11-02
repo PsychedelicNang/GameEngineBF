@@ -192,4 +192,7 @@
       <Filter>Shaders\Hull Shaders</Filter>
     </FxCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Teddy_Idle.fbx" />
+  </ItemGroup>
 </Project>

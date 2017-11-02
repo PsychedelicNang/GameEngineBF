@@ -137,21 +137,26 @@ void SceneManager::Render(void)
 	
 	m_deviceContext->VSSetShader(m_PPVStuff.m_VS.Get(), NULL, 0);
 	m_deviceContext->PSSetShader(m_PPVStuff.m_PS.Get(), NULL, 0);
+	//
+	//if (m_libraryLoadedMesh && m_libraryLoadedMesh)
+	//{
+	//	m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[1]); // 1, 0, 3 because of the input from shaders... diffuse, emissive, specular
+	//	m_deviceContext->PSSetShaderResources(1, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);	// Skip [2] because we are not using normal mapping right now
+	//	m_deviceContext->PSSetShaderResources(2, 1, &m_PPVStuff.m_materialsSRVs.data()[3]);
+	//}
+	//m_deviceContext->PSSetShaderResources(3, 1, m_PPVStuff.m_materialsSRVs.data());
+	//UpdateStandardConstantBuffer(myCube->GetObjectMatrix());
+	//myCube->Render(m_deviceContext);
 	
-	if (m_libraryLoadedMesh && m_libraryLoadedMesh)
-	{
-		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[1]); // 1, 0, 3 because of the input from shaders... diffuse, emissive, specular
-		m_deviceContext->PSSetShaderResources(1, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);	// Skip [2] because we are not using normal mapping right now
-		m_deviceContext->PSSetShaderResources(2, 1, &m_PPVStuff.m_materialsSRVs.data()[3]);
-	}
-	m_deviceContext->PSSetShaderResources(3, 1, m_PPVStuff.m_materialsSRVs.data());
-	UpdateStandardConstantBuffer(myCube->GetObjectMatrix());
-	myCube->Render(m_deviceContext);
-	
-	if (m_libraryLoadedMesh) {
-		UpdateStandardConstantBuffer(myAdvancedMesh->GetObjectMatrix());
-		myAdvancedMesh->Render(m_deviceContext);
-	}
+	//if (m_libraryLoadedMesh && m_libraryLoadedMesh)
+	//{
+	//	m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[0]); // 1, 0, 3 because of the input from shaders... diffuse, emissive, specular
+	//	//m_deviceContext->PSSetShaderResources(0, 1, m_PPVStuff.m_materialsSRVs.data());
+	//}
+	//if (m_libraryLoadedMesh) {
+	//	UpdateStandardConstantBuffer(myAdvancedMesh->GetObjectMatrix());
+	//	myAdvancedMesh->Render(m_deviceContext);
+	//}
 	
 	SetPipelineStates(m_defaultPipeline);
 	UpdateStandardConstantBuffer(XMMatrixIdentity());
@@ -161,20 +166,20 @@ void SceneManager::Render(void)
 	myDebugRenderer->Render(m_device, m_deviceContext);
 
 	/********************Tessellation******************************/
-	m_deviceContext->IASetInputLayout(m_tessellationStuff.inputLayout.Get());
-	
-	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-	UINT stride = sizeof(VertexPositionColor);
-	UINT offset = 0;
-	
-	UpdateTessellationConstantBuffer();
-	m_deviceContext->IASetVertexBuffers(0, 1, m_tessellationStuff.m_quadVertexBuffer.GetAddressOf(), &stride, &offset);
-	m_deviceContext->VSSetShader(m_tessellationStuff.vertexShader.Get(), NULL, 0);
-	m_deviceContext->PSSetShader(m_tessellationStuff.pixelShader.Get(), NULL, 0);
-	m_deviceContext->HSSetShader(m_tessellationStuff.hullShader.Get(), NULL, 0);
-	m_deviceContext->DSSetShader(m_tessellationStuff.domainShader.Get(), NULL, 0);
-	
-	m_deviceContext->Draw(3, 0);
+	//m_deviceContext->IASetInputLayout(m_tessellationStuff.inputLayout.Get());
+	//
+	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+	//UINT stride = sizeof(VertexPositionColor);
+	//UINT offset = 0;
+	//
+	//UpdateTessellationConstantBuffer();
+	//m_deviceContext->IASetVertexBuffers(0, 1, m_tessellationStuff.m_quadVertexBuffer.GetAddressOf(), &stride, &offset);
+	//m_deviceContext->VSSetShader(m_tessellationStuff.vertexShader.Get(), NULL, 0);
+	//m_deviceContext->PSSetShader(m_tessellationStuff.pixelShader.Get(), NULL, 0);
+	//m_deviceContext->HSSetShader(m_tessellationStuff.hullShader.Get(), NULL, 0);
+	//m_deviceContext->DSSetShader(m_tessellationStuff.domainShader.Get(), NULL, 0);
+	//
+	//m_deviceContext->Draw(3, 0);
 	/********************Tessellation******************************/
 
 	m_deviceContext.Reset();
@@ -252,14 +257,46 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 	m_libraryLoadedMesh = myMeshHandler->Initialize();
 
 	std::vector<MeshComponentsAdvanced::OutInformationAdvanced> meshes;
-	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshFBX("BattleMage.fbx", meshes);
-	if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("BattleMageAdv.bin", meshes[0]);
-	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myAdvancedMesh->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "BattleMageAdv.bin");
+	//if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshFBX("BattleMage.fbx", meshes);
+	//if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("BattleMageAdv.bin", meshes[0]);
+	//if (m_libraryLoadedMesh) m_libraryLoadedMesh = myAdvancedMesh->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "BattleMageAdv.bin");
 
-	AnimationComponents::AnimationClip animClip;
-	if (myAnimationHandler->Initialize())	myAnimationHandler->LoadAnimationFBX("BattleMage.fbx", animClip);
+	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshFBX("Teddy_Idle.fbx", meshes);
+	if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("Teddy_Idle.bin", meshes[0]);
+	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myAdvancedMesh->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "Teddy_Idle.bin");
+	
+	if (myAnimationHandler->Initialize())	myAnimationHandler->LoadAnimationFBX("Teddy_Idle.fbx", animClip, skelJoints);
 
-	myAdvancedMesh->ObjectChangePosition(0.f, -2.f, -5.f);
+	// Scale the model down
+	for (size_t i = 0; i < skelJoints.size(); i++)
+	{
+		skelJoints[i].globalTransformArray[12] *= 0.02f;
+		skelJoints[i].globalTransformArray[13] *= 0.02f;
+		skelJoints[i].globalTransformArray[14] *= 0.02f;
+
+		skelJoints[i].globalTransform4x4[3][0] *= 0.02f;
+		skelJoints[i].globalTransform4x4[3][1] *= 0.02f;
+		skelJoints[i].globalTransform4x4[3][2] *= 0.02f;
+	
+		jointMatrices.push_back(XMMATRIX(skelJoints[i].globalTransformArray));
+	}
+	
+	// Scale the animation down as well
+	for (size_t i = 0; i < animClip.frames.size(); i++)
+	{
+		for (size_t j = 0; j < animClip.frames[i].joints.size(); j++)
+		{
+			animClip.frames[i].joints[j].globalTransformArray[12] *= 0.02f;
+			animClip.frames[i].joints[j].globalTransformArray[13] *= 0.02f;
+			animClip.frames[i].joints[j].globalTransformArray[14] *= 0.02f;
+
+			animClip.frames[i].joints[j].globalTransform4x4[3][0] *= 0.02f;
+			animClip.frames[i].joints[j].globalTransform4x4[3][1] *= 0.02f;
+			animClip.frames[i].joints[j].globalTransform4x4[3][2] *= 0.02f;
+		}
+	}
+
+	//myAdvancedMesh->ObjectChangePosition(0.f, -2.f, -5.f);
 
 	Tessellation();
 
@@ -292,43 +329,69 @@ void SceneManager::CheckUserInput()
 	float returnValue;
 
 	myGInput->GetState(G_KEY_A, returnValue);
-	if (returnValue) myCamera->MoveCameraLocalLeft(m_timeBetweenFrames, 20.f);
+	if (returnValue) {
+		myCamera->MoveCameraLocalLeft(m_timeBetweenFrames, 20.f);
+	}
 
 	myGInput->GetState(G_KEY_D, returnValue);
-	if (returnValue) myCamera->MoveCameraLocalRight(m_timeBetweenFrames, 20.f);
+	if (returnValue) {
+		myCamera->MoveCameraLocalRight(m_timeBetweenFrames, 20.f);
+	}
 
 	myGInput->GetState(G_KEY_W, returnValue);
-	if (returnValue) myCamera->MoveCameraLocalForward(m_timeBetweenFrames, 20.f);
+	if (returnValue) {
+		myCamera->MoveCameraLocalForward(m_timeBetweenFrames, 20.f);
+	}
 
 	myGInput->GetState(G_KEY_S, returnValue);
-	if (returnValue) myCamera->MoveCameraLocalBackward(m_timeBetweenFrames, 20.f);
+	if (returnValue) {
+		myCamera->MoveCameraLocalBackward(m_timeBetweenFrames, 20.f);
+	}
 
 	myGInput->GetState(G_KEY_SPACE, returnValue);
-	if (returnValue) myCamera->MoveCameraLocalUp(m_timeBetweenFrames, 20.f);
+	if (returnValue) {
+		myCamera->MoveCameraLocalUp(m_timeBetweenFrames, 20.f);
+	}
 
 	myGInput->GetState(G_KEY_X, returnValue);
-	if (returnValue) myCamera->MoveCameraLocalDown(m_timeBetweenFrames, 20.f);
+	if (returnValue) {
+		myCamera->MoveCameraLocalDown(m_timeBetweenFrames, 20.f);
+	}
 
 	myGInput->GetState(G_KEY_P, returnValue);
-	if (returnValue) m_cameraState = cameraDefault;
+	if (returnValue) {
+		m_cameraState = cameraDefault;
+	}
 
 	myGInput->GetState(G_KEY_T, returnValue);
-	if (returnValue) m_cameraState = turnToCube;
+	if (returnValue) {
+		m_cameraState = turnToCube;
+	}
 
 	myGInput->GetState(G_KEY_Y, returnValue);
-	if (returnValue) m_cameraState = turnToMesh;
+	if (returnValue) {
+		m_cameraState = turnToMesh;
+	}
 
 	myGInput->GetState(G_KEY_K, returnValue);
-	if (returnValue) m_cameraState = lookAtCube;
+	if (returnValue) {
+		m_cameraState = lookAtCube;
+	}
 
 	myGInput->GetState(G_KEY_L, returnValue);
-	if (returnValue) m_cameraState = lookAtMesh;
+	if (returnValue) {
+		m_cameraState = lookAtMesh;
+	}
 
 	myGInput->GetState(G_KEY_O, returnValue);
-	if (returnValue) m_cameraState = lookAtOrigin;
+	if (returnValue) {
+		m_cameraState = lookAtOrigin;
+	}
 
 	myGInput->GetState(G_KEY_R, returnValue);
-	if (returnValue) m_rotate = !m_rotate;
+	if (returnValue) {
+		m_rotate = !m_rotate;
+	}
 }
 
 void SceneManager::RunDebugMessage(void)
@@ -347,7 +410,8 @@ bool SceneManager::RunTaskForPPV(void)
 	if (m_libraryLoadedMaterial)
 	{
 		std::vector<MaterialComponents::Material> m_VecMaterials;
-		bool result = myMaterialHandler->LoadMaterialsBinary("BattleMage.bin", m_VecMaterials);
+		//bool result = myMaterialHandler->LoadMaterialsBinary("BattleMage.bin", m_VecMaterials);
+		bool res = myMaterialHandler->LoadMaterialFBX("Teddy_Idle.fbx", m_VecMaterials);
 
 		for each (MaterialComponents::Material mat in m_VecMaterials)
 		{
@@ -394,27 +458,38 @@ bool SceneManager::RunTaskForPPV(void)
 
 void SceneManager::RunDebuggerTask(void)
 {
+	//VertexPositionColor vert01 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
+	//XMStoreFloat4(&vert01.position, XMVector4Transform(XMLoadFloat4(&vert01.position), myCube->GetObjectMatrix()));
+	//
+	//VertexPositionColor vert02 = { XMFLOAT4(2.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
+	//XMStoreFloat4(&vert02.position, XMVector4Transform(XMLoadFloat4(&vert02.position), myCube->GetObjectMatrix()));
+	//
+	//VertexPositionColor vert03 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) };
+	//XMStoreFloat4(&vert03.position, XMVector4Transform(XMLoadFloat4(&vert03.position), myCube->GetObjectMatrix()));
+	//
+	//VertexPositionColor vert04 = { XMFLOAT4(0.f, 2.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) };
+	//XMStoreFloat4(&vert04.position, XMVector4Transform(XMLoadFloat4(&vert04.position), myCube->GetObjectMatrix()));
+	//
+	//VertexPositionColor vert05 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) };
+	//XMStoreFloat4(&vert05.position, XMVector4Transform(XMLoadFloat4(&vert05.position), myCube->GetObjectMatrix()));
+	//
+	//VertexPositionColor vert06 = { XMFLOAT4(0.f, 0.f, 2.f, 1.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) };
+	//XMStoreFloat4(&vert06.position, XMVector4Transform(XMLoadFloat4(&vert06.position), myCube->GetObjectMatrix()));
+
+	/**********************Animation**********************/
 	VertexPositionColor vert01 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
-	XMStoreFloat4(&vert01.position, XMVector4Transform(XMLoadFloat4(&vert01.position), myCube->GetObjectMatrix()));
-
 	VertexPositionColor vert02 = { XMFLOAT4(2.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
-	XMStoreFloat4(&vert02.position, XMVector4Transform(XMLoadFloat4(&vert02.position), myCube->GetObjectMatrix()));
-
-	VertexPositionColor vert03 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) };
-	XMStoreFloat4(&vert03.position, XMVector4Transform(XMLoadFloat4(&vert03.position), myCube->GetObjectMatrix()));
-
-	VertexPositionColor vert04 = { XMFLOAT4(0.f, 2.f, 0.f, 1.f), XMFLOAT4(0.f, 1.f, 0.f, 0.f) };
-	XMStoreFloat4(&vert04.position, XMVector4Transform(XMLoadFloat4(&vert04.position), myCube->GetObjectMatrix()));
-
-	VertexPositionColor vert05 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) };
-	XMStoreFloat4(&vert05.position, XMVector4Transform(XMLoadFloat4(&vert05.position), myCube->GetObjectMatrix()));
-
-	VertexPositionColor vert06 = { XMFLOAT4(0.f, 0.f, 2.f, 1.f), XMFLOAT4(0.f, 0.f, 1.f, 0.f) };
-	XMStoreFloat4(&vert06.position, XMVector4Transform(XMLoadFloat4(&vert06.position), myCube->GetObjectMatrix()));
-
-	myDebugRenderer->AddLine(&vert01, &vert02);
-	myDebugRenderer->AddLine(&vert03, &vert04);
-	myDebugRenderer->AddLine(&vert05, &vert06);
+	for (unsigned i = 1; i < skelJoints.size(); i++)
+	{
+		XMStoreFloat4(&vert01.position, jointMatrices[skelJoints[i].parentIndex].r[3]);
+		XMStoreFloat4(&vert02.position, jointMatrices[i].r[3]);
+		myDebugRenderer->AddLine(&vert01, &vert02);
+	}
+	/**********************Animation**********************/
+	
+	//myDebugRenderer->AddLine(&vert01, &vert02);
+	//myDebugRenderer->AddLine(&vert03, &vert04);
+	//myDebugRenderer->AddLine(&vert05, &vert06);
 }
 
 void SceneManager::Tessellation(void)
