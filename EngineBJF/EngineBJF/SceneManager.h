@@ -50,7 +50,9 @@ private:
 	GW::SYSTEM::GInput*				myGInput;
 	bool m_rotate;
 	XTime m_timer;
+	XTime m_animationTimer;
 	float m_timeBetweenFrames;
+	float m_timeForAnimation;
 
 	ComPtr<ID3D11Buffer>				m_constantBuffer;
 	ComPtr<ID3D11Buffer>				m_tessellationConstantBuffer;
@@ -59,7 +61,9 @@ private:
 	AnimationComponents::AnimationClip animClip;
 	std::vector<AnimationComponents::SkeletonJoints> skelJoints;
 	std::vector<XMMATRIX> jointMatrices;
+	bool freeRun;
 
+	int animationFrame;
 	struct PipelineState
 	{
 		ComPtr<ID3D11InputLayout>			input_layout;
@@ -100,6 +104,7 @@ public:
 	void Render(void);
 
 	void CheckUserInput();
+	void CheckUserInput(WPARAM wParam);
 	void RunTaskList(int _screenWidth, int _screenHeight, bool _vsync, HWND& _hwnd, bool _fullscreen, float _screenFar, float _screenNear);
 	float GetTimeBetweenFrames();
 	Camera* GetCamera();
@@ -135,6 +140,8 @@ private:
 	bool RunTaskForPPV(void);
 	void RunDebuggerTask(void);
 	void Tessellation(void);
+
+	void PlayAnimation(void);
 };
 
 #endif //!_SCENEMANAGER_H_

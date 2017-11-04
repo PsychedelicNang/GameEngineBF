@@ -244,7 +244,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			PostQuitMessage(0);
 			break;
 		}
-		//sceneManager->CheckUserInput(wParam);
+		sceneManager->CheckUserInput(wParam);
 		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);

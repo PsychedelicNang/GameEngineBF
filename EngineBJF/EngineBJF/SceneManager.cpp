@@ -21,6 +21,10 @@ SceneManager::SceneManager()
 	m_cameraState = cameraDefault;
 	m_timeBetweenFrames = 0.f;
 	m_timer.Restart();
+	m_animationTimer.Restart();
+	animationFrame = 0;
+	m_timeForAnimation = 0;
+	freeRun = true;
 	// Decrement count of GInput
 }
 
@@ -72,10 +76,16 @@ void SceneManager::SetPipelineStates(PipelineState& _pipeState)
 
 void SceneManager::Update(void)
 {	
-	CheckUserInput();
-
 	m_timer.Signal();
+	m_animationTimer.Signal();
 	m_timeBetweenFrames = (float)m_timer.Delta();
+	m_timeForAnimation += (float)m_animationTimer.Delta();
+	if (m_timeForAnimation > animClip.frames.back().time)
+	{
+		m_timeForAnimation = 0;
+	}
+
+	CheckUserInput();
 	
 	switch (m_cameraState)
 	{
@@ -109,8 +119,6 @@ void SceneManager::Update(void)
 		default:
 			break;
 	}
-
-	RunDebuggerTask();
 
 	if (m_rotate)
 	{
@@ -148,19 +156,24 @@ void SceneManager::Render(void)
 	//UpdateStandardConstantBuffer(myCube->GetObjectMatrix());
 	//myCube->Render(m_deviceContext);
 	
-	//if (m_libraryLoadedMesh && m_libraryLoadedMesh)
-	//{
-	//	m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[0]); // 1, 0, 3 because of the input from shaders... diffuse, emissive, specular
-	//	//m_deviceContext->PSSetShaderResources(0, 1, m_PPVStuff.m_materialsSRVs.data());
-	//}
-	//if (m_libraryLoadedMesh) {
-	//	UpdateStandardConstantBuffer(myAdvancedMesh->GetObjectMatrix());
-	//	myAdvancedMesh->Render(m_deviceContext);
-	//}
+	if (m_libraryLoadedMesh && m_libraryLoadedMesh)
+	{
+		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[0]); // 1, 0, 3 because of the input from shaders... diffuse, emissive, specular
+		//m_deviceContext->PSSetShaderResources(0, 1, m_PPVStuff.m_materialsSRVs.data());
+	}
+	if (m_libraryLoadedMesh) {
+		UpdateStandardConstantBuffer(myAdvancedMesh->GetObjectMatrix());
+		myAdvancedMesh->Render(m_deviceContext);
+	}
 	
 	SetPipelineStates(m_defaultPipeline);
 	UpdateStandardConstantBuffer(XMMatrixIdentity());
 	myTerrain->Render(m_deviceContext);
+
+
+	/**********************Animation**********************/
+	PlayAnimation();
+	/**********************Animation**********************/
 	
 	myDebugRenderer->CreateVertexBuffer(m_device);
 	myDebugRenderer->Render(m_device, m_deviceContext);
@@ -238,17 +251,17 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 	InitShadersAndInputLayout(m_defaultPipeline.pixel_shader, m_defaultPipeline.vertex_shader, m_defaultPipeline.input_layout);
 	
 	myCube->Initialize(myD3DClass->GetDevice());
-	myCamera->Initialize();
+	//myCamera->Initialize();
 
-	//float m_viewportWidth = 1024;
-	//float m_viewportHeight = 768;
-	//float m_cameraZoom = 70.0f;
-	//float m_nearPlane = 0.1f;
-	//float m_farPlane = 10000.0f;
-	//XMVECTOR eye = { 20.0f, 5.f, -10.f, 1.0f };
-	//XMVECTOR at = { 20.0f, 0.f, 0.f, 1.0f };
-	//XMVECTOR up = { 0.0f, 1.0f, 0.0f, 1.0f };
-	//myCamera->Initialize(m_viewportWidth, m_viewportHeight, m_nearPlane, m_farPlane, m_cameraZoom, eye, at, up);
+	float m_viewportWidth = 1024;
+	float m_viewportHeight = 768;
+	float m_cameraZoom = 70.0f;
+	float m_nearPlane = 0.1f;
+	float m_farPlane = 10000.0f;
+	XMVECTOR eye = { -1.0f, 3.f, 5.f, 1.0f };
+	XMVECTOR at = { 0.0f, 0.f, 0.f, 1.0f };
+	XMVECTOR up = { 0.0f, 1.0f, 0.0f, 1.0f };
+	myCamera->Initialize(m_viewportWidth, m_viewportHeight, m_nearPlane, m_farPlane, m_cameraZoom, eye, at, up);
 	
 	myTerrain->Initialize(myD3DClass->GetDevice());
 
@@ -261,11 +274,11 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 	//if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("BattleMageAdv.bin", meshes[0]);
 	//if (m_libraryLoadedMesh) m_libraryLoadedMesh = myAdvancedMesh->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "BattleMageAdv.bin");
 
-	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshFBX("Teddy_Idle.fbx", meshes);
-	if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("Teddy_Idle.bin", meshes[0]);
-	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myAdvancedMesh->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "Teddy_Idle.bin");
+	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshFBX("Teddy/Teddy_Run.fbx", meshes);
+	if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("Teddy/Teddy_Run.bin", meshes[0]);
+	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myAdvancedMesh->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "Teddy/Teddy_Run.bin");
 	
-	if (myAnimationHandler->Initialize())	myAnimationHandler->LoadAnimationFBX("Teddy_Idle.fbx", animClip, skelJoints);
+	if (myAnimationHandler->Initialize())	myAnimationHandler->LoadAnimationFBX("Teddy/Teddy_Run.fbx", animClip, skelJoints);
 
 	// Scale the model down
 	for (size_t i = 0; i < skelJoints.size(); i++)
@@ -296,7 +309,7 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 		}
 	}
 
-	//myAdvancedMesh->ObjectChangePosition(0.f, -2.f, -5.f);
+	myAdvancedMesh->ObjectChangePosition(0.f, -2.f, -5.f);
 
 	Tessellation();
 
@@ -392,6 +405,45 @@ void SceneManager::CheckUserInput()
 	if (returnValue) {
 		m_rotate = !m_rotate;
 	}
+
+	//myGInput->GetState(G_KEY_UP, returnValue);
+	//if (returnValue) {
+	//	if (animationFrame < 60) animationFrame++;
+	//}
+
+	//myGInput->GetState(G_KEY_DOWN, returnValue);
+	//if (returnValue) {
+	//	if (animationFrame > 0) animationFrame--;
+	//}
+}
+
+void SceneManager::CheckUserInput(WPARAM wParam)
+{
+	switch (wParam)
+	{
+	case VK_UP:
+		if (!freeRun)
+		{
+			if (animationFrame < animClip.frames.size() - 1) animationFrame++;
+			else if (animationFrame >= animClip.frames.size() - 1) animationFrame = 0;
+		}
+		break;
+	case VK_DOWN:
+		if (!freeRun)
+		{
+			if (animationFrame > 0) animationFrame--;
+			else if (animationFrame < 0) animationFrame = 0;
+		}
+		break;
+	case '1':
+		freeRun = true;
+		break;
+	case '2':
+		freeRun = false;
+		break;
+	default:
+		break;
+	}
 }
 
 void SceneManager::RunDebugMessage(void)
@@ -477,14 +529,39 @@ void SceneManager::RunDebuggerTask(void)
 	//XMStoreFloat4(&vert06.position, XMVector4Transform(XMLoadFloat4(&vert06.position), myCube->GetObjectMatrix()));
 
 	/**********************Animation**********************/
-	VertexPositionColor vert01 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
-	VertexPositionColor vert02 = { XMFLOAT4(2.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
-	for (unsigned i = 1; i < skelJoints.size(); i++)
+	if (!freeRun)
 	{
-		XMStoreFloat4(&vert01.position, jointMatrices[skelJoints[i].parentIndex].r[3]);
-		XMStoreFloat4(&vert02.position, jointMatrices[i].r[3]);
-		myDebugRenderer->AddLine(&vert01, &vert02);
+		VertexPositionColor vert01 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
+		VertexPositionColor vert02 = { XMFLOAT4(2.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
+		for (size_t i = 1; i < animClip.frames[animationFrame].joints.size(); i++)
+		{
+			XMStoreFloat4(&vert01.position, XMMATRIX(animClip.frames[animationFrame].joints[animClip.frames[animationFrame].joints[i].parentIndex].globalTransformArray).r[3]);
+			XMStoreFloat4(&vert02.position, XMMATRIX(animClip.frames[animationFrame].joints[i].globalTransformArray).r[3]);
+			//XMStoreFloat4(&vert01.position, jointMatrices[skelJoints[i].parentIndex].r[3]);
+			//XMStoreFloat4(&vert02.position, jointMatrices[i].r[3]);
+			myDebugRenderer->AddLine(&vert01, &vert02);
+		}
 	}
+	else
+	{
+		VertexPositionColor vert01 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
+		VertexPositionColor vert02 = { XMFLOAT4(2.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
+		for (size_t i = 1; i < animClip.frames[animationFrame].joints.size(); i++)
+		{
+			XMStoreFloat4(&vert01.position, XMMATRIX(animClip.frames[animationFrame].joints[animClip.frames[animationFrame].joints[i].parentIndex].globalTransformArray).r[3]);
+			XMStoreFloat4(&vert02.position, XMMATRIX(animClip.frames[animationFrame].joints[i].globalTransformArray).r[3]);
+			//XMStoreFloat4(&vert01.position, jointMatrices[skelJoints[i].parentIndex].r[3]);
+			//XMStoreFloat4(&vert02.position, jointMatrices[i].r[3]);
+			myDebugRenderer->AddLine(&vert01, &vert02);
+		}
+	}
+	//}
+	//for (unsigned i = 1; i < skelJoints.size(); i++)
+	//{
+	//	XMStoreFloat4(&vert01.position, jointMatrices[skelJoints[i].parentIndex].r[3]);
+	//	XMStoreFloat4(&vert02.position, jointMatrices[i].r[3]);
+	//	myDebugRenderer->AddLine(&vert01, &vert02);
+	//}
 	/**********************Animation**********************/
 	
 	//myDebugRenderer->AddLine(&vert01, &vert02);
@@ -549,6 +626,84 @@ void SceneManager::Tessellation(void)
 	LoadCompiledShaderData(&bytecode4, byteCodeSize4, "Shaders/Pixel Shaders/PS_Tessellation.cso");
 	myD3DClass->GetDevice()->CreatePixelShader(bytecode4, byteCodeSize4, nullptr, m_tessellationStuff.pixelShader.GetAddressOf());
 	delete[] bytecode4;
+}
+
+void SceneManager::PlayAnimation(void)
+{
+	// Manually go through keyframes
+	if (!freeRun)
+	{
+		VertexPositionColor vert01 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
+		VertexPositionColor vert02 = { XMFLOAT4(2.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
+		for (size_t i = 1; i < animClip.frames[animationFrame].joints.size(); i++)
+		{
+			XMStoreFloat4(&vert01.position, XMMATRIX(animClip.frames[animationFrame].joints[animClip.frames[animationFrame].joints[i].parentIndex].globalTransformArray).r[3]);
+			XMStoreFloat4(&vert02.position, XMMATRIX(animClip.frames[animationFrame].joints[i].globalTransformArray).r[3]);
+			myDebugRenderer->AddLine(&vert01, &vert02);
+		}
+	}
+	// Let animation run by itself
+	else
+	{
+		AnimationComponents::Keyframe previousKeyframe, nextKeyframe, currentKeyframe;
+
+		// Fill out the current key frame's joint name and parent index in preperation for drawing
+		currentKeyframe.joints.resize(animClip.frames[0].joints.size());
+		for (size_t i = 0; i < animClip.frames[0].joints.size(); i++)
+		{
+			currentKeyframe.joints[i].jointName = animClip.frames[0].joints[i].jointName;
+			currentKeyframe.joints[i].parentIndex = animClip.frames[0].joints[i].parentIndex;
+			// currentKeyframe.joints[i].4x4 and array will not be filled out because we don't need that information
+		}
+		float ratio = 0.f;
+		for (size_t i = 0; i < animClip.frames.size(); i++)
+		{
+			if (animClip.frames[i].time > m_timeForAnimation)
+			{
+				if (0 == i)
+				{
+					previousKeyframe = animClip.frames[animClip.frames.size() - 1];
+					//previousKeyframe.time = 0.f;
+				}
+
+				else previousKeyframe = animClip.frames[i - 1];
+
+				nextKeyframe = animClip.frames[i];
+				break;
+			}
+		}
+		if (m_timeForAnimation > nextKeyframe.time)
+		{
+			ratio = m_timeForAnimation / (previousKeyframe.time - nextKeyframe.time);
+		}
+		else if (nextKeyframe.time > previousKeyframe.time)
+		{
+			ratio = (m_timeForAnimation - previousKeyframe.time) / (nextKeyframe.time - previousKeyframe.time);
+		}
+
+		std::vector<XMMATRIX> jointsForFrameToPresent;
+		for (unsigned int i = 0; i < nextKeyframe.joints.size(); i++)
+		{
+			XMVECTOR quaternionPosition = XMVectorLerp(XMMATRIX(previousKeyframe.joints[i].globalTransformArray).r[3], XMMATRIX(nextKeyframe.joints[i].globalTransformArray).r[3], ratio);
+			
+			XMVECTOR quaternion01 = XMQuaternionRotationMatrix(XMMATRIX(previousKeyframe.joints[i].globalTransformArray));
+			XMVECTOR quaternion02 = XMQuaternionRotationMatrix(XMMATRIX(nextKeyframe.joints[i].globalTransformArray));
+
+			XMVECTOR quaternionSlerp = XMQuaternionSlerp(quaternion01, quaternion02, ratio);
+
+			XMMATRIX quaternionMartix = XMMatrixRotationQuaternion(quaternionSlerp);
+			quaternionMartix.r[3] = quaternionPosition;
+			jointsForFrameToPresent.push_back(quaternionMartix);
+		}
+		VertexPositionColor vert01 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
+		VertexPositionColor vert02 = { XMFLOAT4(2.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
+		for (size_t i = 1; i < currentKeyframe.joints.size(); i++)
+		{
+			XMStoreFloat4(&vert01.position, jointsForFrameToPresent[currentKeyframe.joints[i].parentIndex].r[3]);
+			XMStoreFloat4(&vert02.position, jointsForFrameToPresent[i].r[3]);
+			myDebugRenderer->AddLine(&vert01, &vert02);
+		}
+	}
 }
 
 SceneManager::PPVStuff::~PPVStuff()

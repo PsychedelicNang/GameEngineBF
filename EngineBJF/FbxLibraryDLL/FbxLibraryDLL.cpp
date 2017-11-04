@@ -147,7 +147,7 @@ namespace FbxLibraryDLL
 		return false;
 	}
 
-	/**
+	/*
 	* Fills out values for the materials property, both of which are passed into the function.
 	* The _eValue determines the key for the std::map with is being used inside of the Materials structure
 	*/
@@ -917,7 +917,7 @@ namespace FbxLibraryDLL
 			int index = 0;
 			for each (MyFBXJoint* theJoint in fbxJoints)
 			{
-				FbxMatrix currentMatrix = theJoint->node->EvaluateGlobalTransform(currentKeyframe.time);
+				FbxMatrix currentMatrix = theJoint->node->EvaluateGlobalTransform(animDuration);
 				int count = 0;
 				for (int y = 0; y < 4; y++)
 				{
@@ -946,69 +946,3 @@ namespace FbxLibraryDLL
 		return true;
 	}
 }
-
-/*Works but the normal data is not correct*/
-//if (lRootNode)
-//{
-//	for (unsigned i = 0; i < lRootNode->GetChildCount(); i++)
-//	{
-//		FbxNode* tNode = lRootNode->GetChild(i);
-//		FbxGeometry* geometry = (FbxGeometry*)tNode->GetNodeAttribute();
-//		FbxNodeAttribute::EType geoNodeType = geometry->GetAttributeType();
-//		if (FbxNodeAttribute::eMesh == geoNodeType)
-//		{
-//			FbxMesh* theMesh = (FbxMesh*)geometry;
-//			/*				int mPolygonCount = theMesh->GetPolygonCount();
-//			bool mAllByControlPoint = false;
-//			bool mHasNormal = theMesh->GetElementNormalCount() > 0;
-//			bool mHasUV = theMesh->GetElementUVCount() > 0;*/
-//			MeshComponentsAdvanced::OutInformationAdvanced meshInst;
-//			//FbxGeometryElement::EMappingMode normalMap = theMesh->GetElementNormal(0)->GetMappingMode();
-//			//int x = 5;
-//			//if (normalMap != FbxGeometryElement::eByControlPoint)
-//			//{
-//			//	int lPolygonVertexCount = theMesh->GetControlPointsCount();
-//			//	if (!mAllByControlPoint)
-//			//	{
-//			//		lPolygonVertexCount = mPolygonCount * 3;
-//			//	}
-//			//}
-//			FbxStringList uvNames;
-//			theMesh->GetUVSetNames(uvNames);
-//			const char * uvName = nullptr;
-//			if (uvNames.GetCount())
-//				uvName = uvNames[0];
-//
-//			int indexCount = theMesh->GetPolygonVertexCount();
-//			meshInst.indices.resize(indexCount);
-//
-//			int* verts = theMesh->GetPolygonVertices();
-//			for (unsigned i = 0; i < indexCount; i++)
-//				meshInst.indices[i] = verts[i];
-//
-//			FbxArray<FbxVector4> normals;
-//			theMesh->GetPolygonVertexNormals(normals);
-//			FbxArray<FbxVector2> uvs;
-//			theMesh->GetPolygonVertexUVs(uvName, uvs);
-//
-//			for (unsigned j = 0; j < geometry->GetControlPointsCount(); j++)
-//			{
-//				MeshComponentsAdvanced::VertexAdvanced currVert;
-//				currVert.position[0] = theMesh->GetControlPoints()[j][0];
-//				currVert.position[1] = theMesh->GetControlPoints()[j][1];
-//				currVert.position[2] = theMesh->GetControlPoints()[j][2];
-//				currVert.position[3] = theMesh->GetControlPoints()[j][3];
-//
-//				currVert.normals[0] = normals.GetAt(j)[0];
-//				currVert.normals[1] = normals.GetAt(j)[1];
-//				currVert.normals[2] = normals.GetAt(j)[2];
-//				currVert.normals[3] = normals.GetAt(j)[3];
-//
-//				currVert.uvs[0] = uvs.GetAt(j)[0];
-//				currVert.uvs[1] = uvs.GetAt(j)[1];
-//				meshInst.vertices.push_back(currVert);
-//			}
-//			_outVector.push_back(meshInst);
-//		}
-//	}
-//}
