@@ -783,7 +783,7 @@ namespace FbxLibraryDLL
 		return false;
 	}
 
-	FBXLIBRARY_API bool LoadAnimationFromFBXFile(const char * _fileName, AnimationComponents::AnimationClip& _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints)
+	FBXLIBRARY_API bool LoadAnimationFromFBXFile(const char * _fileName, AnimationComponents::AnimationClip& _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount)
 	{
 		struct MyFBXJoint {
 			FbxNode* node;
@@ -940,6 +940,33 @@ namespace FbxLibraryDLL
 			delete fbxJoints[i];
 		}
 		fbxJoints.clear();
+
+		// Scale the model down
+		for (size_t i = 0; i < _skelJoints.size(); i++)
+		{
+			_skelJoints[i].globalTransformArray[12] *= 0.02f;
+			_skelJoints[i].globalTransformArray[13] *= 0.02f;
+			_skelJoints[i].globalTransformArray[14] *= 0.02f;
+
+			_skelJoints[i].globalTransform4x4[3][0] *= 0.02f;
+			_skelJoints[i].globalTransform4x4[3][1] *= 0.02f;
+			_skelJoints[i].globalTransform4x4[3][2] *= 0.02f;
+		}
+
+		// Scale the animation down as well
+		for (size_t i = 0; i < _animationClip.frames.size(); i++)
+		{
+			for (size_t j = 0; j < _animationClip.frames[i].joints.size(); j++)
+			{
+				_animationClip.frames[i].joints[j].globalTransformArray[12] *= 0.02f;
+				_animationClip.frames[i].joints[j].globalTransformArray[13] *= 0.02f;
+				_animationClip.frames[i].joints[j].globalTransformArray[14] *= 0.02f;
+
+				_animationClip.frames[i].joints[j].globalTransform4x4[3][0] *= 0.02f;
+				_animationClip.frames[i].joints[j].globalTransform4x4[3][1] *= 0.02f;
+				_animationClip.frames[i].joints[j].globalTransform4x4[3][2] *= 0.02f;
+			}
+		}
 
 		// Destroy the SDK manager and all the other objects it was handling.
 		lSdkManager->Destroy();

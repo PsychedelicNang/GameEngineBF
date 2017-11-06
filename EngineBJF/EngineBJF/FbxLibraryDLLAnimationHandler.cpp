@@ -14,9 +14,9 @@ bool FbxLibraryDLLAnimationHandler::Initialize()
 	return true;
 }
 
-bool FbxLibraryDLLAnimationHandler::LoadAnimationFBX(const char * _fileName, AnimationComponents::AnimationClip & _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints)
+bool FbxLibraryDLLAnimationHandler::LoadAnimationFBX(const char * _fileName, AnimationComponents::AnimationClip & _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount)
 {
-	if (!LoadAnimationFromFBXFile(_fileName, _animationClip, _skelJoints)) return false;
+	if (!LoadAnimationFromFBXFile(_fileName, _animationClip, _skelJoints, _scaleAmount)) return false;
 	return true;
 }
 
@@ -33,8 +33,8 @@ bool FbxLibraryDLLAnimationHandler::InitializeLibrary()
 	return true;
 }
 
-bool FbxLibraryDLLAnimationHandler::LoadAnimationFromFBXFile(const char * _fileName, AnimationComponents::AnimationClip & _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints)
+bool FbxLibraryDLLAnimationHandler::LoadAnimationFromFBXFile(const char * _fileName, AnimationComponents::AnimationClip & _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount)
 {
-	if (!((funcHandleLoadAnimationFromFBXFile)(_fileName, _animationClip, _skelJoints))) return false;
+	if (!((funcHandleLoadAnimationFromFBXFile)(_fileName, _animationClip, _skelJoints, _scaleAmount))) return false;
 	return true;
 }

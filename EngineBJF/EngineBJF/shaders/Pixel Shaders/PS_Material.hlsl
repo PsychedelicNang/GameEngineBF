@@ -32,6 +32,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 	float specular = pow(max(dot(halfDir, normalize(input.normal)), 0.f), shininess);
 
 	float4 color = diffuseColor * diffuse + emissiveColor + specularColor * specular;
+	//float4 color = diffuseColor + emissiveColor + specularColor * specular;
 	//float4 color = float4(coolar);
 	return color;
 
@@ -41,7 +42,7 @@ float4 main(PixelShaderInput input) : SV_TARGET
 	//float4 gl_FragColor = float4(colorGammaCorrected, 1.0);
 	//return gl_FragColor;
 
-
+	
 	//emissive (.5, .5, .5, 1)
 	//ambient (0, 0, 0, 1)
 	//diffuse (1, 1, 1, .8)

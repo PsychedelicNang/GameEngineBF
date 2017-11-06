@@ -116,9 +116,9 @@ bool Object::ReadInMeshFromBinaryFile(ComPtr<ID3D11Device>& _device, const char 
 	return true;
 }
 
-bool Object::ReadInAdvancedMeshFromBinaryFile(ComPtr<ID3D11Device>& _device, const char * _fileName)
+bool Object::ReadInAdvancedMeshFromBinaryFile(ComPtr<ID3D11Device>& _device, const char * _fileName, float _scaleAmount)
 {
-	if (!ReadInAdvancedBinaryMeshFile(_device, _fileName)) return false;
+	if (!ReadInAdvancedBinaryMeshFile(_device, _fileName, _scaleAmount)) return false;
 
 	return true;
 }
@@ -445,7 +445,7 @@ bool Object::ReadInBinaryMeshFile(ComPtr<ID3D11Device>& _device, const char * _f
 }
 
 // Reads in a binary mesh file containing vertex and index Position, UV, and Normal data and fills out the object of which this function was called from
-bool Object::ReadInAdvancedBinaryMeshFile(ComPtr<ID3D11Device>& _device, const char * _fileName)
+bool Object::ReadInAdvancedBinaryMeshFile(ComPtr<ID3D11Device>& _device, const char * _fileName, float _scaleAmount)
 {
 		std::fstream file;
 		file.open(_fileName, std::ios_base::binary | std::ios_base::in);
@@ -509,14 +509,17 @@ bool Object::ReadInAdvancedBinaryMeshFile(ComPtr<ID3D11Device>& _device, const c
 	
 			for (unsigned i = 0; i < numOfVertices; i++)
 				vertices[i].position.w = 1.f;
-
-			for (size_t i = 0; i < numOfVertices; i++)
+			
+			if (_scaleAmount != 1.f)
 			{
-				vertices[i].position.x *= 0.02f;
-				vertices[i].position.y *= 0.02f;
-				vertices[i].position.z *= 0.02f;
+				for (size_t i = 0; i < numOfVertices; i++)
+				{
+					vertices[i].position.x *= _scaleAmount;
+					vertices[i].position.y *= _scaleAmount;
+					vertices[i].position.z *= _scaleAmount;
+				}
 			}
-	
+
 			D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
 			vertexBufferData.pSysMem = vertices;
 			vertexBufferData.SysMemPitch = 0;

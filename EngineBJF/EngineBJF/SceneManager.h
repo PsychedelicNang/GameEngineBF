@@ -39,7 +39,8 @@ private:
 	bool m_libraryLoadedMaterial;
 	bool m_libraryLoadedMesh;
 	Object*							myCube;
-	Object*							myAdvancedMesh;
+	Object*							myTeddyBear;
+	Object*							myBattleMage;
 	Camera*							myCamera;
 	Terrain*						myTerrain;
 	DebugRenderer*					myDebugRenderer;
@@ -97,7 +98,7 @@ private:
 		ComPtr<ID3D11VertexShader> m_VS;
 		ComPtr<ID3D11InputLayout> m_IL;
 		~PPVStuff();
-	} m_PPVStuff;
+	} m_PPVStuff, m_PPVBattleMage;
 
 public:
 	void Update(void);
@@ -129,8 +130,9 @@ public:
 	ModelViewProjectionConstantBuffer m_tessellationConstantBufferData;
 
 private:
-	void InitConstantBuffer(ComPtr<ID3D11Buffer>& _buffer);
-	void InitShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, ComPtr<ID3D11VertexShader>& _VS, ComPtr<ID3D11InputLayout>& _IL);
+	void InitializeConstantBuffer(ComPtr<ID3D11Buffer>& _buffer);
+	void InitializeShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, ComPtr<ID3D11VertexShader>& _VS, ComPtr<ID3D11InputLayout>& _IL);
+	void InitializeSamplerState(ComPtr<ID3D11SamplerState>& _samplerState);
 
 	bool LoadCompiledShaderData(char **byteCode, size_t &byteCodeSize, const char *fileName);
 	void UpdateStandardConstantBuffer(XMMATRIX _modelsMatrix);

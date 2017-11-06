@@ -46,7 +46,7 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_CONTROL_POINT_OUTPUT,
 	
 	const float d0 = 10.f;
 	const float d1 = 40.f;
-	float tessellationAmount = 64.f * saturate((d1 - dist) / (d1 - d0));
+	float tessellationAmount = 64.f * (saturate((d1 - dist) / (d1 - d0)) + .00001);
 
 	// Insert code to compute Output here
 	Output.EdgeTessFactor[0] = tessellationAmount;

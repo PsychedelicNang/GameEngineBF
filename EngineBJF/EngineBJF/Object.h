@@ -38,7 +38,7 @@ public:
 	bool ReadInMeshFromBinaryFile(ComPtr<ID3D11Device>& _device, const char * _fileName);
 	
 	// Reads in a binary mesh file containing vertex and index Position, UV, and Normal data and fills out the object of which this function was called from
-	bool ReadInAdvancedMeshFromBinaryFile(ComPtr<ID3D11Device>& _device, const char* _fileName);
+	bool ReadInAdvancedMeshFromBinaryFile(ComPtr<ID3D11Device>& _device, const char* _fileName, float _scaleAmount = 1);
 private:
 	ComPtr<ID3D11Buffer>				m_vertexBuffer;
 	ComPtr<ID3D11Buffer>				m_indexBuffer;
@@ -55,7 +55,7 @@ private:
 	bool ReadInBinaryMeshFile(ComPtr<ID3D11Device>& _device, const char * _fileName);
 	
 	// Reads in a binary mesh file containing vertex and index Position, UV, and Normal data and fills out the object of which this function was called from
-	bool ReadInAdvancedBinaryMeshFile(ComPtr<ID3D11Device>& _device, const char* _fileName);
+	bool ReadInAdvancedBinaryMeshFile(ComPtr<ID3D11Device>& _device, const char* _fileName, float _scaleAmount = 1);
 
 	void RenderBuffers(ComPtr<ID3D11DeviceContext>& _deviceContext);
 

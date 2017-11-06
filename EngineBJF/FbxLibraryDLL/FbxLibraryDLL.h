@@ -28,6 +28,6 @@ extern "C" {
 		FBXLIBRARY_API void ExportAdvancedMeshToBinaryFile(const char* _filePath, MeshComponentsAdvanced::OutInformationAdvanced & _mesh);
 		FBXLIBRARY_API bool ReadInAdvancedBinaryMeshFile(const char * _fileName, MeshComponentsAdvanced::OutInformationAdvanced& _objectToFill);
 
-		FBXLIBRARY_API bool LoadAnimationFromFBXFile(const char* _fileName, AnimationComponents::AnimationClip& _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints);
+		FBXLIBRARY_API bool LoadAnimationFromFBXFile(const char* _fileName, AnimationComponents::AnimationClip& _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount = 1);
 	}
 }

@@ -12,10 +12,11 @@ SceneManager::SceneManager()
 	myTerrain			= new Terrain();
 	myDebugRenderer		= new DebugRenderer();
 	myD3DClass			= new D3DInitializer();
-	myAdvancedMesh		= new Object();
+	myTeddyBear			= new Object();
+	myBattleMage		= new Object();
 	myMaterialHandler	= new FbxLibraryDLLMaterialHandler();
 	myMeshHandler		= new FbxLibraryDLLMeshHandler();
-	myAnimationHandler = new FbxLibraryDLLAnimationHandler();
+	myAnimationHandler	= new FbxLibraryDLLAnimationHandler();
 	mouseMove = false;
 	m_rotate = false;
 	m_cameraState = cameraDefault;
@@ -35,19 +36,20 @@ SceneManager::~SceneManager()
 	if (myTerrain) delete myTerrain;
 	if (myDebugRenderer) delete myDebugRenderer;
 	if (myD3DClass) delete myD3DClass;
-	if (myAdvancedMesh) delete myAdvancedMesh;
+	if (myTeddyBear) delete myTeddyBear;
+	if (myBattleMage) delete myBattleMage;
 	if (myMaterialHandler) delete myMaterialHandler;
 	if (myMeshHandler) delete myMeshHandler;
 	if (myAnimationHandler) delete myAnimationHandler;
 }
 
-void SceneManager::InitConstantBuffer(ComPtr<ID3D11Buffer>& _buffer)
+void SceneManager::InitializeConstantBuffer(ComPtr<ID3D11Buffer>& _buffer)
 {
 	CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
 	myD3DClass->GetDevice()->CreateBuffer(&constantBufferDesc, nullptr, _buffer.GetAddressOf());
 }
 
-void SceneManager::InitShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, ComPtr<ID3D11VertexShader>& _VS, ComPtr<ID3D11InputLayout>& _IL)
+void SceneManager::InitializeShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, ComPtr<ID3D11VertexShader>& _VS, ComPtr<ID3D11InputLayout>& _IL)
 {
 	char* bytecode = nullptr;
 	size_t byteCodeSize = 0;
@@ -65,6 +67,22 @@ void SceneManager::InitShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, Com
 	};
 	HRESULT hr = myD3DClass->GetDevice()->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), bytecode2, byteCodeSize2, _IL.GetAddressOf());
 	delete[] bytecode2;
+}
+
+void SceneManager::InitializeSamplerState(ComPtr<ID3D11SamplerState>& _samplerState)
+{
+	D3D11_SAMPLER_DESC samplerDesc;
+	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.MinLOD = -3.402823466e+38F;
+	samplerDesc.MaxLOD = 3.402823466e+38F;
+	samplerDesc.MipLODBias = 0.f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+
+	myD3DClass->GetDevice()->CreateSamplerState(&samplerDesc, _samplerState.GetAddressOf());
 }
 
 void SceneManager::SetPipelineStates(PipelineState& _pipeState)
@@ -107,14 +125,14 @@ void SceneManager::Update(void)
 		case SceneManager::lookAtMesh:
 		{
 			XMVECTOR up = { 0.f, 1.f, 0.f, 1.f };
-			myCamera->SetCamera(myCamera->CameraLookAt(myCamera->GetCameraMatrix().r[3], myAdvancedMesh->GetObjectMatrix().r[3], up));
+			myCamera->SetCamera(myCamera->CameraLookAt(myCamera->GetCameraMatrix().r[3], myTeddyBear->GetObjectMatrix().r[3], up));
 		}
 			break;
 		case SceneManager::turnToCube:
 			myCamera->SetCamera(myCamera->CameraTurnTo(myCamera->GetCameraMatrix(), myCube->GetObjectMatrix().r[3], m_timeBetweenFrames * 5.f));
 			break;
 		case SceneManager::turnToMesh:
-			myCamera->SetCamera(myCamera->CameraTurnTo(myCamera->GetCameraMatrix(), myAdvancedMesh->GetObjectMatrix().r[3], m_timeBetweenFrames * 5.f));
+			myCamera->SetCamera(myCamera->CameraTurnTo(myCamera->GetCameraMatrix(), myTeddyBear->GetObjectMatrix().r[3], m_timeBetweenFrames * 5.f));
 			break;
 		default:
 			break;
@@ -123,7 +141,7 @@ void SceneManager::Update(void)
 	if (m_rotate)
 	{
 		myCube->ObjectRotationY(0.50f * m_timeBetweenFrames);
-		myAdvancedMesh->ObjectRotationY(0.5f * m_timeBetweenFrames);
+		myTeddyBear->ObjectRotationY(0.5f * m_timeBetweenFrames);
 	}
 
 	myCamera->CreateViewAndPerspectiveMatrix();
@@ -136,63 +154,55 @@ void SceneManager::Render(void)
 
 	ComPtr<ID3D11DeviceContext> m_deviceContext = myD3DClass->GetDeviceContext();
 	ComPtr<ID3D11Device> m_device = myD3DClass->GetDevice();
-	
-	m_deviceContext->IASetInputLayout(m_PPVStuff.m_IL.Get());
-	m_deviceContext->HSSetShader(NULL, NULL, 0);
-	m_deviceContext->DSSetShader(NULL, NULL, 0);
-	m_deviceContext->VSSetSamplers(0, 1, m_samplerState.GetAddressOf());
-	m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
-	
-	m_deviceContext->VSSetShader(m_PPVStuff.m_VS.Get(), NULL, 0);
-	m_deviceContext->PSSetShader(m_PPVStuff.m_PS.Get(), NULL, 0);
-	//
-	//if (m_libraryLoadedMesh && m_libraryLoadedMesh)
-	//{
-	//	m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[1]); // 1, 0, 3 because of the input from shaders... diffuse, emissive, specular
-	//	m_deviceContext->PSSetShaderResources(1, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);	// Skip [2] because we are not using normal mapping right now
-	//	m_deviceContext->PSSetShaderResources(2, 1, &m_PPVStuff.m_materialsSRVs.data()[3]);
-	//}
-	//m_deviceContext->PSSetShaderResources(3, 1, m_PPVStuff.m_materialsSRVs.data());
-	//UpdateStandardConstantBuffer(myCube->GetObjectMatrix());
-	//myCube->Render(m_deviceContext);
-	
+		
 	if (m_libraryLoadedMesh && m_libraryLoadedMesh)
 	{
-		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[0]); // 1, 0, 3 because of the input from shaders... diffuse, emissive, specular
-		//m_deviceContext->PSSetShaderResources(0, 1, m_PPVStuff.m_materialsSRVs.data());
-	}
-	if (m_libraryLoadedMesh) {
-		UpdateStandardConstantBuffer(myAdvancedMesh->GetObjectMatrix());
-		myAdvancedMesh->Render(m_deviceContext);
+		m_deviceContext->IASetInputLayout(m_PPVBattleMage.m_IL.Get());
+		m_deviceContext->HSSetShader(NULL, NULL, 0);
+		m_deviceContext->DSSetShader(NULL, NULL, 0);
+		m_deviceContext->VSSetShader(m_PPVBattleMage.m_VS.Get(), NULL, 0);
+		m_deviceContext->PSSetShader(m_PPVBattleMage.m_PS.Get(), NULL, 0);
+		m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
+		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVBattleMage.m_materialsSRVs.data()[1]);	// 1, 0, 3 because of the input from shaders... diffuse, emissive, specular
+		m_deviceContext->PSSetShaderResources(1, 1, &m_PPVBattleMage.m_materialsSRVs.data()[0]);	// Skip [2] because we are not using normal mapping right now
+		m_deviceContext->PSSetShaderResources(2, 1, &m_PPVBattleMage.m_materialsSRVs.data()[3]);
+		UpdateStandardConstantBuffer(myCube->GetObjectMatrix());
+		myCube->Render(m_deviceContext);
+
+		UpdateStandardConstantBuffer(myBattleMage->GetObjectMatrix());
+		myBattleMage->Render(m_deviceContext);
+
+		UpdateStandardConstantBuffer(myTeddyBear->GetObjectMatrix());
+		myTeddyBear->Render(m_deviceContext);
 	}
 	
 	SetPipelineStates(m_defaultPipeline);
 	UpdateStandardConstantBuffer(XMMatrixIdentity());
 	myTerrain->Render(m_deviceContext);
 
-
 	/**********************Animation**********************/
+	SetPipelineStates(m_defaultPipeline);
+	UpdateStandardConstantBuffer(XMMatrixIdentity());
 	PlayAnimation();
-	/**********************Animation**********************/
-	
 	myDebugRenderer->CreateVertexBuffer(m_device);
 	myDebugRenderer->Render(m_device, m_deviceContext);
+	/**********************Animation**********************/
 
 	/********************Tessellation******************************/
-	//m_deviceContext->IASetInputLayout(m_tessellationStuff.inputLayout.Get());
-	//
-	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-	//UINT stride = sizeof(VertexPositionColor);
-	//UINT offset = 0;
-	//
-	//UpdateTessellationConstantBuffer();
-	//m_deviceContext->IASetVertexBuffers(0, 1, m_tessellationStuff.m_quadVertexBuffer.GetAddressOf(), &stride, &offset);
-	//m_deviceContext->VSSetShader(m_tessellationStuff.vertexShader.Get(), NULL, 0);
-	//m_deviceContext->PSSetShader(m_tessellationStuff.pixelShader.Get(), NULL, 0);
-	//m_deviceContext->HSSetShader(m_tessellationStuff.hullShader.Get(), NULL, 0);
-	//m_deviceContext->DSSetShader(m_tessellationStuff.domainShader.Get(), NULL, 0);
-	//
-	//m_deviceContext->Draw(3, 0);
+	m_deviceContext->IASetInputLayout(m_tessellationStuff.inputLayout.Get());
+	
+	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+	UINT stride = sizeof(VertexPositionColor);
+	UINT offset = 0;
+	
+	UpdateTessellationConstantBuffer();
+	m_deviceContext->IASetVertexBuffers(0, 1, m_tessellationStuff.m_quadVertexBuffer.GetAddressOf(), &stride, &offset);
+	m_deviceContext->VSSetShader(m_tessellationStuff.vertexShader.Get(), NULL, 0);
+	m_deviceContext->PSSetShader(m_tessellationStuff.pixelShader.Get(), NULL, 0);
+	m_deviceContext->HSSetShader(m_tessellationStuff.hullShader.Get(), NULL, 0);
+	m_deviceContext->DSSetShader(m_tessellationStuff.domainShader.Get(), NULL, 0);
+	
+	m_deviceContext->Draw(3, 0);
 	/********************Tessellation******************************/
 
 	m_deviceContext.Reset();
@@ -245,13 +255,10 @@ bool SceneManager::LoadCompiledShaderData(char **byteCode, size_t &byteCodeSize,
 void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync, HWND& _hwnd, bool _fullscreen, float _screenFar, float _screenNear)
 {
 	myD3DClass->Initialize(_screenWidth, _screenHeight, _vsync, _hwnd, _fullscreen, _screenFar, _screenNear);
-
 	myGInput = myD3DClass->myGInput;
-	InitConstantBuffer(m_constantBuffer);
-	InitShadersAndInputLayout(m_defaultPipeline.pixel_shader, m_defaultPipeline.vertex_shader, m_defaultPipeline.input_layout);
-	
-	myCube->Initialize(myD3DClass->GetDevice());
-	//myCamera->Initialize();
+	InitializeConstantBuffer(m_constantBuffer);
+	InitializeShadersAndInputLayout(m_defaultPipeline.pixel_shader, m_defaultPipeline.vertex_shader, m_defaultPipeline.input_layout);
+	InitializeSamplerState(m_samplerState);
 
 	float m_viewportWidth = 1024;
 	float m_viewportHeight = 768;
@@ -262,69 +269,34 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 	XMVECTOR at = { 0.0f, 0.f, 0.f, 1.0f };
 	XMVECTOR up = { 0.0f, 1.0f, 0.0f, 1.0f };
 	myCamera->Initialize(m_viewportWidth, m_viewportHeight, m_nearPlane, m_farPlane, m_cameraZoom, eye, at, up);
-	
-	myTerrain->Initialize(myD3DClass->GetDevice());
+	//myCamera->Initialize();
 
+	myCube->Initialize(myD3DClass->GetDevice());
+	myTerrain->Initialize(myD3DClass->GetDevice());
 	RunTaskForPPV();
 
 	m_libraryLoadedMesh = myMeshHandler->Initialize();
 
 	std::vector<MeshComponentsAdvanced::OutInformationAdvanced> meshes;
-	//if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshFBX("BattleMage.fbx", meshes);
-	//if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("BattleMageAdv.bin", meshes[0]);
-	//if (m_libraryLoadedMesh) m_libraryLoadedMesh = myAdvancedMesh->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "BattleMageAdv.bin");
+	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshFBX("BattleMage.fbx", meshes);
+	if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("BattleMageAdv.bin", meshes[0]);
+	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myBattleMage->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "BattleMageAdv.bin");
 
-	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshFBX("Teddy/Teddy_Run.fbx", meshes);
-	if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("Teddy/Teddy_Run.bin", meshes[0]);
-	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myAdvancedMesh->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "Teddy/Teddy_Run.bin");
+	std::vector<MeshComponentsAdvanced::OutInformationAdvanced> meshes2;
+	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshFBX("Teddy/Teddy_Run.fbx", meshes2);
+	if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("Teddy/Teddy_Run.bin", meshes2[0]);
+	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myTeddyBear->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "Teddy/Teddy_Run.bin", 0.02f);
 	
 	if (myAnimationHandler->Initialize())	myAnimationHandler->LoadAnimationFBX("Teddy/Teddy_Run.fbx", animClip, skelJoints);
 
-	// Scale the model down
 	for (size_t i = 0; i < skelJoints.size(); i++)
-	{
-		skelJoints[i].globalTransformArray[12] *= 0.02f;
-		skelJoints[i].globalTransformArray[13] *= 0.02f;
-		skelJoints[i].globalTransformArray[14] *= 0.02f;
-
-		skelJoints[i].globalTransform4x4[3][0] *= 0.02f;
-		skelJoints[i].globalTransform4x4[3][1] *= 0.02f;
-		skelJoints[i].globalTransform4x4[3][2] *= 0.02f;
-	
+	{	
 		jointMatrices.push_back(XMMATRIX(skelJoints[i].globalTransformArray));
 	}
 	
-	// Scale the animation down as well
-	for (size_t i = 0; i < animClip.frames.size(); i++)
-	{
-		for (size_t j = 0; j < animClip.frames[i].joints.size(); j++)
-		{
-			animClip.frames[i].joints[j].globalTransformArray[12] *= 0.02f;
-			animClip.frames[i].joints[j].globalTransformArray[13] *= 0.02f;
-			animClip.frames[i].joints[j].globalTransformArray[14] *= 0.02f;
-
-			animClip.frames[i].joints[j].globalTransform4x4[3][0] *= 0.02f;
-			animClip.frames[i].joints[j].globalTransform4x4[3][1] *= 0.02f;
-			animClip.frames[i].joints[j].globalTransform4x4[3][2] *= 0.02f;
-		}
-	}
-
-	myAdvancedMesh->ObjectChangePosition(0.f, -2.f, -5.f);
-
+	myTeddyBear->ObjectChangePosition(-3.f, -2.f, -5.f);
+	myBattleMage->ObjectChangePosition(0.f, -2.f, -5.f);
 	Tessellation();
-
-	D3D11_SAMPLER_DESC samplerDesc;
-	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-	samplerDesc.MinLOD = -3.402823466e+38F;
-	samplerDesc.MaxLOD = 3.402823466e+38F;
-	samplerDesc.MipLODBias = 0.f;
-	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-
-	myD3DClass->GetDevice()->CreateSamplerState(&samplerDesc, m_samplerState.GetAddressOf());
 }
 
 float SceneManager::GetTimeBetweenFrames()
@@ -461,9 +433,38 @@ bool SceneManager::RunTaskForPPV(void)
 
 	if (m_libraryLoadedMaterial)
 	{
-		std::vector<MaterialComponents::Material> m_VecMaterials;
+		std::vector<MaterialComponents::Material> m_VecMaterials02;
 		//bool result = myMaterialHandler->LoadMaterialsBinary("BattleMage.bin", m_VecMaterials);
-		bool res = myMaterialHandler->LoadMaterialFBX("Teddy_Idle.fbx", m_VecMaterials);
+		bool res = myMaterialHandler->LoadMaterialFBX("Teddy/Teddy_Run.fbx", m_VecMaterials02);
+
+		for each (MaterialComponents::Material mat in m_VecMaterials02)
+		{
+			for (mat.m_mapPropValuesIter = mat.m_mapPropValues.begin(); mat.m_mapPropValuesIter != mat.m_mapPropValues.end(); ++mat.m_mapPropValuesIter)
+			{
+				MaterialComponents::Material::properties prop = mat.m_mapPropValuesIter->first;
+				MaterialComponents::Material::properties_t prop_t = mat.m_mapPropValuesIter->second;
+				if (prop_t.filePath.compare("WasNotGiven") != 0)	// if we have a file path, get the file path
+				{
+					ID3D11ShaderResourceView * tempSRV;
+					std::wstring widestr = std::wstring(prop_t.filePath.begin(), prop_t.filePath.end());
+					std::string fpath = std::string("Teddy\\");
+					std::wstring wid = std::wstring(fpath.begin(), fpath.end());
+					wid += widestr;
+					const wchar_t* szName = wid.c_str();
+					CreateWICTextureFromFile(myD3DClass->GetDevice().Get(), nullptr, szName, nullptr, &tempSRV, 0);
+					m_PPVStuff.m_materialsSRVs.push_back(tempSRV);
+				}
+			}
+		}
+
+		myMaterialHandler->DisplayMaterialPropertiesInText(m_VecMaterials02);
+	}
+
+	if (m_libraryLoadedMaterial)
+	{
+		std::vector<MaterialComponents::Material> m_VecMaterials;
+		bool result = myMaterialHandler->LoadMaterialsBinary("BattleMage.bin", m_VecMaterials);
+		//bool res = myMaterialHandler->LoadMaterialFBX("Teddy/Teddy_Run.fbx", m_VecMaterials);
 
 		for each (MaterialComponents::Material mat in m_VecMaterials)
 		{
@@ -477,14 +478,13 @@ bool SceneManager::RunTaskForPPV(void)
 					std::wstring widestr = std::wstring(prop_t.filePath.begin(), prop_t.filePath.end());
 					const wchar_t* szName = widestr.c_str();
 					CreateWICTextureFromFile(myD3DClass->GetDevice().Get(), nullptr, szName, nullptr, &tempSRV, 0);
-					m_PPVStuff.m_materialsSRVs.push_back(tempSRV);
+					m_PPVBattleMage.m_materialsSRVs.push_back(tempSRV);
 				}
 			}
 		}
 
 		myMaterialHandler->DisplayMaterialPropertiesInText(m_VecMaterials);
 	}
-
 	char* bytecode = nullptr;
 	size_t byteCodeSize = 0;
 	LoadCompiledShaderData(&bytecode, byteCodeSize, "Shaders/Pixel Shaders/PS_Material.cso");
@@ -495,6 +495,7 @@ bool SceneManager::RunTaskForPPV(void)
 	size_t byteCodeSize2 = 0;
 	LoadCompiledShaderData(&bytecode2, byteCodeSize2, "Shaders/Vertex Shaders/VS_Material.cso");
 	myD3DClass->GetDevice()->CreateVertexShader(bytecode2, byteCodeSize2, nullptr, m_PPVStuff.m_VS.GetAddressOf());
+
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -503,6 +504,26 @@ bool SceneManager::RunTaskForPPV(void)
 	};
 	HRESULT hr = myD3DClass->GetDevice()->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), bytecode2, byteCodeSize2, m_PPVStuff.m_IL.GetAddressOf());
 	delete[] bytecode2;
+
+	char* bytecode3 = nullptr;
+	size_t byteCodeSize3 = 0;
+	LoadCompiledShaderData(&bytecode3, byteCodeSize3, "Shaders/Pixel Shaders/PS_Material.cso");
+	myD3DClass->GetDevice()->CreatePixelShader(bytecode3, byteCodeSize3, nullptr, m_PPVBattleMage.m_PS.GetAddressOf());
+	delete[] bytecode3;
+
+	char* bytecode4 = nullptr;
+	size_t byteCodeSize4 = 0;
+	LoadCompiledShaderData(&bytecode4, byteCodeSize4, "Shaders/Vertex Shaders/VS_Material.cso");
+	myD3DClass->GetDevice()->CreateVertexShader(bytecode4, byteCodeSize4, nullptr, m_PPVBattleMage.m_VS.GetAddressOf());
+
+	D3D11_INPUT_ELEMENT_DESC vertexDesc2[] = {
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "UVS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMALS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+	hr = myD3DClass->GetDevice()->CreateInputLayout(vertexDesc2, ARRAYSIZE(vertexDesc2), bytecode4, byteCodeSize4, m_PPVBattleMage.m_IL.GetAddressOf());
+	delete[] bytecode4;
 
 	printf("Task Complete");
 	return true;
@@ -674,11 +695,11 @@ void SceneManager::PlayAnimation(void)
 		}
 		if (m_timeForAnimation > nextKeyframe.time)
 		{
-			ratio = m_timeForAnimation / (previousKeyframe.time - nextKeyframe.time);
+			ratio = (float)(m_timeForAnimation / (previousKeyframe.time - nextKeyframe.time));
 		}
 		else if (nextKeyframe.time > previousKeyframe.time)
 		{
-			ratio = (m_timeForAnimation - previousKeyframe.time) / (nextKeyframe.time - previousKeyframe.time);
+			ratio = (float) ((m_timeForAnimation - previousKeyframe.time) / (nextKeyframe.time - previousKeyframe.time));
 		}
 
 		std::vector<XMMATRIX> jointsForFrameToPresent;
