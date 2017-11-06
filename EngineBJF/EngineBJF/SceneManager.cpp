@@ -173,6 +173,7 @@ void SceneManager::Render(void)
 		myBattleMage->Render(m_deviceContext);
 
 		UpdateStandardConstantBuffer(myTeddyBear->GetObjectMatrix());
+		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
 		myTeddyBear->Render(m_deviceContext);
 	}
 	

@@ -41,8 +41,8 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_CONTROL_POINT_OUTPUT,
 	// Find the center of the patch in world space
 	float4 centerP = 0.33 * (patch[0].position + patch[1].position + patch[2].position);
 	float3 centerWorld = mul(centerP, model).xyz;
-	
-	float dist = distance(centerWorld, cameraPos);
+	float3 camPos = float3(cameraPos.xyz);
+	float dist = distance(centerWorld, camPos);
 	
 	const float d0 = 10.f;
 	const float d1 = 40.f;
