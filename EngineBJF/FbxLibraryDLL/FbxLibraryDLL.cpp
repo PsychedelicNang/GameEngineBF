@@ -2,8 +2,32 @@
 
 namespace FbxLibraryDLL
 {
+	struct MyFBXJoint {
+		FbxNode* node;
+		int parentIndex;
+		MyFBXJoint() {
+			node = nullptr;
+			parentIndex = 0;
+		}
+		MyFBXJoint(FbxNode* _node, int _parentIndex) {
+			node = _node;
+			parentIndex = _parentIndex;
+		}
+	};
+	std::vector<MyFBXJoint*> fbxJoints;
 	std::vector<MaterialComponents::Material> m_materials;
+	std::vector<AnimationComponents::SkeletonJoints> m_skelJoints;
 	MaterialComponents::Material::properties_t PropertyHelper(MaterialComponents::Material& _material, FbxProperty& _property, MaterialComponents::Material::properties _eValue);
+	bool LoadSkinnedAnimationFromFBXFile(const char * _fileName);
+
+	int m_meshControlPointCount;
+
+	struct Influence {
+		int joint;
+		float weight;
+	};
+	using influence_set = std::array<Influence, 4>;
+	std::vector<influence_set> control_point_influences;
 
 	FBXLIBRARY_API bool LoadMeshFromFBXFile(const char* _fileName, std::vector<MeshComponents::BFMesh> & _outVector) {
 		// Initialize the SDK manager. This object handles all our memory management.
@@ -405,8 +429,10 @@ namespace FbxLibraryDLL
 
 	FBXLIBRARY_API void DisplayMaterialPropertiesText(std::vector<MaterialComponents::Material>& _materials)
 	{
+		printf("New Object's Material...\n");
 		for (unsigned i = 0; i < _materials.size(); i++)
 		{
+			printf("Material %u:\n", i + 1);
 			MaterialComponents::Material::materialType mType = _materials[i].m_materialType;
 			switch (mType)
 			{
@@ -470,6 +496,7 @@ namespace FbxLibraryDLL
 				printf(_materials[i].m_mapPropValuesIter->second.filePath.c_str());
 				printf("\n\n");
 			}
+			printf("\n");
 		}
 	}
 
@@ -785,22 +812,6 @@ namespace FbxLibraryDLL
 
 	FBXLIBRARY_API bool LoadAnimationFromFBXFile(const char * _fileName, AnimationComponents::AnimationClip& _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount)
 	{
-		struct MyFBXJoint {
-			FbxNode* node;
-			int parentIndex;
-			MyFBXJoint() {
-				node = nullptr;
-				parentIndex = 0;
-			}
-			MyFBXJoint(FbxNode* _node, int _parentIndex) {
-				node = _node;
-				parentIndex = _parentIndex;
-			}
-		};
-		std::vector<MyFBXJoint*> fbxJoints;
-		//std::vector<AnimationComponents::SkeletonJoints*> skelJoints;
-		//AnimationComponents::AnimationClip animClip = AnimationComponents::AnimationClip();
-
 		// Initialize the SDK manager. This object handles all our memory management.
 		FbxManager* lSdkManager = FbxManager::Create();
 
@@ -905,7 +916,7 @@ namespace FbxLibraryDLL
 		FbxLongLong frameCount = animDuration.GetFrameCount(FbxTime::EMode::eFrames24);
 		_animationClip.duration = animDuration.GetSecondDouble();
 
-		for (FbxLongLong i = 0; i < frameCount; i++)
+		for (FbxLongLong i = 1; i < frameCount; i++)
 		{
 			// skip bind pose at frame number 0
 			AnimationComponents::Keyframe currentKeyframe = AnimationComponents::Keyframe();
@@ -941,34 +952,485 @@ namespace FbxLibraryDLL
 		}
 		fbxJoints.clear();
 
-		// Scale the model down
-		for (size_t i = 0; i < _skelJoints.size(); i++)
+		if (_scaleAmount != 1.f)
 		{
-			_skelJoints[i].globalTransformArray[12] *= 0.02f;
-			_skelJoints[i].globalTransformArray[13] *= 0.02f;
-			_skelJoints[i].globalTransformArray[14] *= 0.02f;
-
-			_skelJoints[i].globalTransform4x4[3][0] *= 0.02f;
-			_skelJoints[i].globalTransform4x4[3][1] *= 0.02f;
-			_skelJoints[i].globalTransform4x4[3][2] *= 0.02f;
-		}
-
-		// Scale the animation down as well
-		for (size_t i = 0; i < _animationClip.frames.size(); i++)
-		{
-			for (size_t j = 0; j < _animationClip.frames[i].joints.size(); j++)
+			// Scale the model down
+			for (size_t i = 0; i < _skelJoints.size(); i++)
 			{
-				_animationClip.frames[i].joints[j].globalTransformArray[12] *= 0.02f;
-				_animationClip.frames[i].joints[j].globalTransformArray[13] *= 0.02f;
-				_animationClip.frames[i].joints[j].globalTransformArray[14] *= 0.02f;
+				_skelJoints[i].globalTransformArray[12] *= _scaleAmount;
+				_skelJoints[i].globalTransformArray[13] *= _scaleAmount;
+				_skelJoints[i].globalTransformArray[14] *= _scaleAmount;
 
-				_animationClip.frames[i].joints[j].globalTransform4x4[3][0] *= 0.02f;
-				_animationClip.frames[i].joints[j].globalTransform4x4[3][1] *= 0.02f;
-				_animationClip.frames[i].joints[j].globalTransform4x4[3][2] *= 0.02f;
+				_skelJoints[i].globalTransform4x4[3][0] *= _scaleAmount;
+				_skelJoints[i].globalTransform4x4[3][1] *= _scaleAmount;
+				_skelJoints[i].globalTransform4x4[3][2] *= _scaleAmount;
+			}
+
+			// Scale the animation down as well
+			for (size_t i = 0; i < _animationClip.frames.size(); i++)
+			{
+				for (size_t j = 0; j < _animationClip.frames[i].joints.size(); j++)
+				{
+					_animationClip.frames[i].joints[j].globalTransformArray[12] *= _scaleAmount;
+					_animationClip.frames[i].joints[j].globalTransformArray[13] *= _scaleAmount;
+					_animationClip.frames[i].joints[j].globalTransformArray[14] *= _scaleAmount;
+
+					_animationClip.frames[i].joints[j].globalTransform4x4[3][0] *= _scaleAmount;
+					_animationClip.frames[i].joints[j].globalTransform4x4[3][1] *= _scaleAmount;
+					_animationClip.frames[i].joints[j].globalTransform4x4[3][2] *= _scaleAmount;
+				}
 			}
 		}
 
+		m_skelJoints = _skelJoints;
 		// Destroy the SDK manager and all the other objects it was handling.
+		lSdkManager->Destroy();
+		return true;
+	}
+
+	FBXLIBRARY_API bool LoadAdvancedMeshWithSkinnedAnimationFromFBXFile(const char * _fileName, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector)
+	{
+		LoadSkinnedAnimationFromFBXFile(_fileName);
+		// Initialize the SDK manager. This object handles all our memory management.
+		FbxManager* lSdkManager = FbxManager::Create();
+
+		// Create the IO settings object.
+		FbxIOSettings *ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
+		lSdkManager->SetIOSettings(ios);
+
+		// Create an importer using the SDK manager.
+		FbxImporter* lImporter = FbxImporter::Create(lSdkManager, "");
+
+		// Use the first argument as the filename for the importer.
+		if (!lImporter->Initialize(_fileName, -1, lSdkManager->GetIOSettings())) {
+			return false;
+		}
+
+		// Create a new scene so that it can be populated by the imported file.
+		FbxScene* lScene = FbxScene::Create(lSdkManager, "myScene");
+
+		// Import the contents of the file into the scene.
+		lImporter->Import(lScene);
+
+		// The file is imported; so get rid of the importer.
+		lImporter->Destroy();
+
+		FbxNode* lRootNode = lScene->GetRootNode();
+		if (lRootNode)
+		{
+			for (int i = 0; i < lRootNode->GetChildCount(); i++)
+			{
+				FbxNode* tNode = lRootNode->GetChild(i);
+				FbxGeometry* geometry = (FbxGeometry*)tNode->GetNodeAttribute();
+				FbxNodeAttribute::EType geoNodeType = geometry->GetAttributeType();
+				if (FbxNodeAttribute::eMesh == geoNodeType)
+				{
+					FbxMesh* theMesh = (FbxMesh*)geometry;
+					MeshComponentsAnimation::OutInformationAdvanced meshInst;
+
+					int mPolygonCount = theMesh->GetPolygonCount();
+					int mPolygonVertexCount = theMesh->GetControlPointsCount();
+
+					bool mAllByControlPoint = true;
+					bool mHasNormal = theMesh->GetElementNormalCount() > 0;
+					bool mHasUV = theMesh->GetElementUVCount() > 0;
+
+					FbxGeometryElement::EMappingMode mNormalMappingMode = FbxGeometryElement::eNone;
+					FbxGeometryElement::EMappingMode mUVMappingMode = FbxGeometryElement::eNone;
+
+					FbxLayerElementArrayTemplate<int>* lMaterialIndice = NULL;
+					FbxGeometryElement::EMappingMode lMaterialMappingMode = FbxGeometryElement::eNone;
+					struct SubMesh
+					{
+						SubMesh() : IndexOffset(0), TriangleCount(0) {}
+
+						int IndexOffset;
+						int TriangleCount;
+					};
+					FbxArray<SubMesh*> mSubMeshes;
+					if (theMesh->GetElementMaterial())
+					{
+						lMaterialIndice = &theMesh->GetElementMaterial()->GetIndexArray();
+						lMaterialMappingMode = theMesh->GetElementMaterial()->GetMappingMode();
+						if (lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
+						{
+							//FBX_ASSERT(lMaterialIndice->GetCount() == lPolygonCount);
+							if (lMaterialIndice->GetCount() == mPolygonCount)
+							{
+								// Count the faces of each material
+								for (int lPolygonIndex = 0; lPolygonIndex < mPolygonCount; ++lPolygonIndex)
+								{
+									const int lMaterialIndex = lMaterialIndice->GetAt(lPolygonIndex);
+									if (mSubMeshes.GetCount() < lMaterialIndex + 1)
+									{
+										mSubMeshes.Resize(lMaterialIndex + 1);
+									}
+									if (mSubMeshes[lMaterialIndex] == NULL)
+									{
+										mSubMeshes[lMaterialIndex] = new SubMesh;
+									}
+									mSubMeshes[lMaterialIndex]->TriangleCount += 1;
+								}
+
+								// Make sure we have no "holes" (NULL) in the mSubMeshes table. This can happen
+								// if, in the loop above, we resized the mSubMeshes by more than one slot.
+								for (int i = 0; i < mSubMeshes.GetCount(); i++)
+								{
+									if (mSubMeshes[i] == NULL)
+										mSubMeshes[i] = new SubMesh;
+								}
+
+								// Record the offset (how many vertex)
+								const int lMaterialCount = mSubMeshes.GetCount();
+								int lOffset = 0;
+								for (int lIndex = 0; lIndex < lMaterialCount; ++lIndex)
+								{
+									mSubMeshes[lIndex]->IndexOffset = lOffset;
+									lOffset += mSubMeshes[lIndex]->TriangleCount * 3;
+									// This will be used as counter in the following procedures, reset to zero
+									mSubMeshes[lIndex]->TriangleCount = 0;
+								}
+								//FBX_ASSERT(lOffset == lPolygonCount * 3);
+							}
+						}
+					}
+
+					// All faces will use the same material.
+					if (mSubMeshes.GetCount() == 0)
+					{
+						mSubMeshes.Resize(1);
+						mSubMeshes[0] = new SubMesh();
+					}
+
+					const int TRIANGLE_VERTEX_COUNT = 3;
+
+					//// Four floats for every position.
+					//const int VERTEX_STRIDE = 4;
+					//// Three floats for every normal.
+					//const int NORMAL_STRIDE = 3;
+					//// Two floats for every UV.
+					//const int UV_STRIDE = 2;
+
+					if (mHasNormal)
+					{
+						mNormalMappingMode = theMesh->GetElementNormal(0)->GetMappingMode();
+						if (mNormalMappingMode == FbxGeometryElement::eNone)
+							mHasNormal = false;
+						if (mHasNormal && mNormalMappingMode != FbxGeometryElement::eByControlPoint)
+							mAllByControlPoint = false;
+					}
+					if (mHasUV)
+					{
+						mUVMappingMode = theMesh->GetElementUV(0)->GetMappingMode();
+						if (mUVMappingMode == FbxGeometryElement::eNone)
+							mHasUV = false;
+						if (mHasUV && mUVMappingMode != FbxGeometryElement::eByControlPoint)
+							mAllByControlPoint = false;
+					}
+					if (!mAllByControlPoint)
+					{
+						mPolygonVertexCount = mPolygonCount * TRIANGLE_VERTEX_COUNT;
+					}
+
+					FbxStringList mUVNames;
+					theMesh->GetUVSetNames(mUVNames);
+					const char * mUVName = NULL;
+					if (mHasUV && mUVNames.GetCount())
+					{
+						mUVName = mUVNames[0];
+					}
+
+					int indexCount = theMesh->GetPolygonVertexCount();
+					meshInst.indices.resize(mPolygonCount * TRIANGLE_VERTEX_COUNT);
+
+					const FbxVector4 * mControlPoints = theMesh->GetControlPoints();
+					FbxVector4 mCurrentVertex;
+					FbxVector4 mCurrentNormal;
+					FbxVector2 mCurrentUV;
+					int mVertexCount = 0;
+					for (int mPolygonIndex = 0; mPolygonIndex < mPolygonCount; ++mPolygonIndex)
+					{
+						int lMaterialIndex = 0;
+						if (lMaterialIndice && lMaterialMappingMode == FbxGeometryElement::eByPolygon)
+						{
+							lMaterialIndex = lMaterialIndice->GetAt(mPolygonIndex);
+						}
+
+						// Where should I save the vertex attribute index, according to the material
+						const int lIndexOffset = mSubMeshes[lMaterialIndex]->IndexOffset +
+							mSubMeshes[lMaterialIndex]->TriangleCount * 3;
+						for (int mVerticeIndex = 0; mVerticeIndex < TRIANGLE_VERTEX_COUNT; mVerticeIndex++)
+						{
+							const int mControlPointIndex = theMesh->GetPolygonVertex(mPolygonIndex, mVerticeIndex);
+
+							if (mAllByControlPoint)
+							{
+								meshInst.indices[lIndexOffset + mVerticeIndex] = static_cast<unsigned int>(mControlPointIndex);
+							}
+							// Populate the array with vertex attribute, if by polygon vertex.
+							else
+							{
+								MeshComponentsAnimation::VertexAdvanced currVert;
+								meshInst.indices[lIndexOffset + mVerticeIndex] = static_cast<unsigned int>(mVertexCount);
+
+								mCurrentVertex = mControlPoints[mControlPointIndex];
+
+								currVert.position[0] = static_cast<float>(mCurrentVertex[0]);
+								currVert.position[1] = static_cast<float>(mCurrentVertex[1]);
+								currVert.position[2] = static_cast<float>(mCurrentVertex[2]);
+								currVert.position[3] = 1;
+
+								if (mHasNormal)
+								{
+									theMesh->GetPolygonVertexNormal(mPolygonIndex, mVerticeIndex, mCurrentNormal);
+
+									currVert.normals[0] = static_cast<float>(mCurrentNormal[0]);
+									currVert.normals[1] = static_cast<float>(mCurrentNormal[1]);
+									currVert.normals[2] = static_cast<float>(mCurrentNormal[2]);
+									currVert.normals[3] = 1.f;
+								}
+
+								if (mHasUV)
+								{
+									bool lUnmappedUV;
+									theMesh->GetPolygonVertexUV(mPolygonIndex, mVerticeIndex, mUVName, mCurrentUV, lUnmappedUV);
+									currVert.uvs[0] = static_cast<float>(mCurrentUV[0]);
+									currVert.uvs[1] = static_cast<float>(mCurrentUV[1]);
+								}
+
+								currVert.joints[0] = control_point_influences[mControlPointIndex][0].joint;
+								currVert.joints[1] = control_point_influences[mControlPointIndex][1].joint;
+								currVert.joints[2] = control_point_influences[mControlPointIndex][2].joint;
+								currVert.joints[3] = control_point_influences[mControlPointIndex][3].joint;
+
+								currVert.weights[0] = control_point_influences[mControlPointIndex][0].weight;
+								currVert.weights[1] = control_point_influences[mControlPointIndex][1].weight;
+								currVert.weights[2] = control_point_influences[mControlPointIndex][2].weight;
+								currVert.weights[3] = control_point_influences[mControlPointIndex][3].weight;
+
+								float sum = currVert.weights[0] + currVert.weights[1] + currVert.weights[2] + currVert.weights[3];
+								currVert.weights[0] /= sum;
+								currVert.weights[1] /= sum;
+								currVert.weights[2] /= sum;
+								currVert.weights[3] /= sum;
+
+								meshInst.vertices.push_back(currVert);
+							}
+							++mVertexCount;
+						}
+						mSubMeshes[lMaterialIndex]->TriangleCount += 1;
+					}
+					_outVector.push_back(meshInst);
+					for (int i = 0; i < mSubMeshes.Size(); i++)
+					{
+						delete mSubMeshes[i];
+					}
+					mSubMeshes.Clear();
+				}
+			}
+		}
+		// Destroy the SDK manager and all the other objects it was handling.
+		lSdkManager->Destroy();
+		return true;
+	}
+
+	FBXLIBRARY_API void ExportAdvancedMeshWithSkinnedAnimationToBinaryFile(const char * _filePath, MeshComponentsAnimation::OutInformationAdvanced & _mesh)
+	{
+		std::fstream file;
+		file.open(_filePath, std::ios_base::binary | std::ios_base::out);
+
+		unsigned numOfIndices = (unsigned)_mesh.indices.size();
+		file.write((char*)&numOfIndices, sizeof(numOfIndices));
+
+		for (unsigned i = 0; i < _mesh.indices.size(); i++)
+			file.write((char*)(&_mesh.indices[i]), sizeof(_mesh.indices[i]));
+
+		unsigned numOfVertices = (unsigned)_mesh.vertices.size();
+		file.write((char*)&numOfVertices, sizeof(numOfVertices));
+
+		for (unsigned i = 0; i < _mesh.vertices.size(); i++)
+		{
+			file.write((char*)(&_mesh.vertices[i].position[0]), sizeof(_mesh.vertices[i].position[0]));
+			file.write((char*)(&_mesh.vertices[i].position[1]), sizeof(_mesh.vertices[i].position[1]));
+			file.write((char*)(&_mesh.vertices[i].position[2]), sizeof(_mesh.vertices[i].position[2]));
+			file.write((char*)(&_mesh.vertices[i].position[3]), sizeof(_mesh.vertices[i].position[3]));
+
+			file.write((char*)(&_mesh.vertices[i].normals[0]), sizeof(_mesh.vertices[i].normals[0]));
+			file.write((char*)(&_mesh.vertices[i].normals[1]), sizeof(_mesh.vertices[i].normals[1]));
+			file.write((char*)(&_mesh.vertices[i].normals[2]), sizeof(_mesh.vertices[i].normals[2]));
+			file.write((char*)(&_mesh.vertices[i].normals[3]), sizeof(_mesh.vertices[i].normals[3]));
+
+			file.write((char*)(&_mesh.vertices[i].uvs[0]), sizeof(_mesh.vertices[i].uvs[0]));
+			file.write((char*)(&_mesh.vertices[i].uvs[1]), sizeof(_mesh.vertices[i].uvs[1]));
+
+			file.write((char*)&_mesh.vertices[i].weights[0], sizeof(_mesh.vertices[i].weights[0]));
+			file.write((char*)&_mesh.vertices[i].weights[1], sizeof(_mesh.vertices[i].weights[1]));
+			file.write((char*)&_mesh.vertices[i].weights[2], sizeof(_mesh.vertices[i].weights[2]));
+			file.write((char*)&_mesh.vertices[i].weights[3], sizeof(_mesh.vertices[i].weights[3]));
+
+			file.write((char*)&_mesh.vertices[i].joints[0], sizeof(_mesh.vertices[i].joints[0]));
+			file.write((char*)&_mesh.vertices[i].joints[1], sizeof(_mesh.vertices[i].joints[1]));
+			file.write((char*)&_mesh.vertices[i].joints[2], sizeof(_mesh.vertices[i].joints[2]));
+			file.write((char*)&_mesh.vertices[i].joints[3], sizeof(_mesh.vertices[i].joints[3]));
+		}
+
+		file.close();
+	}
+
+	FBXLIBRARY_API bool ReadInAdvancedMeshWithSkinnedAnimationFromBinaryFile(const char * _fileName, MeshComponentsAnimation::OutInformationAdvanced & _objectToFill)
+	{
+		std::fstream file;
+		file.open(_fileName, std::ios_base::binary | std::ios_base::in);
+
+		if (file.is_open())
+		{
+			unsigned numOfIndices;
+			unsigned numOfVertices;
+
+			file.read((char*)&numOfIndices, 4);
+
+			for (unsigned i = 0; i < numOfIndices; i++) {
+				unsigned num = 0;
+				file.read((char*)(&num), sizeof(4));
+				_objectToFill.indices.push_back(num);
+			}
+
+			file.read((char*)&numOfVertices, 4);
+
+			MeshComponentsAnimation::VertexAdvanced vert;
+
+			for (unsigned i = 0; i < numOfVertices; i++)
+			{
+				file.read((char*)(&vert.position[0]), sizeof(4));
+				file.read((char*)(&vert.position[1]), sizeof(4));
+				file.read((char*)(&vert.position[2]), sizeof(4));
+				file.read((char*)(&vert.position[3]), sizeof(4));
+
+				file.read((char*)(&vert.normals[0]), sizeof(4));
+				file.read((char*)(&vert.normals[1]), sizeof(4));
+				file.read((char*)(&vert.normals[2]), sizeof(4));
+				file.read((char*)(&vert.normals[3]), sizeof(4));
+
+				file.read((char*)(&vert.uvs[0]), sizeof(4));
+				file.read((char*)(&vert.uvs[1]), sizeof(4));
+
+				file.read((char*)&vert.weights[0], sizeof(4));
+				file.read((char*)&vert.weights[1], sizeof(4));
+				file.read((char*)&vert.weights[2], sizeof(4));
+				file.read((char*)&vert.weights[3], sizeof(4));
+
+				file.read((char*)&vert.joints[0], sizeof(4));
+				file.read((char*)&vert.joints[1], sizeof(4));
+				file.read((char*)&vert.joints[2], sizeof(4));
+				file.read((char*)&vert.joints[3], sizeof(4));
+
+				_objectToFill.vertices.push_back(vert);
+			}
+
+			//for (unsigned i = 0; i < numOfVertices; i++)
+			//	_objectToFill.vertices[i].position[3] = 1.f;
+
+			file.close();
+			return true;
+		}
+		return false;
+	}
+
+	bool LoadSkinnedAnimationFromFBXFile(const char * _fileName)
+	{
+		// Initialize the SDK manager. This object handles all our memory management.
+		FbxManager* lSdkManager = FbxManager::Create();
+
+		// Create the IO settings object.
+		FbxIOSettings *ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
+		lSdkManager->SetIOSettings(ios);
+
+		// Create an importer using the SDK manager.
+		FbxImporter* lImporter = FbxImporter::Create(lSdkManager, "");
+
+		// Use the first argument as the filename for the importer.
+		if (!lImporter->Initialize(_fileName, -1, lSdkManager->GetIOSettings())) {
+			return false;
+		}
+
+		// Create a new scene so that it can be populated by the imported file.
+		FbxScene* lScene = FbxScene::Create(lSdkManager, "myScene");
+
+		// Import the contents of the file into the scene.
+		lImporter->Import(lScene);
+
+		// The file is imported; so get rid of the importer.
+		lImporter->Destroy();
+
+		//int poseCount = lScene->GetPoseCount();
+
+		FbxNode* lRootNode = lScene->GetRootNode();
+		if (lRootNode)
+		{
+			FbxNode* tNode = lRootNode->GetChild(0);
+			FbxGeometry* geometry = (FbxGeometry*)tNode->GetNodeAttribute();
+			FbxNodeAttribute::EType geoNodeType = geometry->GetAttributeType();
+			if (FbxNodeAttribute::eMesh == geoNodeType)
+			{
+				FbxMesh* theMesh = (FbxMesh*)geometry;
+
+				m_meshControlPointCount = theMesh->GetControlPointsCount();
+				control_point_influences.resize(m_meshControlPointCount);
+			}
+		}
+
+		FbxPose* currentPose = lScene->GetPose(0);
+		if (currentPose->IsBindPose())
+		{
+			int nodeCount = currentPose->GetCount();
+			for (int i = 0; i < nodeCount; i++)
+			{
+				FbxNode* currentNode = currentPose->GetNode(i);
+				FbxMesh* currentMesh = currentNode->GetMesh();
+				if (currentMesh)
+				{
+					int deformerCount = currentMesh->GetDeformerCount();
+					for (int j = 0; j < deformerCount; j++)
+					{
+						FbxDeformer* deformer = currentMesh->GetDeformer(j);
+						if (deformer->Is<FbxSkin>())
+						{
+							FbxSkin* skin = (FbxSkin*)deformer;
+							int skinClusterCount = skin->GetClusterCount();
+							for (int k = 0; k < skinClusterCount; k++)
+							{
+								FbxCluster* cluster = skin->GetCluster(k);
+								FbxNode* clusterNode = cluster->GetLink();
+								for (size_t l = 0; l < fbxJoints.size(); l++)
+								{
+									if (clusterNode == fbxJoints[l]->node)
+									{
+										int controlPointCount = cluster->GetControlPointIndicesCount();
+										double* weights = cluster->GetControlPointWeights();
+										int* indices = cluster->GetControlPointIndices();
+										for (int m = 0; m < controlPointCount; m++)
+										{
+											Influence influenceInst;
+											influenceInst.weight = (float)weights[m];
+											influenceInst.joint = indices[m];
+
+											influence_set influenceSetInst = control_point_influences[m];
+											for (size_t o = 0; o < influenceSetInst.size(); o++)
+											{
+												if (influenceInst.weight > influenceSetInst[o].weight)
+												{
+													influenceSetInst[o] = influenceInst;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 		lSdkManager->Destroy();
 		return true;
 	}

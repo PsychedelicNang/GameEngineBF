@@ -33,3 +33,17 @@ namespace MeshComponentsAdvanced {
 		std::vector<VertexAdvanced> vertices;
 	};
 }
+
+namespace MeshComponentsAnimation {
+	struct VertexAdvanced {
+		float position[4];
+		float normals[4];
+		float uvs[2];
+		float weights[4];
+		int joints[4];
+	};
+	struct OutInformationAdvanced {
+		std::vector<unsigned> indices;
+		std::vector<VertexAdvanced> vertices;
+	};
+}

@@ -21,3 +21,8 @@ namespace AnimationComponents {
 		std::vector<Keyframe> frames;
 	};
 }
+
+// for changing coordinate system:
+// ...for any positions: pos.x = -pos.x (ALL POSITIONS)
+// ...axes: yAxis.x = -yAxis.x, zAxis.x = -zAxis.x, xAxis.y = -xAxis.y, xAxis.z = -xAxis.z
+// ...also change uv values: uv.v = 1 - uv.v

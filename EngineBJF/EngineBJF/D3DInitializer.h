@@ -18,7 +18,6 @@
 #include <dxgi.h>
 #include <d3d11.h>
 #include <DirectXMath.h>	// XMFLOAT & XMMATRIX
-#include "../Gateware Middleware/Interface/G_System/GInput.h"
 
 using namespace DirectX;
 class D3DInitializer {
@@ -65,8 +64,6 @@ private:
 	XMMATRIX m_projectionMatrix;
 	XMMATRIX m_worldMatrix;
 	XMMATRIX m_orthographicMatrix;
-public:
-	GW::SYSTEM::GInput*				myGInput;
 	// View matrix is inside of Camera.h
 
 private:

@@ -23,3 +23,12 @@ struct VertexPositionColorUVNormal {
 	DirectX::XMFLOAT4 uv;
 	DirectX::XMFLOAT4 normal;
 };
+
+struct VertexAnimation {
+	DirectX::XMFLOAT4 position;
+	DirectX::XMFLOAT4 color;
+	DirectX::XMFLOAT4 uv;
+	DirectX::XMFLOAT4 normal;
+	DirectX::XMFLOAT4 joint;
+	DirectX::XMFLOAT4 weight;
+};

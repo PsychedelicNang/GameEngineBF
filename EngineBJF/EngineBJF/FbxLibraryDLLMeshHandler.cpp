@@ -53,6 +53,25 @@ bool FbxLibraryDLLMeshHandler::LoadAdvancedMeshBinary(const char * _fileName, Me
 	return true;
 }
 
+bool FbxLibraryDLLMeshHandler::LoadAdvancedMeshWithSkinnedAnimationFBX(const char * _filePath, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector)
+{
+	if (!LoadAdvancedMeshWithSkinnedAnimationFBXFromFile(_filePath, _outVector)) return false;
+
+	return true;
+}
+
+void FbxLibraryDLLMeshHandler::ExportAdvancedMeshWithSkinnedAnimationBinary(const char * _filePath, MeshComponentsAnimation::OutInformationAdvanced & _mesh)
+{
+	ExportAdvancedMeshWithSkinnedAnimationToBinaryFile(_filePath, _mesh);
+}
+
+bool FbxLibraryDLLMeshHandler::LoadAdvancedMeshWithSkinnedAnimationBinary(const char * _fileName, MeshComponentsAnimation::OutInformationAdvanced & _objectToFill)
+{
+	if (!LoadAdvancedMeshWithSkinnedAnimationFromBinaryFile(_fileName, _objectToFill)) return false;
+
+	return true;
+}
+
 bool FbxLibraryDLLMeshHandler::InitializeLibrary()
 {
 	hinstLib = LoadLibrary(L"FbxLibraryDLL.dll");
@@ -66,8 +85,13 @@ bool FbxLibraryDLLMeshHandler::InitializeLibrary()
 	funcHandExportAdvancedMeshToBinaryFile = (funcExportAdvancedMeshToBinaryFile)GetProcAddress(hinstLib, "ExportAdvancedMeshToBinaryFile");
 	funcHandReadInAdvancedBinaryMeshFile = (funcReadInAdvancedBinaryMeshFile)GetProcAddress(hinstLib, "ReadInAdvancedBinaryMeshFile");
 
+	funcHandLoadAdvancedMeshWithSkinnedAnimationFromFBXFile = (funcLoadAdvancedMeshWithSkinnedAnimationFromFBXFile)GetProcAddress(hinstLib, "LoadAdvancedMeshWithSkinnedAnimationFromFBXFile");
+	funcHandExportAdvancedMeshWithSkinnedAnimationBinary = (funcExportAdvancedMeshWithSkinnedAnimationBinary)GetProcAddress(hinstLib, "ExportAdvancedMeshWithSkinnedAnimationToBinaryFile");
+	funcHandLoadAdvancedMeshWithSkinnedAnimationBinary = (funcLoadAdvancedMeshWithSkinnedAnimationBinary)GetProcAddress(hinstLib, "ReadInAdvancedMeshWithSkinnedAnimationFromBinaryFile");
+
 	if (!funcHandleLoadMeshFromFBXFile || !funcHandleExportMeshToBinaryFile || !funcHandleReadInBinaryMeshFile
-		|| !funcHandLoadAdvancedMeshFromFBXFile || !funcHandExportAdvancedMeshToBinaryFile || !funcHandReadInAdvancedBinaryMeshFile) return false;
+		|| !funcHandLoadAdvancedMeshFromFBXFile || !funcHandExportAdvancedMeshToBinaryFile || !funcHandReadInAdvancedBinaryMeshFile
+		|| !funcHandLoadAdvancedMeshWithSkinnedAnimationFromFBXFile || !funcHandExportAdvancedMeshWithSkinnedAnimationBinary || !funcHandLoadAdvancedMeshWithSkinnedAnimationBinary) return false;
 
 	return true;
 }
@@ -94,6 +118,7 @@ bool FbxLibraryDLLMeshHandler::LoadMeshBinaryFromFile(const char * _fileName, Me
 bool FbxLibraryDLLMeshHandler::LoadAdvancedMeshFBXFromFile(const char * _fileName, std::vector<MeshComponentsAdvanced::OutInformationAdvanced>& _outVector)
 {
 	if (!((funcHandLoadAdvancedMeshFromFBXFile)(_fileName, _outVector))) return false;
+
 	return true;
 }
 
@@ -105,6 +130,25 @@ void FbxLibraryDLLMeshHandler::ExportAdvancedMeshToBinFile(const char * _filePat
 bool FbxLibraryDLLMeshHandler::LoadAdvancedMeshBinaryFromFile(const char * _fileName, MeshComponentsAdvanced::OutInformationAdvanced & _objectToFill)
 {
 	if (!((funcHandReadInAdvancedBinaryMeshFile)(_fileName, _objectToFill))) return false;
+
+	return true;
+}
+
+bool FbxLibraryDLLMeshHandler::LoadAdvancedMeshWithSkinnedAnimationFBXFromFile(const char * _fileName, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector)
+{
+	if (!((funcHandLoadAdvancedMeshWithSkinnedAnimationFromFBXFile)(_fileName, _outVector))) return false;
+
+	return true;
+}
+
+void FbxLibraryDLLMeshHandler::ExportAdvancedMeshWithSkinnedAnimationToBinaryFile(const char * _filePath, MeshComponentsAnimation::OutInformationAdvanced & _mesh)
+{
+	(funcHandExportAdvancedMeshWithSkinnedAnimationBinary)(_filePath, _mesh);
+}
+
+bool FbxLibraryDLLMeshHandler::LoadAdvancedMeshWithSkinnedAnimationFromBinaryFile(const char * _fileName, MeshComponentsAnimation::OutInformationAdvanced & _objectToFill)
+{
+	if (!((funcHandLoadAdvancedMeshWithSkinnedAnimationBinary)(_fileName, _objectToFill))) return false;
 
 	return true;
 }

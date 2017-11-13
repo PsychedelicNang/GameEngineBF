@@ -6,7 +6,7 @@ namespace MeshComponents {
 	};
 
 	struct BFMesh {
-		std::vector<int> indexBuffer;
+		std::vector<unsigned> indexBuffer;
 		std::vector<Vector4> verticesBuffer;
 	};
 
@@ -16,7 +16,7 @@ namespace MeshComponents {
 	};
 
 	struct OutInformation {
-		std::vector<int> oi_indices;
+		std::vector<unsigned> oi_indices;
 		std::vector<VertexPositionColor> oi_vertices;
 	};
 }
@@ -29,7 +29,21 @@ namespace MeshComponentsAdvanced {
 		//Tangents?
 	};
 	struct OutInformationAdvanced {
-		std::vector<int> indices;
+		std::vector<unsigned> indices;
+		std::vector<VertexAdvanced> vertices;
+	};
+}
+
+namespace MeshComponentsAnimation {
+	struct VertexAdvanced {
+		float position[4];
+		float normals[4];
+		float uvs[2];
+		float weights[4];
+		int joints[4];
+	};
+	struct OutInformationAdvanced {
+		std::vector<unsigned> indices;
 		std::vector<VertexAdvanced> vertices;
 	};
 }

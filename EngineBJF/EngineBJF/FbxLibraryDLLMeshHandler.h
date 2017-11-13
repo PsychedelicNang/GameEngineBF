@@ -25,6 +25,10 @@ public:
 	void ExportAdvancedMesh(const char* _filePath, MeshComponentsAdvanced::OutInformationAdvanced & _mesh);								// Advanced meshes
 	bool LoadAdvancedMeshBinary(const char * _fileName, MeshComponentsAdvanced::OutInformationAdvanced& _objectToFill);					// Advanced meshes
 
+	bool LoadAdvancedMeshWithSkinnedAnimationFBX(const char* _filePath, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector);
+	void ExportAdvancedMeshWithSkinnedAnimationBinary(const char* _filePath, MeshComponentsAnimation::OutInformationAdvanced & _mesh);
+	bool LoadAdvancedMeshWithSkinnedAnimationBinary(const char * _fileName, MeshComponentsAnimation::OutInformationAdvanced& _objectToFill);
+
 private:
 	HINSTANCE hinstLib;
 	typedef bool(*funcLoadMeshFromFBXFile)(const char*, std::vector<MeshComponents::BFMesh>&);											// bool LoadMeshFromFBXFile(const char* _fileName, std::vector<BFMesh> & _outVector)
@@ -35,6 +39,12 @@ private:
 	typedef void(*funcExportAdvancedMeshToBinaryFile)(const char*, MeshComponentsAdvanced::OutInformationAdvanced &);					// void ExportAdvancedMeshToBinaryFile(const char* _filePath, MeshComponentsAdvanced::OutInformationAdvanced & _mesh);
 	typedef bool(*funcReadInAdvancedBinaryMeshFile)(const char*, MeshComponentsAdvanced::OutInformationAdvanced&);						// bool ReadInAdvancedBinaryMeshFile(const char * _fileName, MeshComponentsAdvanced::OutInformationAdvanced& _objectToFill);
 
+	typedef bool(*funcLoadAdvancedMeshWithSkinnedAnimationFromFBXFile)(const char*,														//  bool LoadAdvancedMeshWithSkinnedAnimationFromFBXFile(const char* _fileName, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector);
+		std::vector<MeshComponentsAnimation::OutInformationAdvanced>&);
+
+	typedef void(*funcExportAdvancedMeshWithSkinnedAnimationBinary)(const char*, MeshComponentsAnimation::OutInformationAdvanced & _mesh);
+	typedef bool(*funcLoadAdvancedMeshWithSkinnedAnimationBinary)(const char * _fileName, MeshComponentsAnimation::OutInformationAdvanced& _objectToFill);
+
 	funcLoadMeshFromFBXFile				funcHandleLoadMeshFromFBXFile;																	// Pointer to LoadMeshFromFBXFile function
 	funcExportMeshToBinaryFile			funcHandleExportMeshToBinaryFile;																// Pointer to ExportMeshToBinaryFile function
 	funcReadInBinaryMeshFile			funcHandleReadInBinaryMeshFile;																	// Pointer to ReadInBinaryMeshFile function
@@ -43,6 +53,9 @@ private:
 	funcExportAdvancedMeshToBinaryFile	funcHandExportAdvancedMeshToBinaryFile;															// Pointer to ExportAdvancedMeshToBinaryFile function
 	funcReadInAdvancedBinaryMeshFile	funcHandReadInAdvancedBinaryMeshFile;															// Pointer to ReadInAdvancedBinaryMeshFile function
 
+	funcLoadAdvancedMeshWithSkinnedAnimationFromFBXFile funcHandLoadAdvancedMeshWithSkinnedAnimationFromFBXFile;						// Pointer to LoadAdvancedMeshWithSkinnedAnimationFromFBXFile function
+	funcExportAdvancedMeshWithSkinnedAnimationBinary	funcHandExportAdvancedMeshWithSkinnedAnimationBinary;
+	funcLoadAdvancedMeshWithSkinnedAnimationBinary		funcHandLoadAdvancedMeshWithSkinnedAnimationBinary;
 private:
 	bool InitializeLibrary();
 	
@@ -53,6 +66,10 @@ private:
 	bool LoadAdvancedMeshFBXFromFile(const char* _fileName, std::vector<MeshComponentsAdvanced::OutInformationAdvanced>& _outVector);	// Advanced meshes
 	void ExportAdvancedMeshToBinFile(const char* _filePath, MeshComponentsAdvanced::OutInformationAdvanced & _mesh);					// Advanced meshes
 	bool LoadAdvancedMeshBinaryFromFile(const char * _fileName, MeshComponentsAdvanced::OutInformationAdvanced& _objectToFill);			// Advanced meshes
+
+	bool LoadAdvancedMeshWithSkinnedAnimationFBXFromFile(const char* _fileName, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector);
+	void ExportAdvancedMeshWithSkinnedAnimationToBinaryFile(const char* _filePath, MeshComponentsAnimation::OutInformationAdvanced & _mesh);
+	bool LoadAdvancedMeshWithSkinnedAnimationFromBinaryFile(const char * _fileName, MeshComponentsAnimation::OutInformationAdvanced& _objectToFill);
 };
 
 #endif // !_FBXLIBRARYDLLMESHHANDLER_H_

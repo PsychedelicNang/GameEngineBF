@@ -123,6 +123,13 @@ bool Object::ReadInAdvancedMeshFromBinaryFile(ComPtr<ID3D11Device>& _device, con
 	return true;
 }
 
+bool Object::ReadInAdvancedMeshWithSkinnedAnimationFromBinaryFile(ComPtr<ID3D11Device>& _device, const char * _fileName, float _scaleAmount)
+{
+	if (!ReadInAdvancedMeshWithSkinnedAnimationMeshFile(_device, _fileName, _scaleAmount)) return false;
+
+	return true;
+}
+
 bool Object::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 {
 #if 0
@@ -543,6 +550,116 @@ bool Object::ReadInAdvancedBinaryMeshFile(ComPtr<ID3D11Device>& _device, const c
 			return true;
 		}
 		return false;
+}
+
+bool Object::ReadInAdvancedMeshWithSkinnedAnimationMeshFile(ComPtr<ID3D11Device>& _device, const char * _fileName, float _scaleAmount)
+{
+	std::fstream file;
+	file.open(_fileName, std::ios_base::binary | std::ios_base::in);
+
+	if (file.is_open())
+	{
+		unsigned numOfIndices;
+		unsigned numOfVertices;
+
+		file.read((char*)&numOfIndices, 4);
+
+		unsigned* indices = new unsigned[numOfIndices];
+
+		m_indexCount = numOfIndices;
+
+		for (unsigned i = 0; i < numOfIndices; i++)
+			file.read((char*)(&indices[i]), sizeof(4));
+
+		D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
+		indexBufferData.pSysMem = indices;
+		indexBufferData.SysMemPitch = 0;
+		indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC indexBufferDesc(sizeof(unsigned) * numOfIndices, D3D11_BIND_INDEX_BUFFER);
+		_device->CreateBuffer(&indexBufferDesc, &indexBufferData, m_indexBuffer.GetAddressOf());
+
+		delete[] indices;
+
+		file.read((char*)&numOfVertices, 4);
+
+		VertexAnimation* vertices = new VertexAnimation[numOfVertices];
+
+		for (unsigned i = 0; i < numOfVertices; i++)
+		{
+			file.read((char*)(&vertices[i].position.x), sizeof(4));
+			file.read((char*)(&vertices[i].position.y), sizeof(4));
+			file.read((char*)(&vertices[i].position.z), sizeof(4));
+			file.read((char*)(&vertices[i].position.w), sizeof(4));
+			//vertices[i].color = XMFLOAT4(.5f, 1.f, 1.f, 1.f);
+			vertices[i].color = XMFLOAT4(((float)i) / numOfVertices, ((float)i) / numOfVertices, ((float)i) / numOfVertices, 1.f);
+
+			file.read((char*)(&vertices[i].normal.x), sizeof(4));
+			file.read((char*)(&vertices[i].normal.y), sizeof(4));
+			file.read((char*)(&vertices[i].normal.z), sizeof(4));
+			file.read((char*)(&vertices[i].normal.w), sizeof(4));
+
+			file.read((char*)(&vertices[i].uv.x), sizeof(4));
+			file.read((char*)(&vertices[i].uv.y), sizeof(4));
+
+			/*************************************************/
+			/*	Subtract the V value from 1 due to
+			*	Because FBX models are created in a
+			*	Right handed coordinate system
+			*	and I'm using a Left handed cooridnate system
+			*/
+			vertices[i].uv.y = 1 - vertices[i].uv.y;
+			/*************************************************/
+
+			vertices[i].uv.z = 0.f;
+			vertices[i].uv.w = 0.f;
+
+			file.read((char*)(&vertices[i].joint.x), sizeof(4));
+			file.read((char*)(&vertices[i].joint.y), sizeof(4));
+			file.read((char*)(&vertices[i].joint.z), sizeof(4));
+			file.read((char*)(&vertices[i].joint.w), sizeof(4));
+
+			file.read((char*)(&vertices[i].weight.x), sizeof(4));
+			file.read((char*)(&vertices[i].weight.y), sizeof(4));
+			file.read((char*)(&vertices[i].weight.z), sizeof(4));
+			file.read((char*)(&vertices[i].weight.w), sizeof(4));
+		}
+
+		for (unsigned i = 0; i < numOfVertices; i++)
+			vertices[i].position.w = 1.f;
+
+		if (_scaleAmount != 1.f)
+		{
+			for (size_t i = 0; i < numOfVertices; i++)
+			{
+				vertices[i].position.x *= _scaleAmount;
+				vertices[i].position.y *= _scaleAmount;
+				vertices[i].position.z *= _scaleAmount;
+			}
+		}
+
+		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
+		vertexBufferData.pSysMem = vertices;
+		vertexBufferData.SysMemPitch = 0;
+		vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(VertexAnimation) * numOfVertices, D3D11_BIND_VERTEX_BUFFER);
+		_device->CreateBuffer(&vertexBufferDesc, &vertexBufferData, m_vertexBuffer.GetAddressOf());
+
+		m_matrix = DirectX::XMFLOAT4X4(
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			3, 0, 0, 1);
+
+		m_indexCount = numOfIndices;
+		m_vertexCount = numOfVertices;
+		m_stride = sizeof(VertexAnimation);
+
+		delete[] vertices;
+
+		file.close();
+		return true;
+	}
+	return false;
 }
 
 void Object::ShutdownBuffers()

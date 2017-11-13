@@ -18,14 +18,18 @@
 #include "FbxLibraryDLLMaterialHandler.h"
 #include "FbxLibraryDLLAnimationHandler.h"
 
+// Time
 #include "XTime.h"
 
+//Utility
 #include <fstream>
 #include <vector>
 #include "resource.h"
 #include "WICTextureLoader.h"
 #include <iostream>
+#include "../Gateware Middleware/Interface/G_System/GInput.h"
 
+// Memory leak detection
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
@@ -36,10 +40,17 @@ public:
 	~SceneManager();
 
 private:
+	const bool FULL_SCREEN = false;
+	const bool VSYNC_ENABLED = true;
+	const float SCREEN_FAR = 1000.0f;
+	const float SCREEN_NEAR = 0.1f;
+
 	bool m_libraryLoadedMaterial;
 	bool m_libraryLoadedMesh;
+	bool m_rotate;
 	Object*							myCube;
 	Object*							myTeddyBear;
+	Object*							myTeddyBearAnim;
 	Object*							myBattleMage;
 	Camera*							myCamera;
 	Terrain*						myTerrain;
@@ -49,7 +60,6 @@ private:
 	FbxLibraryDLLMeshHandler*		myMeshHandler;
 	FbxLibraryDLLAnimationHandler*	myAnimationHandler;
 	GW::SYSTEM::GInput*				myGInput;
-	bool m_rotate;
 	XTime m_timer;
 	XTime m_animationTimer;
 	float m_timeBetweenFrames;
@@ -98,19 +108,7 @@ private:
 		ComPtr<ID3D11VertexShader> m_VS;
 		ComPtr<ID3D11InputLayout> m_IL;
 		~PPVStuff();
-	} m_PPVStuff, m_PPVBattleMage;
-
-public:
-	void Update(void);
-	void Render(void);
-
-	void CheckUserInput();
-	void CheckUserInput(WPARAM wParam);
-	void RunTaskList(int _screenWidth, int _screenHeight, bool _vsync, HWND& _hwnd, bool _fullscreen, float _screenFar, float _screenNear);
-	float GetTimeBetweenFrames();
-	Camera* GetCamera();
-
-	void RunDebugMessage(void);
+	} m_PPVStuff, m_PPVBattleMage, m_PPVSkinnedAnimation;
 
 public:
 	enum CameraState {
@@ -129,7 +127,28 @@ public:
 	ModelViewProjectionConstantBuffer m_constantBufferData;
 	ModelViewProjectionConstantBuffer m_tessellationConstantBufferData;
 
+public:
+	void Initialize(int _screenWidth, int _screenHeight, HWND _hWnd);
+	void Update(void);
+	void Render(void);
+
+	// Checks user input for non toggling events
+	void CheckUserInput();
+
+	// Checks user input for toggling events
+	void CheckUserInput(WPARAM _wParam);
+
+	// Checks windows messages such as a key press or mouse movement
+	void CheckWindowsMessage(UINT _message, HWND _hWnd);
+
+	void RunTaskList(int _screenWidth, int _screenHeight, bool _vsync, HWND& _hwnd, bool _fullscreen, float _screenFar, float _screenNear);
+	float GetTimeBetweenFrames();
+	Camera* GetCamera();
+
+	void RunDebugMessage(void);
+
 private:
+	void InitializeClass(int _screenWidth, int _screenHeight, HWND _hWnd);
 	void InitializeConstantBuffer(ComPtr<ID3D11Buffer>& _buffer);
 	void InitializeShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, ComPtr<ID3D11VertexShader>& _VS, ComPtr<ID3D11InputLayout>& _IL);
 	void InitializeSamplerState(ComPtr<ID3D11SamplerState>& _samplerState);

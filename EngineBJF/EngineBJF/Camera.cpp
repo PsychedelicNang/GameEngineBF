@@ -241,13 +241,11 @@ XMMATRIX Camera::CameraTurnTo(XMMATRIX _viewerMatrix, XMVECTOR _targetPos, float
 
 	float yRate = vector.m128_f32[0] * xAxis.m128_f32[0] + vector.m128_f32[1] * xAxis.m128_f32[1] + vector.m128_f32[2] * xAxis.m128_f32[2];
 	XMMATRIX output = XMMatrixMultiply(XMMatrixRotationY(yRate*_speed), _viewerMatrix);
-	//XMMATRIX output = XMMatrixMultiply(XMMatrixRotationY(yRate), _viewerMatrix);
 
 	float xRate = vector.m128_f32[0] * yAxis.m128_f32[0] + vector.m128_f32[1] * yAxis.m128_f32[1] + vector.m128_f32[2] * yAxis.m128_f32[2];
 	XMMATRIX output2 = XMMatrixMultiply(XMMatrixRotationX(-xRate*_speed), output);
-	//XMMATRIX output2 = XMMatrixMultiply(XMMatrixRotationX(-xRate), output);
 
-	//output = XMMatrixMultiply(output2, output);
+	//output = XMMatrixMultiply(output, output2);
 
 	XMVECTOR xAxisForOut = XMVector3Cross(worldUp, output2.r[2]);
 	xAxisForOut = XMVector4Normalize(xAxisForOut);
@@ -259,7 +257,6 @@ XMMATRIX Camera::CameraTurnTo(XMMATRIX _viewerMatrix, XMVECTOR _targetPos, float
 	output2.r[1] = yAxisForOut;
 
 	//Output : A new 4x4 matrix to replace M, rotated partially towards T
-	//XMStoreFloat4x4(&m_camera, output2);
 	return output2;
 }
 

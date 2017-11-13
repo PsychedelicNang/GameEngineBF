@@ -15,11 +15,6 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 HWND hWnd;
 SceneManager* sceneManager;
 
-const bool FULL_SCREEN = false;
-const bool VSYNC_ENABLED = true;
-const float SCREEN_FAR = 1000.0f;
-const float SCREEN_NEAR = 0.1f;
-
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
@@ -54,9 +49,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return FALSE;
     }
 
-	GetCursorPos(&sceneManager->prevCursorPos);
-	ScreenToClient(hWnd, &sceneManager->prevCursorPos);
-	sceneManager->RunTaskList(WIDTH, HEIGHT, VSYNC_ENABLED, hWnd, FULL_SCREEN, SCREEN_FAR, SCREEN_NEAR);
+	sceneManager->Initialize(WIDTH, HEIGHT, hWnd);
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_ENGINEBJF));
 
@@ -110,7 +103,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ENGINEBJF));
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-	wcex.lpszMenuName = NULL;					 //wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_ENGINEBJF);
+	wcex.lpszMenuName	= NULL;					 //wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_ENGINEBJF);
 	wcex.lpszClassName  = szWindowClass;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
@@ -216,28 +209,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #endif
 #pragma endregion
 
+	sceneManager->CheckWindowsMessage(message, hWnd);
 	switch (message)
 	{
 	case WM_DESTROY:
 		PostQuitMessage(0);
-		break;
-	case WM_MOUSEMOVE:
-		if (sceneManager->mouseMove)
-		{
-			float delta_time = sceneManager->GetTimeBetweenFrames();
-			GetCursorPos(&sceneManager->currCursorPos);
-			ScreenToClient(hWnd, &sceneManager->currCursorPos);
-			sceneManager->GetCamera()->CameraMouseLook(sceneManager->GetCamera()->GetCameraFloat4x4(), (sceneManager->currCursorPos.x - sceneManager->prevCursorPos.x) * delta_time, (sceneManager->currCursorPos.y - sceneManager->prevCursorPos.y) * delta_time);
-			sceneManager->prevCursorPos = sceneManager->currCursorPos;
-		}
-		GetCursorPos(&sceneManager->prevCursorPos);
-		ScreenToClient(hWnd, &sceneManager->prevCursorPos);
-		break;
-	case WM_RBUTTONDOWN:
-		sceneManager->mouseMove = true;
-		break;
-	case WM_RBUTTONUP:
-		sceneManager->mouseMove = false;
 		break;
 	case WM_KEYDOWN:
 		if (VK_ESCAPE == wParam) {

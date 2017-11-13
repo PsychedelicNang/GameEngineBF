@@ -3,16 +3,16 @@
 SceneManager::SceneManager()
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	//_CrtSetBreakAlloc(569);
+	//_CrtSetBreakAlloc(228);
 	m_libraryLoadedMaterial = false;
 	m_libraryLoadedMesh = false;
-
 	myCube				= new Object();
 	myCamera			= new Camera();
 	myTerrain			= new Terrain();
 	myDebugRenderer		= new DebugRenderer();
 	myD3DClass			= new D3DInitializer();
 	myTeddyBear			= new Object();
+	myTeddyBearAnim		= new Object();
 	myBattleMage		= new Object();
 	myMaterialHandler	= new FbxLibraryDLLMaterialHandler();
 	myMeshHandler		= new FbxLibraryDLLMeshHandler();
@@ -37,10 +37,24 @@ SceneManager::~SceneManager()
 	if (myDebugRenderer) delete myDebugRenderer;
 	if (myD3DClass) delete myD3DClass;
 	if (myTeddyBear) delete myTeddyBear;
+	if (myTeddyBearAnim) delete myTeddyBearAnim;
 	if (myBattleMage) delete myBattleMage;
 	if (myMaterialHandler) delete myMaterialHandler;
 	if (myMeshHandler) delete myMeshHandler;
 	if (myAnimationHandler) delete myAnimationHandler;
+	if (myGInput) 	myGInput->DecrementCount();
+}
+
+void SceneManager::Initialize(int _screenWidth, int _screenHeight, HWND _hWnd)
+{
+	InitializeClass(_screenWidth, _screenHeight, _hWnd);
+}
+
+void SceneManager::InitializeClass(int _screenWidth, int _screenHeight, HWND _hWnd)
+{
+	GetCursorPos(&prevCursorPos);
+	ScreenToClient(_hWnd, &prevCursorPos);
+	RunTaskList(_screenWidth, _screenHeight, VSYNC_ENABLED, _hWnd, FULL_SCREEN, SCREEN_FAR, SCREEN_NEAR);
 }
 
 void SceneManager::InitializeConstantBuffer(ComPtr<ID3D11Buffer>& _buffer)
@@ -129,10 +143,10 @@ void SceneManager::Update(void)
 		}
 			break;
 		case SceneManager::turnToCube:
-			myCamera->SetCamera(myCamera->CameraTurnTo(myCamera->GetCameraMatrix(), myCube->GetObjectMatrix().r[3], m_timeBetweenFrames * 5.f));
+			myCamera->SetCamera(myCamera->CameraTurnTo(myCamera->GetCameraMatrix(), myCube->GetObjectMatrix().r[3], m_timeBetweenFrames * 20.f));
 			break;
 		case SceneManager::turnToMesh:
-			myCamera->SetCamera(myCamera->CameraTurnTo(myCamera->GetCameraMatrix(), myTeddyBear->GetObjectMatrix().r[3], m_timeBetweenFrames * 5.f));
+			myCamera->SetCamera(myCamera->CameraTurnTo(myCamera->GetCameraMatrix(), myTeddyBear->GetObjectMatrix().r[3], m_timeBetweenFrames * 20.f));
 			break;
 		default:
 			break;
@@ -142,6 +156,7 @@ void SceneManager::Update(void)
 	{
 		myCube->ObjectRotationY(0.50f * m_timeBetweenFrames);
 		myTeddyBear->ObjectRotationY(0.5f * m_timeBetweenFrames);
+		myBattleMage->ObjectRotationY(0.5f * m_timeBetweenFrames);
 	}
 
 	myCamera->CreateViewAndPerspectiveMatrix();
@@ -158,8 +173,6 @@ void SceneManager::Render(void)
 	if (m_libraryLoadedMesh && m_libraryLoadedMesh)
 	{
 		m_deviceContext->IASetInputLayout(m_PPVBattleMage.m_IL.Get());
-		m_deviceContext->HSSetShader(NULL, NULL, 0);
-		m_deviceContext->DSSetShader(NULL, NULL, 0);
 		m_deviceContext->VSSetShader(m_PPVBattleMage.m_VS.Get(), NULL, 0);
 		m_deviceContext->PSSetShader(m_PPVBattleMage.m_PS.Get(), NULL, 0);
 		m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
@@ -181,13 +194,28 @@ void SceneManager::Render(void)
 	UpdateStandardConstantBuffer(XMMatrixIdentity());
 	myTerrain->Render(m_deviceContext);
 
-	/**********************Animation**********************/
+	/**********************Skeleton Animation**********************/
 	SetPipelineStates(m_defaultPipeline);
 	UpdateStandardConstantBuffer(XMMatrixIdentity());
 	PlayAnimation();
 	myDebugRenderer->CreateVertexBuffer(m_device);
 	myDebugRenderer->Render(m_device, m_deviceContext);
-	/**********************Animation**********************/
+	/**********************Skeleton Animation**********************/
+
+
+	/**********************Skinned Animation**********************/
+	m_deviceContext->IASetInputLayout(m_PPVSkinnedAnimation.m_IL.Get());
+	m_deviceContext->VSSetShader(m_PPVSkinnedAnimation.m_VS.Get(), NULL, 0);
+	m_deviceContext->PSSetShader(m_PPVSkinnedAnimation.m_PS.Get(), NULL, 0);
+	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(myTeddyBearAnim->GetObjectMatrix()));
+	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.view)));
+	XMStoreFloat4x4(&m_constantBufferData.projection, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.projection)));
+	myD3DClass->GetDeviceContext()->UpdateSubresource(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0);
+	myD3DClass->GetDeviceContext()->VSSetConstantBuffers(2, 1, m_constantBuffer.GetAddressOf());
+	myTeddyBearAnim->Render(m_deviceContext);
+	/**********************Skinned Animation**********************/
+
+
 
 	/********************Tessellation******************************/
 	m_deviceContext->IASetInputLayout(m_tessellationStuff.inputLayout.Get());
@@ -204,6 +232,8 @@ void SceneManager::Render(void)
 	m_deviceContext->DSSetShader(m_tessellationStuff.domainShader.Get(), NULL, 0);
 	
 	m_deviceContext->Draw(3, 0);
+	m_deviceContext->HSSetShader(NULL, NULL, 0);
+	m_deviceContext->DSSetShader(NULL, NULL, 0);
 	/********************Tessellation******************************/
 
 	m_deviceContext.Reset();
@@ -256,7 +286,7 @@ bool SceneManager::LoadCompiledShaderData(char **byteCode, size_t &byteCodeSize,
 void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync, HWND& _hwnd, bool _fullscreen, float _screenFar, float _screenNear)
 {
 	myD3DClass->Initialize(_screenWidth, _screenHeight, _vsync, _hwnd, _fullscreen, _screenFar, _screenNear);
-	myGInput = myD3DClass->myGInput;
+	GW::SYSTEM::CreateGInput(_hwnd, sizeof(_hwnd), &myGInput);
 	InitializeConstantBuffer(m_constantBuffer);
 	InitializeShadersAndInputLayout(m_defaultPipeline.pixel_shader, m_defaultPipeline.vertex_shader, m_defaultPipeline.input_layout);
 	InitializeSamplerState(m_samplerState);
@@ -278,6 +308,8 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 
 	m_libraryLoadedMesh = myMeshHandler->Initialize();
 
+	if (myAnimationHandler->Initialize())	myAnimationHandler->LoadAnimationFBX("Teddy/Teddy_Run.fbx", animClip, skelJoints, 0.02f);
+
 	std::vector<MeshComponentsAdvanced::OutInformationAdvanced> meshes;
 	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshFBX("BattleMage.fbx", meshes);
 	if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("BattleMageAdv.bin", meshes[0]);
@@ -287,9 +319,12 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshFBX("Teddy/Teddy_Run.fbx", meshes2);
 	if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("Teddy/Teddy_Run.bin", meshes2[0]);
 	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myTeddyBear->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "Teddy/Teddy_Run.bin", 0.02f);
-	
-	if (myAnimationHandler->Initialize())	myAnimationHandler->LoadAnimationFBX("Teddy/Teddy_Run.fbx", animClip, skelJoints);
 
+	std::vector<MeshComponentsAnimation::OutInformationAdvanced> meshes3;
+	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshWithSkinnedAnimationFBX("Teddy/Teddy_Run.fbx", meshes3);
+	if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMeshWithSkinnedAnimationBinary("Teddy/Teddy_Run_Skinned.bin", meshes3[0]);
+	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myTeddyBearAnim->ReadInAdvancedMeshWithSkinnedAnimationFromBinaryFile(myD3DClass->GetDevice(), "Teddy/Teddy_Run_Skinned.bin", 0.02f);
+	
 	for (size_t i = 0; i < skelJoints.size(); i++)
 	{	
 		jointMatrices.push_back(XMMATRIX(skelJoints[i].globalTransformArray));
@@ -310,6 +345,7 @@ Camera * SceneManager::GetCamera()
 	return myCamera;
 }
 
+// Checks user input for non toggling events
 void SceneManager::CheckUserInput()
 {
 	float returnValue;
@@ -390,9 +426,10 @@ void SceneManager::CheckUserInput()
 	//}
 }
 
-void SceneManager::CheckUserInput(WPARAM wParam)
+// Checks user input for toggling events
+void SceneManager::CheckUserInput(WPARAM _wParam)
 {
-	switch (wParam)
+	switch (_wParam)
 	{
 	case VK_UP:
 		if (!freeRun)
@@ -419,6 +456,33 @@ void SceneManager::CheckUserInput(WPARAM wParam)
 	}
 }
 
+// Checks windows messages such as a key press or mouse movement
+void SceneManager::CheckWindowsMessage(UINT _message, HWND _hWnd)
+{
+	switch (_message)
+	{
+	case WM_MOUSEMOVE:
+		if (mouseMove)
+		{
+			GetCursorPos(&currCursorPos);
+			ScreenToClient(_hWnd, &currCursorPos);
+			GetCamera()->CameraMouseLook(GetCamera()->GetCameraFloat4x4(), (currCursorPos.x - prevCursorPos.x) * m_timeBetweenFrames, (currCursorPos.y - prevCursorPos.y) * m_timeBetweenFrames);
+			prevCursorPos = currCursorPos;
+		}
+		GetCursorPos(&prevCursorPos);
+		ScreenToClient(_hWnd, &prevCursorPos);
+		break;
+	case WM_RBUTTONDOWN:
+		mouseMove = true;
+		break;
+	case WM_RBUTTONUP:
+		mouseMove = false;
+		break;
+	default:
+		break;
+	}
+}
+
 void SceneManager::RunDebugMessage(void)
 {
 	//printf(myCamera->GetCameraEye().m128_f32[0]);
@@ -435,7 +499,6 @@ bool SceneManager::RunTaskForPPV(void)
 	if (m_libraryLoadedMaterial)
 	{
 		std::vector<MaterialComponents::Material> m_VecMaterials02;
-		//bool result = myMaterialHandler->LoadMaterialsBinary("BattleMage.bin", m_VecMaterials);
 		bool res = myMaterialHandler->LoadMaterialFBX("Teddy/Teddy_Run.fbx", m_VecMaterials02);
 
 		for each (MaterialComponents::Material mat in m_VecMaterials02)
@@ -465,7 +528,6 @@ bool SceneManager::RunTaskForPPV(void)
 	{
 		std::vector<MaterialComponents::Material> m_VecMaterials;
 		bool result = myMaterialHandler->LoadMaterialsBinary("BattleMage.bin", m_VecMaterials);
-		//bool res = myMaterialHandler->LoadMaterialFBX("Teddy/Teddy_Run.fbx", m_VecMaterials);
 
 		for each (MaterialComponents::Material mat in m_VecMaterials)
 		{
@@ -525,6 +587,28 @@ bool SceneManager::RunTaskForPPV(void)
 	};
 	hr = myD3DClass->GetDevice()->CreateInputLayout(vertexDesc2, ARRAYSIZE(vertexDesc2), bytecode4, byteCodeSize4, m_PPVBattleMage.m_IL.GetAddressOf());
 	delete[] bytecode4;
+
+	char* bytecode5 = nullptr;
+	size_t byteCodeSize5 = 0;
+	LoadCompiledShaderData(&bytecode5, byteCodeSize5, "Shaders/Pixel Shaders/PS_SkinnedAnimation.cso");
+	myD3DClass->GetDevice()->CreatePixelShader(bytecode5, byteCodeSize5, nullptr, m_PPVSkinnedAnimation.m_PS.GetAddressOf());
+	delete[] bytecode5;
+
+	char* bytecode6 = nullptr;
+	size_t byteCodeSize6 = 0;
+	LoadCompiledShaderData(&bytecode6, byteCodeSize6, "Shaders/Vertex Shaders/VS_SkinnedAnimation.cso");
+	myD3DClass->GetDevice()->CreateVertexShader(bytecode6, byteCodeSize6, nullptr, m_PPVSkinnedAnimation.m_VS.GetAddressOf());
+
+	D3D11_INPUT_ELEMENT_DESC vertexDesc3[] = {
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "UVS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMALS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "JOINT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "WEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+	hr = myD3DClass->GetDevice()->CreateInputLayout(vertexDesc3, ARRAYSIZE(vertexDesc3), bytecode6, byteCodeSize6, m_PPVSkinnedAnimation.m_IL.GetAddressOf());
+	delete[] bytecode6;
 
 	printf("Task Complete");
 	return true;

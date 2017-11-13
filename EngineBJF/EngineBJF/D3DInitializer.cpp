@@ -48,9 +48,6 @@ bool D3DInitializer::Initialize(int _screenWidth, int _screenHeight, bool _vsync
 	// Creates the World, Projection, and an Orthogonal matrix (for HUD and 2D text information) for this class.
 	if (!InitializeClassMatrices(_screenWidth, _screenHeight, _screenFar, _screenNear))														return false;
 
-	GW::SYSTEM::CreateGInput(_hwnd, sizeof(_hwnd), &myGInput);
-	if (!myGInput)																															return false;
-
 	return true;
 }
 
@@ -553,5 +550,4 @@ void D3DInitializer::ShutdownComponents()
 	m_depthStencilState.Reset();
 	m_depthStencilView.Reset();
 	m_rasterState.Reset();
-	myGInput->DecrementCount();
 }
