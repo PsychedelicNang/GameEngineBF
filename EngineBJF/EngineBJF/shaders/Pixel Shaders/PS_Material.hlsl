@@ -8,7 +8,8 @@ struct PixelShaderInput
 {
 	float4 pos : SV_POSITION;
 	float4 color : COLOR;
-	float4 uvs : UVS;
+	float2 uvs : UVS;
+    float2 padding : PADDING;
 	float4 cameraPos : CAMERAPOSITION;
 	float3 normal : NORMALS;
 };

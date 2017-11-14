@@ -39,6 +39,7 @@ namespace MeshComponentsAnimation {
 		float position[4];
 		float normals[4];
 		float uvs[2];
+		float padding[2];
 		float weights[4];
 		int joints[4];
 	};

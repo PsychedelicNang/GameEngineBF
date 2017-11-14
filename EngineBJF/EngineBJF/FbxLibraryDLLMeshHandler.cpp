@@ -85,13 +85,13 @@ bool FbxLibraryDLLMeshHandler::InitializeLibrary()
 	funcHandExportAdvancedMeshToBinaryFile = (funcExportAdvancedMeshToBinaryFile)GetProcAddress(hinstLib, "ExportAdvancedMeshToBinaryFile");
 	funcHandReadInAdvancedBinaryMeshFile = (funcReadInAdvancedBinaryMeshFile)GetProcAddress(hinstLib, "ReadInAdvancedBinaryMeshFile");
 
-	funcHandLoadAdvancedMeshWithSkinnedAnimationFromFBXFile = (funcLoadAdvancedMeshWithSkinnedAnimationFromFBXFile)GetProcAddress(hinstLib, "LoadAdvancedMeshWithSkinnedAnimationFromFBXFile");
+	//funcHandLoadAdvancedMeshWithSkinnedAnimationFromFBXFile = (funcLoadAdvancedMeshWithSkinnedAnimationFromFBXFile)GetProcAddress(hinstLib, "LoadAdvancedMeshWithSkinnedAnimationFromFBXFile");
 	funcHandExportAdvancedMeshWithSkinnedAnimationBinary = (funcExportAdvancedMeshWithSkinnedAnimationBinary)GetProcAddress(hinstLib, "ExportAdvancedMeshWithSkinnedAnimationToBinaryFile");
 	funcHandLoadAdvancedMeshWithSkinnedAnimationBinary = (funcLoadAdvancedMeshWithSkinnedAnimationBinary)GetProcAddress(hinstLib, "ReadInAdvancedMeshWithSkinnedAnimationFromBinaryFile");
 
 	if (!funcHandleLoadMeshFromFBXFile || !funcHandleExportMeshToBinaryFile || !funcHandleReadInBinaryMeshFile
 		|| !funcHandLoadAdvancedMeshFromFBXFile || !funcHandExportAdvancedMeshToBinaryFile || !funcHandReadInAdvancedBinaryMeshFile
-		|| !funcHandLoadAdvancedMeshWithSkinnedAnimationFromFBXFile || !funcHandExportAdvancedMeshWithSkinnedAnimationBinary || !funcHandLoadAdvancedMeshWithSkinnedAnimationBinary) return false;
+		|| /*!funcHandLoadAdvancedMeshWithSkinnedAnimationFromFBXFile ||*/ !funcHandExportAdvancedMeshWithSkinnedAnimationBinary || !funcHandLoadAdvancedMeshWithSkinnedAnimationBinary) return false;
 
 	return true;
 }

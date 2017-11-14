@@ -71,8 +71,19 @@ private:
 
 	AnimationComponents::AnimationClip animClip;
 	std::vector<AnimationComponents::SkeletonJoints> skelJoints;
-	std::vector<XMMATRIX> jointMatrices;
+	std::vector<XMMATRIX> m_jointMatrices;
+	std::vector<XMMATRIX> m_bindPoseMatrices;
+	XMMATRIX m_bindPoseMatrix;
+	AnimationComponents::BindPose bindPose;
+	std::vector<XMMATRIX> m_jointsForFrameToPresent;
 	bool freeRun;
+
+	ComPtr<ID3D11Buffer>				m_skinnedAnimationConstantBuffer;
+	struct SkinnedTransforms {
+		//DirectX::XMFLOAT4X4 transforms[37];
+		//DirectX::XMMATRIX* transforms;
+		DirectX::XMMATRIX transforms[37];
+	} m_SkinnedTransforms;
 
 	int animationFrame;
 	struct PipelineState

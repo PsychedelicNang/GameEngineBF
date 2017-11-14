@@ -20,6 +20,13 @@ bool FbxLibraryDLLAnimationHandler::LoadAnimationFBX(const char * _fileName, Ani
 	return true;
 }
 
+bool FbxLibraryDLLAnimationHandler::LoadFBX(const char * _fileName, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector, AnimationComponents::AnimationClip & _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount)
+{
+	if (!((funcHandLoadFBX(_fileName, _outVector, _animationClip, _skelJoints, _scaleAmount)))) return false;
+
+	return true;
+}
+
 bool FbxLibraryDLLAnimationHandler::InitializeLibrary()
 {
 	hinstLib = LoadLibrary(L"FbxLibraryDLL.dll");
@@ -27,8 +34,8 @@ bool FbxLibraryDLLAnimationHandler::InitializeLibrary()
 	if (!hinstLib) return false;
 
 	funcHandleLoadAnimationFromFBXFile = (funcLoadAnimationFromFBXFile)GetProcAddress(hinstLib, "LoadAnimationFromFBXFile");
-	
-	if (!funcHandleLoadAnimationFromFBXFile) return false;
+	funcHandLoadFBX = (funcLoadFBX)GetProcAddress(hinstLib, "LoadAnimation");
+	if (!funcHandleLoadAnimationFromFBXFile || !funcHandLoadFBX) return false;
 
 	return true;
 }

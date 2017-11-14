@@ -4,9 +4,7 @@
 namespace AnimationComponents {
 	struct SkeletonJoints {
 		float globalTransformArray[16];
-		float globalTransform4x4[4][4];
-		/*float localTransformArray[16];
-		float localTransform4x4[4][4];*/
+		//float localTransformArray[16];	// Inverse bindpose
 		int parentIndex;
 		std::string jointName;
 	};
@@ -20,7 +18,17 @@ namespace AnimationComponents {
 		double duration;
 		std::vector<Keyframe> frames;
 	};
+
+	struct BindPose {
+		std::vector<SkeletonJoints> joints;
+		struct BindPoseJoints {
+			float globalTransformArray[16];
+			int parentIndex;
+			std::string jointName;
+		};
+	};
 }
+
 
 // for changing coordinate system:
 // ...for any positions: pos.x = -pos.x (ALL POSITIONS)

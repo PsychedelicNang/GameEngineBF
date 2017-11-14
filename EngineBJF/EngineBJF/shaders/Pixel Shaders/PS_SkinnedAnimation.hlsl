@@ -2,10 +2,9 @@ struct PixelShaderInput
 {
 	float4 pos : SV_POSITION;
 	float4 color : COLOR;
-	float4 uvs : UVS;
+	float2 uvs : UVS;
+    float2 padding : PADDING;
 	float4 normal : NORMALS;
-	float4 joint : JOINT;
-	float4 weight : WEIGHT;
 };
 
 float4 main(PixelShaderInput input) : SV_TARGET

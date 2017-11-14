@@ -9,7 +9,8 @@ struct VertexShaderInput
 {
 	float4 pos : POSITION;
 	float4 color : COLOR;
-	float4 uvs : UVS;
+	float2 uvs : UVS;
+    float2 padding : PADDING;
 	float4 normal : NORMALS;
 };
 
@@ -17,7 +18,8 @@ struct PixelShaderInput
 {
 	float4 pos : SV_POSITION;
 	float4 color : COLOR;
-	float4 uvs : UVS;
+	float2 uvs : UVS;
+    float2 padding : PADDING;
 	float4 cameraPos : CAMERAPOSITION;
 	float3 normal : NORMALS;
 };
@@ -25,6 +27,8 @@ struct PixelShaderInput
 PixelShaderInput main(VertexShaderInput input)
 {
 	PixelShaderInput output;
+    output.padding.x = 0;
+    output.padding.y = 0;
 	float4 pos = input.pos;
 	pos.w = 1.f;
 	pos = mul(pos, model);

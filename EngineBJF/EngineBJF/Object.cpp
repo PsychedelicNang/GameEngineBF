@@ -509,9 +509,6 @@ bool Object::ReadInAdvancedBinaryMeshFile(ComPtr<ID3D11Device>& _device, const c
 				*/
 				vertices[i].uv.y = 1 - vertices[i].uv.y;
 				/*************************************************/
-
-				vertices[i].uv.z = 0.f;
-				vertices[i].uv.w = 0.f;
 			}
 	
 			for (unsigned i = 0; i < numOfVertices; i++)
@@ -562,14 +559,14 @@ bool Object::ReadInAdvancedMeshWithSkinnedAnimationMeshFile(ComPtr<ID3D11Device>
 		unsigned numOfIndices;
 		unsigned numOfVertices;
 
-		file.read((char*)&numOfIndices, 4);
+		file.read((char*)&numOfIndices, sizeof(unsigned));
 
 		unsigned* indices = new unsigned[numOfIndices];
 
 		m_indexCount = numOfIndices;
 
 		for (unsigned i = 0; i < numOfIndices; i++)
-			file.read((char*)(&indices[i]), sizeof(4));
+			file.read((char*)(&indices[i]), sizeof(unsigned));
 
 		D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
 		indexBufferData.pSysMem = indices;
@@ -580,26 +577,26 @@ bool Object::ReadInAdvancedMeshWithSkinnedAnimationMeshFile(ComPtr<ID3D11Device>
 
 		delete[] indices;
 
-		file.read((char*)&numOfVertices, 4);
+		file.read((char*)&numOfVertices, sizeof(unsigned));
 
 		VertexAnimation* vertices = new VertexAnimation[numOfVertices];
 
 		for (unsigned i = 0; i < numOfVertices; i++)
 		{
-			file.read((char*)(&vertices[i].position.x), sizeof(4));
-			file.read((char*)(&vertices[i].position.y), sizeof(4));
-			file.read((char*)(&vertices[i].position.z), sizeof(4));
-			file.read((char*)(&vertices[i].position.w), sizeof(4));
+			file.read((char*)(&vertices[i].position.x), sizeof(float));
+			file.read((char*)(&vertices[i].position.y), sizeof(float));
+			file.read((char*)(&vertices[i].position.z), sizeof(float));
+			file.read((char*)(&vertices[i].position.w), sizeof(float));
 			//vertices[i].color = XMFLOAT4(.5f, 1.f, 1.f, 1.f);
 			vertices[i].color = XMFLOAT4(((float)i) / numOfVertices, ((float)i) / numOfVertices, ((float)i) / numOfVertices, 1.f);
 
-			file.read((char*)(&vertices[i].normal.x), sizeof(4));
-			file.read((char*)(&vertices[i].normal.y), sizeof(4));
-			file.read((char*)(&vertices[i].normal.z), sizeof(4));
-			file.read((char*)(&vertices[i].normal.w), sizeof(4));
+			file.read((char*)(&vertices[i].normal.x), sizeof(float));
+			file.read((char*)(&vertices[i].normal.y), sizeof(float));
+			file.read((char*)(&vertices[i].normal.z), sizeof(float));
+			file.read((char*)(&vertices[i].normal.w), sizeof(float));
 
-			file.read((char*)(&vertices[i].uv.x), sizeof(4));
-			file.read((char*)(&vertices[i].uv.y), sizeof(4));
+			file.read((char*)(&vertices[i].uv.x), sizeof(float));
+			file.read((char*)(&vertices[i].uv.y), sizeof(float));
 
 			/*************************************************/
 			/*	Subtract the V value from 1 due to
@@ -609,19 +606,18 @@ bool Object::ReadInAdvancedMeshWithSkinnedAnimationMeshFile(ComPtr<ID3D11Device>
 			*/
 			vertices[i].uv.y = 1 - vertices[i].uv.y;
 			/*************************************************/
+			vertices[i].padding.x = 0;
+			vertices[i].padding.y = 0;
 
-			vertices[i].uv.z = 0.f;
-			vertices[i].uv.w = 0.f;
+			file.read((char*)(&vertices[i].weight.x), sizeof(float));
+			file.read((char*)(&vertices[i].weight.y), sizeof(float));
+			file.read((char*)(&vertices[i].weight.z), sizeof(float));
+			file.read((char*)(&vertices[i].weight.w), sizeof(float));
 
-			file.read((char*)(&vertices[i].joint.x), sizeof(4));
-			file.read((char*)(&vertices[i].joint.y), sizeof(4));
-			file.read((char*)(&vertices[i].joint.z), sizeof(4));
-			file.read((char*)(&vertices[i].joint.w), sizeof(4));
-
-			file.read((char*)(&vertices[i].weight.x), sizeof(4));
-			file.read((char*)(&vertices[i].weight.y), sizeof(4));
-			file.read((char*)(&vertices[i].weight.z), sizeof(4));
-			file.read((char*)(&vertices[i].weight.w), sizeof(4));
+			file.read((char*)(&vertices[i].joint.x), sizeof(int));
+			file.read((char*)(&vertices[i].joint.y), sizeof(int));
+			file.read((char*)(&vertices[i].joint.z), sizeof(int));
+			file.read((char*)(&vertices[i].joint.w), sizeof(int));
 		}
 
 		for (unsigned i = 0; i < numOfVertices; i++)

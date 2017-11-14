@@ -35,5 +35,7 @@ extern "C" {
 		FBXLIBRARY_API bool LoadAdvancedMeshWithSkinnedAnimationFromFBXFile(const char* _fileName, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector);
 		FBXLIBRARY_API void ExportAdvancedMeshWithSkinnedAnimationToBinaryFile(const char* _filePath, MeshComponentsAnimation::OutInformationAdvanced & _mesh);
 		FBXLIBRARY_API bool ReadInAdvancedMeshWithSkinnedAnimationFromBinaryFile(const char * _fileName, MeshComponentsAnimation::OutInformationAdvanced& _objectToFill);
+
+		FBXLIBRARY_API bool LoadAnimation(const char* _fileName, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector, AnimationComponents::AnimationClip& _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount = 1);
 	}
 }

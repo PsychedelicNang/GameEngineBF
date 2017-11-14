@@ -11,6 +11,7 @@
 ***************************/
 #include <Windows.h>
 #include "AnimationComponents.h"
+#include "MeshComponents.h"
 
 class FbxLibraryDLLAnimationHandler {
 public:
@@ -19,13 +20,15 @@ public:
 
 	bool Initialize();
 	bool LoadAnimationFBX(const char* _fileName, AnimationComponents::AnimationClip& _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount = 1);
-
+	bool LoadFBX(const char * _fileName, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector, AnimationComponents::AnimationClip & _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount = 1);
 private:
 	HINSTANCE hinstLib;
 	typedef bool(*funcLoadAnimationFromFBXFile)(const char*, AnimationComponents::AnimationClip&, std::vector<AnimationComponents::SkeletonJoints>&, float);		//  bool LoadAnimationFromFBXFile(const char* _fileName, AnimationComponents::AnimationClip& _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount = 1);
+	typedef bool(*funcLoadFBX)(const char *, std::vector<MeshComponentsAnimation::OutInformationAdvanced>&, AnimationComponents::AnimationClip &, std::vector<AnimationComponents::SkeletonJoints>&, float);
 
 	funcLoadAnimationFromFBXFile funcHandleLoadAnimationFromFBXFile;																						// Pointer to LoadAnimationFromFBXFile function
-
+	funcLoadFBX funcHandLoadFBX;
+	//bool LoadAnimation(const char * _fileName, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector, AnimationComponents::AnimationClip & _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount)
 private:
 	bool InitializeLibrary();
 	bool LoadAnimationFromFBXFile(const char* _fileName, AnimationComponents::AnimationClip& _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount = 1);

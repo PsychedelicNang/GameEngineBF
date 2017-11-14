@@ -188,34 +188,48 @@ void SceneManager::Render(void)
 		UpdateStandardConstantBuffer(myTeddyBear->GetObjectMatrix());
 		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
 		myTeddyBear->Render(m_deviceContext);
+
+		/**********************Skeleton Animation**********************/
+		SetPipelineStates(m_defaultPipeline);
+		UpdateStandardConstantBuffer(XMMatrixIdentity());
+		PlayAnimation();
+		myDebugRenderer->CreateVertexBuffer(m_device);
+		myDebugRenderer->Render(m_device, m_deviceContext);
+		/**********************Skeleton Animation**********************/
+
+
+		/**********************Skinned Animation**********************/
+		//Float4x4 joints_for_vs[NumJoints]
+		//for i = 0; i < NumJoints; ++i        
+		//	joints_for_vs[i] = multiply(invBind[i], tweenJoint[i])
+		//upload_joints_to_gpu(joints_for_vs)
+
+		size_t numberOfJoints = m_jointsForFrameToPresent.size();
+		//m_SkinnedTransforms.transforms = new XMMATRIX[numberOfJoints];
+		for (size_t i = 0; i < numberOfJoints; i++)
+		{
+			m_SkinnedTransforms.transforms[i] = XMMatrixMultiply(XMMatrixInverse(nullptr, m_bindPoseMatrices[i]), m_jointsForFrameToPresent[i]);
+		}
+
+		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(SkinnedTransforms), D3D11_BIND_CONSTANT_BUFFER);
+		myD3DClass->GetDevice()->CreateBuffer(&constantBufferDesc, nullptr, m_skinnedAnimationConstantBuffer.GetAddressOf());
+
+		UpdateStandardConstantBuffer(myTeddyBearAnim->GetObjectMatrix());
+		myD3DClass->GetDeviceContext()->UpdateSubresource(m_skinnedAnimationConstantBuffer.Get(), 0, NULL, &m_SkinnedTransforms, 0, 0);
+		myD3DClass->GetDeviceContext()->VSSetConstantBuffers(1, 1, m_skinnedAnimationConstantBuffer.GetAddressOf());
+
+		m_deviceContext->IASetInputLayout(m_PPVSkinnedAnimation.m_IL.Get());
+		m_deviceContext->VSSetShader(m_PPVSkinnedAnimation.m_VS.Get(), NULL, 0);
+		m_deviceContext->PSSetShader(m_PPVSkinnedAnimation.m_PS.Get(), NULL, 0);
+		myTeddyBearAnim->Render(m_deviceContext);
+
+		m_skinnedAnimationConstantBuffer.Reset();
+		/**********************Skinned Animation**********************/
 	}
 	
 	SetPipelineStates(m_defaultPipeline);
 	UpdateStandardConstantBuffer(XMMatrixIdentity());
 	myTerrain->Render(m_deviceContext);
-
-	/**********************Skeleton Animation**********************/
-	SetPipelineStates(m_defaultPipeline);
-	UpdateStandardConstantBuffer(XMMatrixIdentity());
-	PlayAnimation();
-	myDebugRenderer->CreateVertexBuffer(m_device);
-	myDebugRenderer->Render(m_device, m_deviceContext);
-	/**********************Skeleton Animation**********************/
-
-
-	/**********************Skinned Animation**********************/
-	m_deviceContext->IASetInputLayout(m_PPVSkinnedAnimation.m_IL.Get());
-	m_deviceContext->VSSetShader(m_PPVSkinnedAnimation.m_VS.Get(), NULL, 0);
-	m_deviceContext->PSSetShader(m_PPVSkinnedAnimation.m_PS.Get(), NULL, 0);
-	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(myTeddyBearAnim->GetObjectMatrix()));
-	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.view)));
-	XMStoreFloat4x4(&m_constantBufferData.projection, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.projection)));
-	myD3DClass->GetDeviceContext()->UpdateSubresource(m_constantBuffer.Get(), 0, NULL, &m_constantBufferData, 0, 0);
-	myD3DClass->GetDeviceContext()->VSSetConstantBuffers(2, 1, m_constantBuffer.GetAddressOf());
-	myTeddyBearAnim->Render(m_deviceContext);
-	/**********************Skinned Animation**********************/
-
-
 
 	/********************Tessellation******************************/
 	m_deviceContext->IASetInputLayout(m_tessellationStuff.inputLayout.Get());
@@ -308,8 +322,8 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 
 	m_libraryLoadedMesh = myMeshHandler->Initialize();
 
-	if (myAnimationHandler->Initialize())	myAnimationHandler->LoadAnimationFBX("Teddy/Teddy_Run.fbx", animClip, skelJoints, 0.02f);
-
+	//if (myAnimationHandler->Initialize())	myAnimationHandler->LoadAnimationFBX("Teddy/Teddy_Run.fbx", animClip, skelJoints, 0.02f);
+	myAnimationHandler->Initialize();
 	std::vector<MeshComponentsAdvanced::OutInformationAdvanced> meshes;
 	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshFBX("BattleMage.fbx", meshes);
 	if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMesh("BattleMageAdv.bin", meshes[0]);
@@ -321,15 +335,20 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myTeddyBear->ReadInAdvancedMeshFromBinaryFile(myD3DClass->GetDevice(), "Teddy/Teddy_Run.bin", 0.02f);
 
 	std::vector<MeshComponentsAnimation::OutInformationAdvanced> meshes3;
-	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshWithSkinnedAnimationFBX("Teddy/Teddy_Run.fbx", meshes3);
+	
+	//if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshWithSkinnedAnimationFBX("Teddy/Teddy_Run.fbx", meshes3);
+	bool test = myAnimationHandler->LoadFBX("Teddy/Teddy_Run.fbx", meshes3, animClip, skelJoints, 0.02f);
 	if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMeshWithSkinnedAnimationBinary("Teddy/Teddy_Run_Skinned.bin", meshes3[0]);
 	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myTeddyBearAnim->ReadInAdvancedMeshWithSkinnedAnimationFromBinaryFile(myD3DClass->GetDevice(), "Teddy/Teddy_Run_Skinned.bin", 0.02f);
 	
 	for (size_t i = 0; i < skelJoints.size(); i++)
 	{	
-		jointMatrices.push_back(XMMATRIX(skelJoints[i].globalTransformArray));
+		m_jointMatrices.push_back(XMMATRIX(skelJoints[i].globalTransformArray));
+		m_bindPoseMatrices.push_back(XMMATRIX(animClip.frames[0].joints[i].globalTransformArray));
 	}
-	
+	m_bindPoseMatrix = XMMATRIX(skelJoints[0].globalTransformArray);
+	//animClip.frames[0].joints
+
 	myTeddyBear->ObjectChangePosition(-3.f, -2.f, -5.f);
 	myBattleMage->ObjectChangePosition(0.f, -2.f, -5.f);
 	Tessellation();
@@ -562,8 +581,9 @@ bool SceneManager::RunTaskForPPV(void)
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "UVS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMALS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "UVS", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "PADDING", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMALS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 	HRESULT hr = myD3DClass->GetDevice()->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), bytecode2, byteCodeSize2, m_PPVStuff.m_IL.GetAddressOf());
 	delete[] bytecode2;
@@ -582,7 +602,8 @@ bool SceneManager::RunTaskForPPV(void)
 	D3D11_INPUT_ELEMENT_DESC vertexDesc2[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "UVS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "UVS", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "PADDING", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMALS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 	hr = myD3DClass->GetDevice()->CreateInputLayout(vertexDesc2, ARRAYSIZE(vertexDesc2), bytecode4, byteCodeSize4, m_PPVBattleMage.m_IL.GetAddressOf());
@@ -602,10 +623,11 @@ bool SceneManager::RunTaskForPPV(void)
 	D3D11_INPUT_ELEMENT_DESC vertexDesc3[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "UVS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "UVS", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "PADDING", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMALS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "JOINT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "WEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "WEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "JOINT", 0, DXGI_FORMAT_R32G32B32A32_SINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 	hr = myD3DClass->GetDevice()->CreateInputLayout(vertexDesc3, ARRAYSIZE(vertexDesc3), bytecode6, byteCodeSize6, m_PPVSkinnedAnimation.m_IL.GetAddressOf());
 	delete[] bytecode6;
@@ -787,7 +809,8 @@ void SceneManager::PlayAnimation(void)
 			ratio = (float) ((m_timeForAnimation - previousKeyframe.time) / (nextKeyframe.time - previousKeyframe.time));
 		}
 
-		std::vector<XMMATRIX> jointsForFrameToPresent;
+		m_jointsForFrameToPresent.clear();
+
 		for (unsigned int i = 0; i < nextKeyframe.joints.size(); i++)
 		{
 			XMVECTOR quaternionPosition = XMVectorLerp(XMMATRIX(previousKeyframe.joints[i].globalTransformArray).r[3], XMMATRIX(nextKeyframe.joints[i].globalTransformArray).r[3], ratio);
@@ -799,14 +822,14 @@ void SceneManager::PlayAnimation(void)
 
 			XMMATRIX quaternionMartix = XMMatrixRotationQuaternion(quaternionSlerp);
 			quaternionMartix.r[3] = quaternionPosition;
-			jointsForFrameToPresent.push_back(quaternionMartix);
+			m_jointsForFrameToPresent.push_back(quaternionMartix);
 		}
 		VertexPositionColor vert01 = { XMFLOAT4(0.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
 		VertexPositionColor vert02 = { XMFLOAT4(2.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 0.f, 0.f, 0.f) };
 		for (size_t i = 1; i < currentKeyframe.joints.size(); i++)
 		{
-			XMStoreFloat4(&vert01.position, jointsForFrameToPresent[currentKeyframe.joints[i].parentIndex].r[3]);
-			XMStoreFloat4(&vert02.position, jointsForFrameToPresent[i].r[3]);
+			XMStoreFloat4(&vert01.position, m_jointsForFrameToPresent[currentKeyframe.joints[i].parentIndex].r[3]);
+			XMStoreFloat4(&vert02.position, m_jointsForFrameToPresent[i].r[3]);
 			myDebugRenderer->AddLine(&vert01, &vert02);
 		}
 	}
