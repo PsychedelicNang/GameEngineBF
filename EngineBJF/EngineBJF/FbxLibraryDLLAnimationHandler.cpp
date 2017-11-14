@@ -20,9 +20,9 @@ bool FbxLibraryDLLAnimationHandler::LoadAnimationFBX(const char * _fileName, Ani
 	return true;
 }
 
-bool FbxLibraryDLLAnimationHandler::LoadFBX(const char * _fileName, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector, AnimationComponents::AnimationClip & _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount)
+bool FbxLibraryDLLAnimationHandler::LoadFBX(const char * _fileName, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector, AnimationComponents::BindPose& _bindPose, AnimationComponents::AnimationClip & _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount)
 {
-	if (!((funcHandLoadFBX(_fileName, _outVector, _animationClip, _skelJoints, _scaleAmount)))) return false;
+	if (!((funcHandLoadFBX(_fileName, _outVector, _bindPose, _animationClip, _skelJoints, _scaleAmount)))) return false;
 
 	return true;
 }

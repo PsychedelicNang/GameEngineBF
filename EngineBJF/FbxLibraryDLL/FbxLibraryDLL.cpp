@@ -1391,7 +1391,7 @@ namespace FbxLibraryDLL
 	}
 
 	// WORKING ON THIS ONE
-	FBXLIBRARY_API bool LoadAnimation(const char * _fileName, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector, AnimationComponents::AnimationClip & _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount)
+	FBXLIBRARY_API bool LoadAnimation(const char * _fileName, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector, AnimationComponents::BindPose& _bindPose, AnimationComponents::AnimationClip & _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount)
 	{
 		int m_meshControlPointCount;
 
@@ -1524,6 +1524,7 @@ namespace FbxLibraryDLL
 			AnimationComponents::Keyframe currentKeyframe = AnimationComponents::Keyframe();
 
 			currentKeyframe.joints.resize(_skelJoints.size());
+			_bindPose.joints.resize(_skelJoints.size());
 
 			animDuration.SetFrame(i, FbxTime::EMode::eFrames24);
 			currentKeyframe.time = animDuration.GetSecondDouble();
@@ -1536,19 +1537,45 @@ namespace FbxLibraryDLL
 				{
 					for (int x = 0; x < 4; x++)
 					{
-						currentKeyframe.joints[index].globalTransformArray[count] = (float)currentMatrix.GetRow(y)[x];
+						if (i == 0)
+						{
+							_bindPose.joints[index].globalTransformArray[count] = (float)currentMatrix.GetRow(y)[x];
+							_bindPose.joints[index].jointName = _skelJoints[index].jointName;
+							_bindPose.joints[index].parentIndex = _skelJoints[index].parentIndex;
+							++count;
+						}
+						else
+						{
+							currentKeyframe.joints[index].globalTransformArray[count] = (float)currentMatrix.GetRow(y)[x];
+							currentKeyframe.joints[index].jointName = _skelJoints[index].jointName;
+							currentKeyframe.joints[index].parentIndex = _skelJoints[index].parentIndex;
+							++count;
+						}
+
+					/*	currentKeyframe.joints[index].globalTransformArray[count] = (float)currentMatrix.GetRow(y)[x];
 						currentKeyframe.joints[index].jointName = _skelJoints[index].jointName;
 						currentKeyframe.joints[index].parentIndex = _skelJoints[index].parentIndex;
-						++count;
+						++count;*/
 					}
 				}
+				/*if (i == 0) continue;
+				else ++index;*/
 				++index;
 			}
-			_animationClip.frames.push_back(currentKeyframe);
+			if ( i != 0) _animationClip.frames.push_back(currentKeyframe);
+			//_animationClip.frames.push_back(currentKeyframe);
 		}
 
 		if (_scaleAmount != 1.f)
 		{
+			// Scale the bind pose down
+			for (size_t i = 0; i < _bindPose.joints.size(); i++)
+			{
+				_bindPose.joints[i].globalTransformArray[12] *= _scaleAmount;
+				_bindPose.joints[i].globalTransformArray[13] *= _scaleAmount;
+				_bindPose.joints[i].globalTransformArray[14] *= _scaleAmount;
+			}
+
 			// Scale the model down
 			for (size_t i = 0; i < _skelJoints.size(); i++)
 			{

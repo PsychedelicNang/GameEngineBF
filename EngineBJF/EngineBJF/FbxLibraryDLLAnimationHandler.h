@@ -20,11 +20,11 @@ public:
 
 	bool Initialize();
 	bool LoadAnimationFBX(const char* _fileName, AnimationComponents::AnimationClip& _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount = 1);
-	bool LoadFBX(const char * _fileName, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector, AnimationComponents::AnimationClip & _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount = 1);
+	bool LoadFBX(const char * _fileName, std::vector<MeshComponentsAnimation::OutInformationAdvanced>& _outVector, AnimationComponents::BindPose& _bindPose, AnimationComponents::AnimationClip & _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount = 1);
 private:
 	HINSTANCE hinstLib;
 	typedef bool(*funcLoadAnimationFromFBXFile)(const char*, AnimationComponents::AnimationClip&, std::vector<AnimationComponents::SkeletonJoints>&, float);		//  bool LoadAnimationFromFBXFile(const char* _fileName, AnimationComponents::AnimationClip& _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount = 1);
-	typedef bool(*funcLoadFBX)(const char *, std::vector<MeshComponentsAnimation::OutInformationAdvanced>&, AnimationComponents::AnimationClip &, std::vector<AnimationComponents::SkeletonJoints>&, float);
+	typedef bool(*funcLoadFBX)(const char *, std::vector<MeshComponentsAnimation::OutInformationAdvanced>&, AnimationComponents::BindPose&, AnimationComponents::AnimationClip&, std::vector<AnimationComponents::SkeletonJoints>&, float);
 
 	funcLoadAnimationFromFBXFile funcHandleLoadAnimationFromFBXFile;																						// Pointer to LoadAnimationFromFBXFile function
 	funcLoadFBX funcHandLoadFBX;

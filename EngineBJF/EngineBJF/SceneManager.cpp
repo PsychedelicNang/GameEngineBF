@@ -337,14 +337,15 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 	std::vector<MeshComponentsAnimation::OutInformationAdvanced> meshes3;
 	
 	//if (m_libraryLoadedMesh) m_libraryLoadedMesh = myMeshHandler->LoadAdvancedMeshWithSkinnedAnimationFBX("Teddy/Teddy_Run.fbx", meshes3);
-	bool test = myAnimationHandler->LoadFBX("Teddy/Teddy_Run.fbx", meshes3, animClip, skelJoints, 0.02f);
+	bool test = myAnimationHandler->LoadFBX("Teddy/Teddy_Run.fbx", meshes3, bindPose, animClip, skelJoints, 0.02f);
 	if (m_libraryLoadedMesh) myMeshHandler->ExportAdvancedMeshWithSkinnedAnimationBinary("Teddy/Teddy_Run_Skinned.bin", meshes3[0]);
 	if (m_libraryLoadedMesh) m_libraryLoadedMesh = myTeddyBearAnim->ReadInAdvancedMeshWithSkinnedAnimationFromBinaryFile(myD3DClass->GetDevice(), "Teddy/Teddy_Run_Skinned.bin", 0.02f);
 	
 	for (size_t i = 0; i < skelJoints.size(); i++)
 	{	
 		m_jointMatrices.push_back(XMMATRIX(skelJoints[i].globalTransformArray));
-		m_bindPoseMatrices.push_back(XMMATRIX(animClip.frames[0].joints[i].globalTransformArray));
+		//m_bindPoseMatrices.push_back(XMMATRIX(animClip.frames[0].joints[i].globalTransformArray));
+		m_bindPoseMatrices.push_back(XMMATRIX(bindPose.joints[i].globalTransformArray));
 	}
 	m_bindPoseMatrix = XMMATRIX(skelJoints[0].globalTransformArray);
 	//animClip.frames[0].joints
