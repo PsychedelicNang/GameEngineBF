@@ -1518,7 +1518,7 @@ namespace FbxLibraryDLL
 		FbxLongLong frameCount = animDuration.GetFrameCount(FbxTime::EMode::eFrames24);
 		_animationClip.duration = animDuration.GetSecondDouble();
 
-		// skip bind pose at frame number 0
+		//bind pose is at 0
 		for (FbxLongLong i = 0; i < frameCount; i++)
 		{
 			AnimationComponents::Keyframe currentKeyframe = AnimationComponents::Keyframe();
@@ -1883,6 +1883,7 @@ namespace FbxLibraryDLL
 				}
 			}
 		}
+
 
 		for (size_t i = 0; i < fbxJoints.size(); i++)
 		{

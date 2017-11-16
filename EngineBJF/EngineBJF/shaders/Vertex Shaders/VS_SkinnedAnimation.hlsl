@@ -47,9 +47,13 @@ PixelShaderInput main(VertexShaderInput input)
     skinnedPos = mul(skinnedPos, view);
     skinnedPos = mul(skinnedPos, projection);
 
-    // do same ^ for normals
-	float3 normal = float3(input.normal.x, input.normal.y, input.normal.z);
-	output.normal = float4(mul(normal, (float3x3)model), 1.f);
+    float4 skinnedNormals = float4(0.f, 0.f, 0.f, 0.f);
+    skinnedNormals += mul(transforms[input.joint.x], input.normal) * input.weight.x;
+    skinnedNormals += mul(transforms[input.joint.y], input.normal) * input.weight.y;
+    skinnedNormals += mul(transforms[input.joint.z], input.normal) * input.weight.z;
+    //skinnedNormals += mul(transforms[input.joint.w], input.normal) * input.weight.w;
+    float3 normal = float3(skinnedNormals.x, skinnedNormals.y, skinnedNormals.z);
+    output.normal = float4(mul(normal, (float3x3) model), 1.f);
     output.pos = skinnedPos;
 	output.color = input.color;
 	output.uvs = input.uvs;

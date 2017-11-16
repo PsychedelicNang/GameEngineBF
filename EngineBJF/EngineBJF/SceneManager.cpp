@@ -221,6 +221,9 @@ void SceneManager::Render(void)
 		m_deviceContext->IASetInputLayout(m_PPVSkinnedAnimation.m_IL.Get());
 		m_deviceContext->VSSetShader(m_PPVSkinnedAnimation.m_VS.Get(), NULL, 0);
 		m_deviceContext->PSSetShader(m_PPVSkinnedAnimation.m_PS.Get(), NULL, 0);
+		m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
+		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
+		//m_deviceContext->PSSetShaderResources(1, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
 		myTeddyBearAnim->Render(m_deviceContext);
 
 		m_skinnedAnimationConstantBuffer.Reset();
