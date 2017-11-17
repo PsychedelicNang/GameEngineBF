@@ -67,6 +67,7 @@ private:
 
 	ComPtr<ID3D11Buffer>				m_constantBuffer;
 	ComPtr<ID3D11Buffer>				m_tessellationConstantBuffer;
+	ComPtr<ID3D11Buffer>				m_tessellationQuadConstantBuffer;
 	ComPtr<ID3D11SamplerState>			m_samplerState;
 
 	AnimationComponents::AnimationClip animClip;
@@ -111,7 +112,7 @@ private:
 			XMFLOAT4 cameraPos;
 			XMFLOAT4X4 model;
 		} m_modelCameraConstantBufferData;
-	} m_tessellationStuff;
+	} m_tessellationStuff, m_tessellationQuad;
 
 	struct PPVStuff {
 		std::vector<ID3D11ShaderResourceView*> m_materialsSRVs;
@@ -137,6 +138,7 @@ public:
 
 	ModelViewProjectionConstantBuffer m_constantBufferData;
 	ModelViewProjectionConstantBuffer m_tessellationConstantBufferData;
+	ModelViewProjectionConstantBuffer m_tessellationQuadConstantBufferData;
 
 public:
 	void Initialize(int _screenWidth, int _screenHeight, HWND _hWnd);
@@ -172,6 +174,9 @@ private:
 	bool RunTaskForPPV(void);
 	void RunDebuggerTask(void);
 	void Tessellation(void);
+
+	void TessellationQuad(void);
+	void UpdateTessellationQuadConstantBuffer(void);
 
 	void PlayAnimation(void);
 };

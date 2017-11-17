@@ -30,15 +30,16 @@ struct PixelShaderInput
 	float4 normal : NORMALS;
 };
 
+
 PixelShaderInput main(VertexShaderInput input)
 {
-	PixelShaderInput output;
+    PixelShaderInput output;
     output.padding.x = 0.f;
     output.padding.y = 0.f;
 
-	float4 pos = input.pos;
-	float4 skinnedPos = float4(0.f, 0.f, 0.f, 1.f);
-	pos.w = 1.f;
+    float4 pos = input.pos;
+    float4 skinnedPos = float4(0.f, 0.f, 0.f, 1.f);
+    pos.w = 1.f;
     skinnedPos += mul(transforms[input.joint.x], pos) * input.weight.x;
     skinnedPos += mul(transforms[input.joint.y], pos) * input.weight.y;
     skinnedPos += mul(transforms[input.joint.z], pos) * input.weight.z;
@@ -55,7 +56,8 @@ PixelShaderInput main(VertexShaderInput input)
     float3 normal = float3(skinnedNormals.x, skinnedNormals.y, skinnedNormals.z);
     output.normal = float4(mul(normal, (float3x3) model), 1.f);
     output.pos = skinnedPos;
-	output.color = input.color;
-	output.uvs = input.uvs;
-	return output;
+    output.color = input.color;
+    output.uvs = input.uvs;
+    return output;
 }
+

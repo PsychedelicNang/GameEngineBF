@@ -19,6 +19,9 @@
 #include <d3d11.h>
 #include <DirectXMath.h>	// XMFLOAT & XMMATRIX
 
+//// Assert that the constant buffer remains 16-byte aligned.
+//static_assert((sizeof(ConstantBufferStruct) % 16) == 0, "Constant Buffer size must be 16-byte aligned");
+
 using namespace DirectX;
 class D3DInitializer {
 public:
@@ -46,7 +49,13 @@ public:
 	XMMATRIX GetOrthographicMatrix();
 
 	void GetVideoCardInfo(char* _cardName, int& _amountOfMemory);
+
+	bool ReinitializeRasterizerState(bool _backFaceCulling, bool m_wireframe);
+	bool GetBackFaceCullingValue(void);
+	bool GetWireframeValue(void);
 private:
+	bool m_backFaceCulling;
+	bool m_wireframe;
 	bool m_vsync_enabled;
 	int m_videoCardMemory;
 	char m_videoCardDescription[128];
@@ -76,6 +85,7 @@ private:
 	bool InitializeClassMatrices(int _screenWidth, int _screenHeight, float _screenFar, float _screenNear);
 
 	void ShutdownComponents();
+	bool ReinitializeRasterizerStatePrivate(bool _backFaceCulling, bool m_wireframe);
 };
 
 #endif // !_D3DINITIALIZER_H_

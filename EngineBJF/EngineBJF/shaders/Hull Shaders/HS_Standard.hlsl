@@ -30,11 +30,11 @@ struct HS_CONSTANT_DATA_OUTPUT
 	float InsideTessFactor		: SV_InsideTessFactor; // e.g. would be Inside[2] for a quad domain
 };
 
-//#define NUM_CONTROL_POINTS 4
+#define NUM_CONTROL_POINTS 3
 
 // Patch Constant Function
 //HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants( InputPatch<VS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> ip, uint PatchID : SV_PrimitiveID)
-HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_CONTROL_POINT_OUTPUT, 3> patch, uint PatchID : SV_PrimitiveID)
+HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> patch, uint PatchID : SV_PrimitiveID)
 {
 	HS_CONSTANT_DATA_OUTPUT Output;
 
@@ -66,7 +66,7 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(InputPatch<VS_CONTROL_POINT_OUTPUT,
 [outputcontrolpoints(3)]		// number of control points sent to the Domain Shader
 [patchconstantfunc("CalcHSPatchConstants")]	// points to HLSL function which computes
 HS_CONTROL_POINT_OUTPUT main(
-	InputPatch<VS_CONTROL_POINT_OUTPUT, 3> p,
+	InputPatch<VS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> p,
 	uint i : SV_OutputControlPointID,
 	uint PatchID : SV_PrimitiveID)
 {

@@ -197,6 +197,18 @@
     <FxCompile Include="shaders\Vertex Shaders\VS_SkinnedAnimation.hlsl">
       <Filter>Shaders\Vertex Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="shaders\Vertex Shaders\VS_TessellationQuad.hlsl">
+      <Filter>Shaders\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Pixel Shaders\PS_TessellationQuad.hlsl">
+      <Filter>Shaders\Pixel Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Domain Shaders\DS_TessellationQuad.hlsl">
+      <Filter>Shaders\Domain Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Hull Shaders\HS_TessellationQuad.hlsl">
+      <Filter>Shaders\Hull Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Teddy_Idle.fbx" />

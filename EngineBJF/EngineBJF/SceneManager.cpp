@@ -187,6 +187,8 @@ void SceneManager::Render(void)
 
 		UpdateStandardConstantBuffer(myTeddyBear->GetObjectMatrix());
 		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
+		m_deviceContext->PSSetShaderResources(1, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
+		//m_deviceContext->PSSetShaderResources(2, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
 		myTeddyBear->Render(m_deviceContext);
 
 		/**********************Skeleton Animation**********************/
@@ -253,6 +255,25 @@ void SceneManager::Render(void)
 	m_deviceContext->DSSetShader(NULL, NULL, 0);
 	/********************Tessellation******************************/
 
+	/********************TessellationQuad******************************/
+	//m_deviceContext->IASetInputLayout(m_tessellationQuad.inputLayout.Get());
+	//
+	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
+	//UINT stride = sizeof(VertexPositionColor);
+	//UINT offset = 0;
+	//
+	//UpdateTessellationQuadConstantBuffer();
+	//m_deviceContext->IASetVertexBuffers(0, 1, m_tessellationQuad.m_quadVertexBuffer.GetAddressOf(), &stride, &offset);
+	//m_deviceContext->VSSetShader(m_tessellationQuad.vertexShader.Get(), NULL, 0);
+	//m_deviceContext->PSSetShader(m_tessellationQuad.pixelShader.Get(), NULL, 0);
+	//m_deviceContext->HSSetShader(m_tessellationQuad.hullShader.Get(), NULL, 0);
+	//m_deviceContext->DSSetShader(m_tessellationQuad.domainShader.Get(), NULL, 0);
+	//
+	//m_deviceContext->Draw(4, 0);
+	//m_deviceContext->HSSetShader(NULL, NULL, 0);
+	//m_deviceContext->DSSetShader(NULL, NULL, 0);
+	/********************TessellationQuad******************************/
+
 	m_deviceContext.Reset();
 	m_device.Reset();
 
@@ -285,6 +306,23 @@ void SceneManager::UpdateTessellationConstantBuffer(void)
 	myD3DClass->GetDeviceContext()->DSSetConstantBuffers(2, 1, m_tessellationConstantBuffer.GetAddressOf());
 }
 
+void SceneManager::UpdateTessellationQuadConstantBuffer(void)
+{
+	XMMATRIX quadModel = XMMatrixTranslation(0.f, 0.f, 20.f);
+	XMStoreFloat4x4(&m_tessellationQuad.m_modelCameraConstantBufferData.model, XMMatrixTranspose(quadModel));
+	XMVECTOR camPos = myCamera->GetCameraMatrix().r[3];
+	m_tessellationQuad.m_modelCameraConstantBufferData.cameraPos = XMFLOAT4(camPos.m128_f32[0], camPos.m128_f32[1], camPos.m128_f32[2], camPos.m128_f32[3]);
+
+	myD3DClass->GetDeviceContext()->UpdateSubresource(m_tessellationQuad.m_modelCameraConstantBuffer.Get(), 0, NULL, &m_tessellationQuad.m_modelCameraConstantBufferData, 0, 0);
+	XMStoreFloat4x4(&m_tessellationQuadConstantBufferData.model, XMMatrixTranspose(quadModel));
+	XMStoreFloat4x4(&m_tessellationQuadConstantBufferData.view, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.view)));
+	XMStoreFloat4x4(&m_tessellationQuadConstantBufferData.projection, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.projection)));
+	myD3DClass->GetDeviceContext()->UpdateSubresource(m_tessellationQuadConstantBuffer.Get(), 0, NULL, &m_tessellationQuadConstantBufferData, 0, 0);
+
+	myD3DClass->GetDeviceContext()->HSSetConstantBuffers(1, 1, m_tessellationQuad.m_modelCameraConstantBuffer.GetAddressOf());
+	myD3DClass->GetDeviceContext()->DSSetConstantBuffers(2, 1, m_tessellationQuadConstantBuffer.GetAddressOf());
+}
+
 bool SceneManager::LoadCompiledShaderData(char **byteCode, size_t &byteCodeSize, const char *fileName)
 {
 	std::ifstream load;
@@ -308,16 +346,16 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 	InitializeShadersAndInputLayout(m_defaultPipeline.pixel_shader, m_defaultPipeline.vertex_shader, m_defaultPipeline.input_layout);
 	InitializeSamplerState(m_samplerState);
 
-	float m_viewportWidth = 1024;
-	float m_viewportHeight = 768;
-	float m_cameraZoom = 70.0f;
-	float m_nearPlane = 0.1f;
-	float m_farPlane = 10000.0f;
-	XMVECTOR eye = { -1.0f, 3.f, 5.f, 1.0f };
-	XMVECTOR at = { 0.0f, 0.f, 0.f, 1.0f };
-	XMVECTOR up = { 0.0f, 1.0f, 0.0f, 1.0f };
-	myCamera->Initialize(m_viewportWidth, m_viewportHeight, m_nearPlane, m_farPlane, m_cameraZoom, eye, at, up);
-	//myCamera->Initialize();
+	//float m_viewportWidth = 1024;
+	//float m_viewportHeight = 768;
+	//float m_cameraZoom = 70.0f;
+	//float m_nearPlane = 0.1f;
+	//float m_farPlane = 10000.0f;
+	//XMVECTOR eye = { -1.0f, 3.f, 5.f, 1.0f };
+	//XMVECTOR at = { 0.0f, 0.f, 0.f, 1.0f };
+	//XMVECTOR up = { 0.0f, 1.0f, 0.0f, 1.0f };
+	//myCamera->Initialize(m_viewportWidth, m_viewportHeight, m_nearPlane, m_farPlane, m_cameraZoom, eye, at, up);
+	myCamera->Initialize();
 
 	myCube->Initialize(myD3DClass->GetDevice());
 	myTerrain->Initialize(myD3DClass->GetDevice());
@@ -356,6 +394,7 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 	myTeddyBear->ObjectChangePosition(-3.f, -2.f, -5.f);
 	myBattleMage->ObjectChangePosition(0.f, -2.f, -5.f);
 	Tessellation();
+	//TessellationQuad();
 }
 
 float SceneManager::GetTimeBetweenFrames()
@@ -402,51 +441,6 @@ void SceneManager::CheckUserInput()
 	if (returnValue) {
 		myCamera->MoveCameraLocalDown(m_timeBetweenFrames, 20.f);
 	}
-
-	myGInput->GetState(G_KEY_P, returnValue);
-	if (returnValue) {
-		m_cameraState = cameraDefault;
-	}
-
-	myGInput->GetState(G_KEY_T, returnValue);
-	if (returnValue) {
-		m_cameraState = turnToCube;
-	}
-
-	myGInput->GetState(G_KEY_Y, returnValue);
-	if (returnValue) {
-		m_cameraState = turnToMesh;
-	}
-
-	myGInput->GetState(G_KEY_K, returnValue);
-	if (returnValue) {
-		m_cameraState = lookAtCube;
-	}
-
-	myGInput->GetState(G_KEY_L, returnValue);
-	if (returnValue) {
-		m_cameraState = lookAtMesh;
-	}
-
-	myGInput->GetState(G_KEY_O, returnValue);
-	if (returnValue) {
-		m_cameraState = lookAtOrigin;
-	}
-
-	myGInput->GetState(G_KEY_R, returnValue);
-	if (returnValue) {
-		m_rotate = !m_rotate;
-	}
-
-	//myGInput->GetState(G_KEY_UP, returnValue);
-	//if (returnValue) {
-	//	if (animationFrame < 60) animationFrame++;
-	//}
-
-	//myGInput->GetState(G_KEY_DOWN, returnValue);
-	//if (returnValue) {
-	//	if (animationFrame > 0) animationFrame--;
-	//}
 }
 
 // Checks user input for toggling events
@@ -473,6 +467,33 @@ void SceneManager::CheckUserInput(WPARAM _wParam)
 		break;
 	case '2':
 		freeRun = false;
+		break;
+	case 'P':
+		m_cameraState = cameraDefault;
+		break;
+	case 'T':
+		m_cameraState = turnToCube;
+		break;
+	case 'Y':
+		m_cameraState = turnToMesh;
+		break;
+	case 'K':
+		m_cameraState = lookAtCube;
+		break;
+	case 'L':
+		m_cameraState = lookAtMesh;
+		break;
+	case 'O':
+		m_cameraState = lookAtOrigin;
+		break;
+	case 'R':
+		m_rotate = !m_rotate;
+		break;
+	case 'N':
+		myD3DClass->ReinitializeRasterizerState(!myD3DClass->GetBackFaceCullingValue(), myD3DClass->GetWireframeValue());
+		break;
+	case 'M':
+		myD3DClass->ReinitializeRasterizerState(myD3DClass->GetBackFaceCullingValue(), !myD3DClass->GetWireframeValue());
 		break;
 	default:
 		break;
@@ -757,6 +778,66 @@ void SceneManager::Tessellation(void)
 	size_t byteCodeSize4 = 0;
 	LoadCompiledShaderData(&bytecode4, byteCodeSize4, "Shaders/Pixel Shaders/PS_Tessellation.cso");
 	myD3DClass->GetDevice()->CreatePixelShader(bytecode4, byteCodeSize4, nullptr, m_tessellationStuff.pixelShader.GetAddressOf());
+	delete[] bytecode4;
+}
+
+void SceneManager::TessellationQuad(void)
+{
+	D3D11_BUFFER_DESC quadBuffDesc;
+	quadBuffDesc.Usage = D3D11_USAGE_IMMUTABLE;
+	quadBuffDesc.ByteWidth = sizeof(VertexPositionColor) * 4;
+	quadBuffDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	quadBuffDesc.CPUAccessFlags = 0;
+	quadBuffDesc.MiscFlags = 0;
+
+	VertexPositionColor vertices[] =
+	{
+		{ XMFLOAT4(+10.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 1.f, 1.f) },
+		{ XMFLOAT4(-10.f, 0.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 1.f, 1.f) },
+		{ XMFLOAT4(-10.f, 10.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 1.f, 1.f) },
+		{ XMFLOAT4(+10.f, 10.f, 0.f, 1.f), XMFLOAT4(1.f, 1.f, 1.f, 1.f) }
+	};
+
+	D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
+	vertexBufferData.pSysMem = vertices;
+	vertexBufferData.SysMemPitch = 0;
+	vertexBufferData.SysMemSlicePitch = 0;
+	HRESULT hr = myD3DClass->GetDevice()->CreateBuffer(&quadBuffDesc, &vertexBufferData, m_tessellationQuad.m_quadVertexBuffer.GetAddressOf());
+
+	CD3D11_BUFFER_DESC constantBufferDesc(sizeof(TessellationStuff::ModelCameraConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+	myD3DClass->GetDevice()->CreateBuffer(&constantBufferDesc, nullptr, m_tessellationQuad.m_modelCameraConstantBuffer.GetAddressOf());
+
+	CD3D11_BUFFER_DESC tessellationConstantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+	myD3DClass->GetDevice()->CreateBuffer(&tessellationConstantBufferDesc, nullptr, m_tessellationQuadConstantBuffer.GetAddressOf());
+
+	char* bytecode = nullptr;
+	size_t byteCodeSize = 0;
+	LoadCompiledShaderData(&bytecode, byteCodeSize, "Shaders/Vertex Shaders/VS_TessellationQuad.cso");
+	myD3DClass->GetDevice()->CreateVertexShader(bytecode, byteCodeSize, nullptr, m_tessellationQuad.vertexShader.GetAddressOf());
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] = {
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	hr = myD3DClass->GetDevice()->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), bytecode, byteCodeSize, m_tessellationQuad.inputLayout.GetAddressOf());
+	delete[] bytecode;
+
+	char* bytecode2 = nullptr;
+	size_t byteCodeSize2 = 0;
+	LoadCompiledShaderData(&bytecode2, byteCodeSize2, "Shaders/Domain Shaders/DS_TessellationQuad.cso");
+	myD3DClass->GetDevice()->CreateDomainShader(bytecode2, byteCodeSize2, nullptr, m_tessellationQuad.domainShader.GetAddressOf());
+	delete[] bytecode2;
+
+	char* bytecode3 = nullptr;
+	size_t byteCodeSize3 = 0;
+	LoadCompiledShaderData(&bytecode3, byteCodeSize3, "Shaders/Hull Shaders/HS_TessellationQuad.cso");
+	myD3DClass->GetDevice()->CreateHullShader(bytecode3, byteCodeSize3, nullptr, m_tessellationQuad.hullShader.GetAddressOf());
+	delete[] bytecode3;
+
+	char* bytecode4 = nullptr;
+	size_t byteCodeSize4 = 0;
+	LoadCompiledShaderData(&bytecode4, byteCodeSize4, "Shaders/Pixel Shaders/PS_TessellationQuad.cso");
+	myD3DClass->GetDevice()->CreatePixelShader(bytecode4, byteCodeSize4, nullptr, m_tessellationQuad.pixelShader.GetAddressOf());
 	delete[] bytecode4;
 }
 
