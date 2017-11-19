@@ -306,6 +306,11 @@ void Camera::SetCamera(XMMATRIX _camera)
 	XMStoreFloat4x4(&m_camera, _camera);
 }
 
+void Camera::AdjustCameraZoom(float _amount)
+{
+	m_cameraZoom += _amount;
+}
+
 XMFLOAT4X4 Camera::GetCameraFloat4x4()
 {
 	return m_camera;

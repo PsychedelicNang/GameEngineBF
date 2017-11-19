@@ -45,6 +45,8 @@ public:
 	void SetCamera(XMFLOAT4X4 _camera);
 	void SetCamera(XMMATRIX _camera);
 
+	void AdjustCameraZoom(float _amount);
+
 	XMFLOAT4X4 GetCameraFloat4x4();
 	XMMATRIX GetCameraMatrix();
 	XMVECTOR GetCameraEye();

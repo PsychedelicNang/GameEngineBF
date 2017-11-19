@@ -47,6 +47,7 @@ private:
 	const bool VSYNC_ENABLED = true;
 	const float SCREEN_FAR = 1000.0f;
 	const float SCREEN_NEAR = 0.1f;
+	float m_movementScale;
 
 	bool m_libraryLoadedMaterial;
 	bool m_libraryLoadedMesh;
@@ -94,6 +95,7 @@ private:
 	} m_SkinnedTransforms;
 
 	int animationFrame;
+
 	struct PipelineState
 	{
 		ComPtr<ID3D11InputLayout>			input_layout;

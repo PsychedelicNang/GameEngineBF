@@ -29,6 +29,7 @@ SceneManager::SceneManager()
 	animationFrame = 0;
 	m_timeForAnimation = 0;
 	freeRun = true;
+	m_movementScale = 1.f;
 	// Decrement count of GInput
 }
 
@@ -442,32 +443,42 @@ void SceneManager::CheckUserInput()
 
 	myGInput->GetState(G_KEY_A, returnValue);
 	if (returnValue) {
-		myCamera->MoveCameraLocalLeft(m_timeBetweenFrames, 20.f);
+		myCamera->MoveCameraLocalLeft(m_timeBetweenFrames, 20.f * m_movementScale);
 	}
 
 	myGInput->GetState(G_KEY_D, returnValue);
 	if (returnValue) {
-		myCamera->MoveCameraLocalRight(m_timeBetweenFrames, 20.f);
+		myCamera->MoveCameraLocalRight(m_timeBetweenFrames, 20.f * m_movementScale);
 	}
 
 	myGInput->GetState(G_KEY_W, returnValue);
 	if (returnValue) {
-		myCamera->MoveCameraLocalForward(m_timeBetweenFrames, 20.f);
+		myCamera->MoveCameraLocalForward(m_timeBetweenFrames, 20.f * m_movementScale);
 	}
 
 	myGInput->GetState(G_KEY_S, returnValue);
 	if (returnValue) {
-		myCamera->MoveCameraLocalBackward(m_timeBetweenFrames, 20.f);
+		myCamera->MoveCameraLocalBackward(m_timeBetweenFrames, 20.f * m_movementScale);
 	}
 
 	myGInput->GetState(G_KEY_SPACE, returnValue);
 	if (returnValue) {
-		myCamera->MoveCameraLocalUp(m_timeBetweenFrames, 20.f);
+		myCamera->MoveCameraLocalUp(m_timeBetweenFrames, 20.f * m_movementScale);
 	}
 
 	myGInput->GetState(G_KEY_X, returnValue);
 	if (returnValue) {
-		myCamera->MoveCameraLocalDown(m_timeBetweenFrames, 20.f);
+		myCamera->MoveCameraLocalDown(m_timeBetweenFrames, 20.f * m_movementScale);
+	}
+
+	myGInput->GetState(G_KEY_U, returnValue);
+	if (returnValue) {
+		myCamera->AdjustCameraZoom(-.1f);
+	}
+
+	myGInput->GetState(G_KEY_J, returnValue);
+	if (returnValue) {
+		myCamera->AdjustCameraZoom(.1f);
 	}
 }
 
@@ -522,6 +533,15 @@ void SceneManager::CheckUserInput(WPARAM _wParam)
 		break;
 	case 'M':
 		myD3DClass->ReinitializeRasterizerState(myD3DClass->GetBackFaceCullingValue(), !myD3DClass->GetWireframeValue());
+		break;
+	case VK_CONTROL:
+		m_movementScale = 0.1f;
+		break;
+	case VK_SHIFT:
+		m_movementScale = 0.5f;
+		break;
+	case VK_CAPITAL:
+		m_movementScale = 1.f;
 		break;
 	default:
 		break;
