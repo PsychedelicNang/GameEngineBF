@@ -167,7 +167,7 @@ void ParticleSystem::ShutdownParticleSystem()
 
 bool ParticleSystem::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 {
-	unsigned long* indices;
+	unsigned int* indices;
 	int i;
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
@@ -187,7 +187,7 @@ bool ParticleSystem::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 	}
 
 	// Create the index array.
-	indices = new unsigned long[m_indexCount];
+	indices = new unsigned int[m_indexCount];
 	if (!indices)
 	{
 		return false;
@@ -224,7 +224,7 @@ bool ParticleSystem::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 
 	// Set up the description of the static index buffer.
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.ByteWidth = sizeof(unsigned long) * m_indexCount;
+	indexBufferDesc.ByteWidth = sizeof(unsigned int) * m_indexCount;
 	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	indexBufferDesc.CPUAccessFlags = 0;
 	indexBufferDesc.MiscFlags = 0;

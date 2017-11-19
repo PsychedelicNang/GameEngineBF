@@ -102,6 +102,12 @@
     <ClInclude Include="ParticleSystem.h">
       <Filter>Header Files\New classes</Filter>
     </ClInclude>
+    <ClInclude Include="FPSInformation.h">
+      <Filter>Header Files\New classes</Filter>
+    </ClInclude>
+    <ClInclude Include="CPUInformation.h">
+      <Filter>Header Files\New classes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp">
@@ -142,6 +148,12 @@
     </ClCompile>
     <ClCompile Include="ParticleSystem.cpp">
       <Filter>Source Files\New classes</Filter>
+    </ClCompile>
+    <ClCompile Include="FPSInformation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPUInformation.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -18,6 +18,8 @@
 #include "FbxLibraryDLLMaterialHandler.h"
 #include "FbxLibraryDLLAnimationHandler.h"
 #include "ParticleSystem.h"
+#include "FPSInformation.h"
+#include "CPUInformation.h"
 
 // Time
 #include "XTime.h"
@@ -60,8 +62,11 @@ private:
 	FbxLibraryDLLMaterialHandler*	myMaterialHandler;
 	FbxLibraryDLLMeshHandler*		myMeshHandler;
 	FbxLibraryDLLAnimationHandler*	myAnimationHandler;
-	GW::SYSTEM::GInput*				myGInput;
 	ParticleSystem*					myParticleSystem;
+	FPSInformation*					myFPSInformation;
+	CPUInformation*					myCPUInformation;
+
+	GW::SYSTEM::GInput*				myGInput;
 	XTime m_timer;
 	XTime m_animationTimer;
 	float m_timeBetweenFrames;

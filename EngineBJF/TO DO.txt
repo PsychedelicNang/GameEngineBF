@@ -6,3 +6,7 @@ Clean up FBX DLL code
 Refactor Animation code in SceneManager and Object classes
 Object instancing
 Animation states and a controllable character
+
+Weather System
+
+Use Map() and Unmap() instead of creating a new buffer

@@ -18,6 +18,8 @@ SceneManager::SceneManager()
 	myMeshHandler		= new FbxLibraryDLLMeshHandler();
 	myAnimationHandler	= new FbxLibraryDLLAnimationHandler();
 	myParticleSystem	= new ParticleSystem();
+	myFPSInformation	= new FPSInformation();
+	myCPUInformation	= new CPUInformation();
 	mouseMove = false;
 	m_rotate = false;
 	m_cameraState = cameraDefault;
@@ -45,6 +47,8 @@ SceneManager::~SceneManager()
 	if (myAnimationHandler) delete myAnimationHandler;
 	if (myGInput) 	myGInput->DecrementCount();
 	if (myParticleSystem) delete myParticleSystem;
+	if (myFPSInformation) delete myFPSInformation;
+	if (myCPUInformation) delete myCPUInformation;
 }
 
 void SceneManager::Initialize(int _screenWidth, int _screenHeight, HWND _hWnd)
@@ -121,6 +125,9 @@ void SceneManager::Update(void)
 
 	myParticleSystem->UpdateFrame(m_timeBetweenFrames, myD3DClass->GetDeviceContext());
 
+	myFPSInformation->Update(m_timeBetweenFrames);
+	myCPUInformation->Update();
+	printf("Frames: %i, CPU Usage: %i%c\n", myFPSInformation->GetFps(), myCPUInformation->GetCpuPercentage(), '%');
 	CheckUserInput();
 	
 	switch (m_cameraState)
@@ -413,6 +420,9 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 	myBattleMage->ObjectChangePosition(0.f, -2.f, -5.f);
 	Tessellation();
 	//TessellationQuad();
+
+	myFPSInformation->Initialize();
+	myCPUInformation->Initialize();
 }
 
 float SceneManager::GetTimeBetweenFrames()
