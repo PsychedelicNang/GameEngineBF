@@ -3,7 +3,7 @@
 SceneManager::SceneManager()
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	//_CrtSetBreakAlloc(228);
+	//_CrtSetBreakAlloc(272);
 	m_libraryLoadedMaterial = false;
 	m_libraryLoadedMesh = false;
 	myCube				= new Object();
@@ -17,6 +17,7 @@ SceneManager::SceneManager()
 	myMaterialHandler	= new FbxLibraryDLLMaterialHandler();
 	myMeshHandler		= new FbxLibraryDLLMeshHandler();
 	myAnimationHandler	= new FbxLibraryDLLAnimationHandler();
+	myParticleSystem	= new ParticleSystem();
 	mouseMove = false;
 	m_rotate = false;
 	m_cameraState = cameraDefault;
@@ -43,6 +44,7 @@ SceneManager::~SceneManager()
 	if (myMeshHandler) delete myMeshHandler;
 	if (myAnimationHandler) delete myAnimationHandler;
 	if (myGInput) 	myGInput->DecrementCount();
+	if (myParticleSystem) delete myParticleSystem;
 }
 
 void SceneManager::Initialize(int _screenWidth, int _screenHeight, HWND _hWnd)
@@ -117,6 +119,8 @@ void SceneManager::Update(void)
 		m_timeForAnimation = 0;
 	}
 
+	myParticleSystem->UpdateFrame(m_timeBetweenFrames, myD3DClass->GetDeviceContext());
+
 	CheckUserInput();
 	
 	switch (m_cameraState)
@@ -164,12 +168,14 @@ void SceneManager::Update(void)
 
 void SceneManager::Render(void)
 {
-	float RGBA[4] = { .25f, .5f, 1.f, 1.f };
+	float RGBA[4] = { .2f, .5f, 1.f, 1.f };
+	//float RGBA[4] = { 0.f, 0.f, 0.f, 1.f };
+
 	myD3DClass->BeginScene(RGBA);
 
 	ComPtr<ID3D11DeviceContext> m_deviceContext = myD3DClass->GetDeviceContext();
-	ComPtr<ID3D11Device> m_device = myD3DClass->GetDevice();
-		
+	ComPtr<ID3D11Device> m_device = myD3DClass->GetDevice();		
+#if 1
 	if (m_libraryLoadedMesh && m_libraryLoadedMesh)
 	{
 		m_deviceContext->IASetInputLayout(m_PPVBattleMage.m_IL.Get());
@@ -274,6 +280,18 @@ void SceneManager::Render(void)
 	//m_deviceContext->DSSetShader(NULL, NULL, 0);
 	/********************TessellationQuad******************************/
 
+
+	myD3DClass->EnableAlphaBlending();
+	m_deviceContext->IASetInputLayout(m_particlePipeline.input_layout.Get());
+	m_deviceContext->VSSetShader(m_particlePipeline.vertex_shader.Get(), NULL, 0);
+	m_deviceContext->PSSetShader(m_particlePipeline.pixel_shader.Get(), NULL, 0);
+	m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
+	XMMATRIX particleModel = XMMatrixTranslation(2.f, 3.f, 3.f);
+	UpdateStandardConstantBuffer(particleModel);
+	myParticleSystem->Render(m_deviceContext);
+	myD3DClass->DisableAlphaBlending();
+#endif
+
 	m_deviceContext.Reset();
 	m_device.Reset();
 
@@ -345,17 +363,17 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 	InitializeConstantBuffer(m_constantBuffer);
 	InitializeShadersAndInputLayout(m_defaultPipeline.pixel_shader, m_defaultPipeline.vertex_shader, m_defaultPipeline.input_layout);
 	InitializeSamplerState(m_samplerState);
-
-	//float m_viewportWidth = 1024;
-	//float m_viewportHeight = 768;
-	//float m_cameraZoom = 70.0f;
-	//float m_nearPlane = 0.1f;
-	//float m_farPlane = 10000.0f;
-	//XMVECTOR eye = { -1.0f, 3.f, 5.f, 1.0f };
-	//XMVECTOR at = { 0.0f, 0.f, 0.f, 1.0f };
-	//XMVECTOR up = { 0.0f, 1.0f, 0.0f, 1.0f };
-	//myCamera->Initialize(m_viewportWidth, m_viewportHeight, m_nearPlane, m_farPlane, m_cameraZoom, eye, at, up);
-	myCamera->Initialize();
+	ParticleSystemStuff();
+	float m_viewportWidth = 1024;
+	float m_viewportHeight = 768;
+	float m_cameraZoom = 70.0f;
+	float m_nearPlane = 0.1f;
+	float m_farPlane = 10000.0f;
+	XMVECTOR eye = { 3.0f, 3.f, -5.f, 1.0f };
+	XMVECTOR at = { 3.0f, 3.f, 0.f, 1.0f };
+	XMVECTOR up = { 0.0f, 1.0f, 0.0f, 1.0f };
+	myCamera->Initialize(m_viewportWidth, m_viewportHeight, m_nearPlane, m_farPlane, m_cameraZoom, eye, at, up);
+	//myCamera->Initialize();
 
 	myCube->Initialize(myD3DClass->GetDevice());
 	myTerrain->Initialize(myD3DClass->GetDevice());
@@ -918,6 +936,29 @@ void SceneManager::PlayAnimation(void)
 			myDebugRenderer->AddLine(&vert01, &vert02);
 		}
 	}
+}
+
+void SceneManager::ParticleSystemStuff(void)
+{
+	bool result = myParticleSystem->Initialize(myD3DClass->GetDevice(), L"star.png");
+	char* bytecode = nullptr;
+	size_t byteCodeSize = 0;
+	LoadCompiledShaderData(&bytecode, byteCodeSize, "Shaders/Pixel Shaders/PS_Particle.cso");
+	myD3DClass->GetDevice()->CreatePixelShader(bytecode, byteCodeSize, nullptr, m_particlePipeline.pixel_shader.GetAddressOf());
+	delete[] bytecode;
+
+	char* bytecode2 = nullptr;
+	size_t byteCodeSize2 = 0;
+	LoadCompiledShaderData(&bytecode2, byteCodeSize2, "Shaders/Vertex Shaders/VS_Particle.cso");
+	myD3DClass->GetDevice()->CreateVertexShader(bytecode2, byteCodeSize2, nullptr, m_particlePipeline.vertex_shader.GetAddressOf());
+
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] = {
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+	HRESULT hr = myD3DClass->GetDevice()->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), bytecode2, byteCodeSize2, m_particlePipeline.input_layout.GetAddressOf());
+	delete[] bytecode2;
 }
 
 SceneManager::PPVStuff::~PPVStuff()

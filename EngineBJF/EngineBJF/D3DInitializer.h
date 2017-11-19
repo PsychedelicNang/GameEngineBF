@@ -37,6 +37,9 @@ public:
 	void EnableZBuffer();
 	void DisableZBuffer();
 
+	void EnableAlphaBlending(void);
+	void DisableAlphaBlending(void);
+
 	void EndScene();
 
 	void Shutdown();
@@ -53,6 +56,7 @@ public:
 	bool ReinitializeRasterizerState(bool _backFaceCulling, bool m_wireframe);
 	bool GetBackFaceCullingValue(void);
 	bool GetWireframeValue(void);
+
 private:
 	bool m_backFaceCulling;
 	bool m_wireframe;
@@ -69,6 +73,8 @@ private:
 	ComPtr<ID3D11DepthStencilState>		m_depthDisabledStencilState;
 	ComPtr<ID3D11DepthStencilView>		m_depthStencilView;
 	ComPtr<ID3D11RasterizerState>		m_rasterState;
+	ComPtr<ID3D11BlendState>			m_alphaEnabledBlendState;
+	ComPtr<ID3D11BlendState>			m_alphaDisabledBlendState;
 	D3D11_VIEWPORT						m_viewport;
 	XMMATRIX m_projectionMatrix;
 	XMMATRIX m_worldMatrix;
@@ -81,6 +87,7 @@ private:
 	bool InitializeDepthBufferViewAndState(int _screenWidth, int _screenHeight);
 	bool InitializeRenderTargetView();
 	bool InitializeRasterizerState();
+	bool InitializeBlendState();
 	bool InitializeViewport(int _screenWidth, int _screenHeight);
 	bool InitializeClassMatrices(int _screenWidth, int _screenHeight, float _screenFar, float _screenNear);
 

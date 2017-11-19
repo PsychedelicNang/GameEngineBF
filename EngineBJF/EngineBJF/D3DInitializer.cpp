@@ -13,6 +13,8 @@ D3DInitializer::D3DInitializer()
 	m_depthDisabledStencilState = nullptr;
 	m_depthStencilView			= nullptr;
 	m_rasterState				= nullptr;
+	m_alphaEnabledBlendState	= nullptr;
+	m_alphaDisabledBlendState	= nullptr;
 }
 
 D3DInitializer::~D3DInitializer()
@@ -43,6 +45,9 @@ bool D3DInitializer::Initialize(int _screenWidth, int _screenHeight, bool _vsync
 
 	// Creates the rasterizer state
 	if (!InitializeRasterizerState())																										return false;
+
+	// Create the blend state
+	if (!InitializeBlendState())																											return false;
 
 	// Creates the viewport
 	if (!InitializeViewport(_screenWidth, _screenHeight))																					return false;
@@ -92,6 +97,20 @@ void D3DInitializer::EnableZBuffer()
 void D3DInitializer::DisableZBuffer()
 {
 	m_deviceContext->OMSetDepthStencilState(m_depthDisabledStencilState.Get(), 1);
+}
+
+void D3DInitializer::EnableAlphaBlending(void)
+{
+	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	UINT sampleMask = 0xFFFFFFFF;
+	m_deviceContext->OMSetBlendState(m_alphaEnabledBlendState.Get(), blendFactor, sampleMask);
+}
+
+void D3DInitializer::DisableAlphaBlending(void)
+{
+	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	UINT sampleMask = 0xFFFFFFFF;
+	m_deviceContext->OMSetBlendState(m_alphaDisabledBlendState.Get(), blendFactor, sampleMask);
 }
 
 void D3DInitializer::EndScene()
@@ -498,13 +517,17 @@ bool D3DInitializer::InitializeRasterizerState()
 
 	// Setup the raster description which will determine how and what polygons will be drawn.
 	rasterDesc.AntialiasedLineEnable = false;
-	//rasterDesc.CullMode = D3D11_CULL_BACK;
-	rasterDesc.CullMode = D3D11_CULL_NONE;
+	if (m_backFaceCulling)
+		rasterDesc.CullMode = D3D11_CULL_BACK;
+	else
+		rasterDesc.CullMode = D3D11_CULL_NONE;
 	rasterDesc.DepthBias = 0;
 	rasterDesc.DepthBiasClamp = 0.0f;
 	rasterDesc.DepthClipEnable = true;
-	//rasterDesc.FillMode = D3D11_FILL_SOLID;
-	rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
+	if (m_wireframe)
+		rasterDesc.FillMode = D3D11_FILL_WIREFRAME;
+	else
+		rasterDesc.FillMode = D3D11_FILL_SOLID;
 	rasterDesc.FrontCounterClockwise = false;
 	rasterDesc.MultisampleEnable = false;
 	rasterDesc.ScissorEnable = false;
@@ -519,6 +542,43 @@ bool D3DInitializer::InitializeRasterizerState()
 
 	// Now set the rasterizer state.
 	m_deviceContext->RSSetState(m_rasterState.Get());
+
+	return true;
+}
+
+bool D3DInitializer::InitializeBlendState()
+{
+	D3D11_BLEND_DESC blendStateDescription;
+	HRESULT result;
+	// Clear the blend state description.
+	ZeroMemory(&blendStateDescription, sizeof(D3D11_BLEND_DESC));
+
+	// Create an alpha enabled blend state description.
+	blendStateDescription.RenderTarget[0].BlendEnable = TRUE;
+	blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	blendStateDescription.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blendStateDescription.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blendStateDescription.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	blendStateDescription.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendStateDescription.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+
+	// Create the blend state using the description.
+	result = m_device->CreateBlendState(&blendStateDescription, m_alphaEnabledBlendState.GetAddressOf());
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	// Modify the description to create an alpha disabled blend state description.
+	blendStateDescription.RenderTarget[0].BlendEnable = FALSE;
+
+	// Create the blend state using the description.
+	result = m_device->CreateBlendState(&blendStateDescription, m_alphaDisabledBlendState.GetAddressOf());
+	if (FAILED(result))
+	{
+		return false;
+	}
 
 	return true;
 }
@@ -567,6 +627,8 @@ void D3DInitializer::ShutdownComponents()
 	m_depthStencilState.Reset();
 	m_depthStencilView.Reset();
 	m_rasterState.Reset();
+	m_alphaEnabledBlendState.Reset();
+	m_alphaDisabledBlendState.Reset();
 }
 
 bool D3DInitializer::ReinitializeRasterizerStatePrivate(bool _backFaceCulling, bool _wireframe)

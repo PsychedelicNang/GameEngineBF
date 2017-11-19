@@ -17,6 +17,7 @@
 #include "FbxLibraryDLLMeshHandler.h"
 #include "FbxLibraryDLLMaterialHandler.h"
 #include "FbxLibraryDLLAnimationHandler.h"
+#include "ParticleSystem.h"
 
 // Time
 #include "XTime.h"
@@ -60,6 +61,7 @@ private:
 	FbxLibraryDLLMeshHandler*		myMeshHandler;
 	FbxLibraryDLLAnimationHandler*	myAnimationHandler;
 	GW::SYSTEM::GInput*				myGInput;
+	ParticleSystem*					myParticleSystem;
 	XTime m_timer;
 	XTime m_animationTimer;
 	float m_timeBetweenFrames;
@@ -97,7 +99,7 @@ private:
 		ComPtr<ID3D11DepthStencilState>		depthStencilState;
 		ComPtr<ID3D11DepthStencilView>		depthStencilView;
 		ComPtr<ID3D11RasterizerState>		rasterState;*/
-	} m_defaultPipeline;
+	} m_defaultPipeline, m_particlePipeline;
 
 	struct TessellationStuff {
 		ComPtr<ID3D11InputLayout>	inputLayout;
@@ -179,6 +181,8 @@ private:
 	void UpdateTessellationQuadConstantBuffer(void);
 
 	void PlayAnimation(void);
+
+	void ParticleSystemStuff(void);
 };
 
 #endif //!_SCENEMANAGER_H_
