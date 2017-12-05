@@ -13,7 +13,7 @@ void CPUInformation::Initialize()
 {
 	PDH_STATUS status;
 
-	// Initialize the flag indicating whether this object can read the system cpu usage or not.
+	// This object can read the system cpu usage.
 	m_canReadCpu = true;
 
 	// Create a query object to poll cpu usage.
@@ -30,7 +30,7 @@ void CPUInformation::Initialize()
 		m_canReadCpu = false;
 	}
 
-	m_lastSampleTime = GetTickCount();
+	m_tickCount = GetTickCount();
 
 	m_cpuUsage = 0;
 }
@@ -49,9 +49,9 @@ void CPUInformation::Update()
 
 	if (m_canReadCpu)
 	{
-		if ((m_lastSampleTime + 1000) < GetTickCount())
+		if ((m_tickCount + 1000) < GetTickCount())
 		{
-			m_lastSampleTime = GetTickCount();
+			m_tickCount = GetTickCount();
 
 			PdhCollectQueryData(m_queryHandle);
 

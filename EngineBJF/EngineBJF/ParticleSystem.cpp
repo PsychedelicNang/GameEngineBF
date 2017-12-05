@@ -121,14 +121,14 @@ bool ParticleSystem::InitializeParticleSystem()
 	m_particleDeviationZ = 2.0f;
 
 	// Set the speed and speed variation of particles.
-	m_particleVelocity = 1.0f;
+	m_particleVelocity = 20.0f;
 	m_particleVelocityVariation = 0.2f;
 
 	// Set the physical size of the particles.
 	m_particleSize = 0.2f;
 
 	// Set the number of particles to emit per second.
-	m_particlesPerSecond = 20.0f;
+	m_particlesPerSecond = 30.0f;
 
 	// Set the maximum number of particles allowed in the particle system.
 	m_maxParticles = 5000;

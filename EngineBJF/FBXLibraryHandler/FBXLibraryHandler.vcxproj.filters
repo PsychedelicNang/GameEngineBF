@@ -15,7 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="FbxLibraryDLL.h">
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationComponents.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MaterialComponents.h">
@@ -24,15 +27,21 @@
     <ClInclude Include="MeshComponents.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AnimationComponents.h">
+    <ClInclude Include="FBXHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FBXMeshHandler.h">
+    <ClInclude Include="CustomFormatReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FbxLibraryDLL.cpp">
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FBXHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CustomFormatReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

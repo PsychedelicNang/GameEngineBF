@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2005
+VisualStudioVersion = 15.0.27004.2008
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EngineBJF", "EngineBJF\EngineBJF.vcxproj", "{04AF605C-BFE3-4249-AE03-62B2799E0E03}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FbxLibraryDLL", "FbxLibraryDLL\FbxLibraryDLL.vcxproj", "{452A5EE7-1155-4267-8004-D36FF2B2B9CE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FBXLibraryHandler", "FBXLibraryHandler\FBXLibraryHandler.vcxproj", "{FED9025E-0F27-47BD-9B56-BA63E1098B61}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +33,14 @@ Global
 		{452A5EE7-1155-4267-8004-D36FF2B2B9CE}.Release|x64.Build.0 = Release|x64
 		{452A5EE7-1155-4267-8004-D36FF2B2B9CE}.Release|x86.ActiveCfg = Release|Win32
 		{452A5EE7-1155-4267-8004-D36FF2B2B9CE}.Release|x86.Build.0 = Release|Win32
+		{FED9025E-0F27-47BD-9B56-BA63E1098B61}.Debug|x64.ActiveCfg = Debug|x64
+		{FED9025E-0F27-47BD-9B56-BA63E1098B61}.Debug|x64.Build.0 = Debug|x64
+		{FED9025E-0F27-47BD-9B56-BA63E1098B61}.Debug|x86.ActiveCfg = Debug|Win32
+		{FED9025E-0F27-47BD-9B56-BA63E1098B61}.Debug|x86.Build.0 = Debug|Win32
+		{FED9025E-0F27-47BD-9B56-BA63E1098B61}.Release|x64.ActiveCfg = Release|x64
+		{FED9025E-0F27-47BD-9B56-BA63E1098B61}.Release|x64.Build.0 = Release|x64
+		{FED9025E-0F27-47BD-9B56-BA63E1098B61}.Release|x86.ActiveCfg = Release|Win32
+		{FED9025E-0F27-47BD-9B56-BA63E1098B61}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

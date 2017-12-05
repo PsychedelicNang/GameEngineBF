@@ -143,6 +143,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    hInst = hInstance; // Store instance handle in our global variable
 
+   //hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME ^ WS_MAXIMIZEBOX,
+	  // 850, 250, WIDTH, HEIGHT, nullptr, nullptr, hInstance, nullptr);
    hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME ^ WS_MAXIMIZEBOX,
 	   850, 250, WIDTH, HEIGHT, nullptr, nullptr, hInstance, nullptr);
    // ^Disables WS_THICKFRAME, making the window non - resizable

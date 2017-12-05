@@ -128,7 +128,9 @@ void SceneManager::Update(void)
 
 	myFPSInformation->Update(m_timeBetweenFrames);
 	myCPUInformation->Update();
-	printf("Frames: %i, CPU Usage: %i%c\n", myFPSInformation->GetFps(), myCPUInformation->GetCpuPercentage(), '%');
+	//printf("Frames: %i, CPU Usage: %i%c\n", myFPSInformation->GetFps(), myCPUInformation->GetCpuPercentage(), '%');
+	printf("Frames: %i\n", myFPSInformation->GetFps());
+
 	CheckUserInput();
 	
 	switch (m_cameraState)
@@ -176,8 +178,8 @@ void SceneManager::Update(void)
 
 void SceneManager::Render(void)
 {
-	float RGBA[4] = { .2f, .5f, 1.f, 1.f };
-	//float RGBA[4] = { 0.f, 0.f, 0.f, 1.f };
+	//float RGBA[4] = { .2f, .5f, 1.f, 1.f };
+	float RGBA[4] = { 0.f, 0.f, 0.f, 1.f };
 
 	myD3DClass->BeginScene(RGBA);
 
@@ -208,6 +210,7 @@ void SceneManager::Render(void)
 		/**********************Skeleton Animation**********************/
 		SetPipelineStates(m_defaultPipeline);
 		UpdateStandardConstantBuffer(XMMatrixIdentity());
+		//UpdateStandardConstantBuffer(XMMatrixTranslation(100, 0, 0));
 		PlayAnimation();
 		myDebugRenderer->CreateVertexBuffer(m_device);
 		myDebugRenderer->Render(m_device, m_deviceContext);
@@ -230,6 +233,7 @@ void SceneManager::Render(void)
 		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(SkinnedTransforms), D3D11_BIND_CONSTANT_BUFFER);
 		myD3DClass->GetDevice()->CreateBuffer(&constantBufferDesc, nullptr, m_skinnedAnimationConstantBuffer.GetAddressOf());
 
+		//UpdateStandardConstantBuffer(XMMatrixTranslation(-100, 0, 0));
 		UpdateStandardConstantBuffer(myTeddyBearAnim->GetObjectMatrix());
 		myD3DClass->GetDeviceContext()->UpdateSubresource(m_skinnedAnimationConstantBuffer.Get(), 0, NULL, &m_SkinnedTransforms, 0, 0);
 		myD3DClass->GetDeviceContext()->VSSetConstantBuffers(1, 1, m_skinnedAnimationConstantBuffer.GetAddressOf());
@@ -264,7 +268,7 @@ void SceneManager::Render(void)
 	m_deviceContext->HSSetShader(m_tessellationStuff.hullShader.Get(), NULL, 0);
 	m_deviceContext->DSSetShader(m_tessellationStuff.domainShader.Get(), NULL, 0);
 	
-	m_deviceContext->Draw(3, 0);
+	//m_deviceContext->Draw(3, 0);
 	m_deviceContext->HSSetShader(NULL, NULL, 0);
 	m_deviceContext->DSSetShader(NULL, NULL, 0);
 	/********************Tessellation******************************/
@@ -288,13 +292,13 @@ void SceneManager::Render(void)
 	//m_deviceContext->DSSetShader(NULL, NULL, 0);
 	/********************TessellationQuad******************************/
 
-
 	myD3DClass->EnableAlphaBlending();
 	m_deviceContext->IASetInputLayout(m_particlePipeline.input_layout.Get());
 	m_deviceContext->VSSetShader(m_particlePipeline.vertex_shader.Get(), NULL, 0);
 	m_deviceContext->PSSetShader(m_particlePipeline.pixel_shader.Get(), NULL, 0);
 	m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
-	XMMATRIX particleModel = XMMatrixTranslation(2.f, 3.f, 3.f);
+	XMMATRIX particleModel = XMMatrixTranslation(2.f, 3.f, 5.f);
+	//particleModel = XMMatrixMultiply(XMMatrixRotationY(90), particleModel);
 	UpdateStandardConstantBuffer(particleModel);
 	myParticleSystem->Render(m_deviceContext);
 	myD3DClass->DisableAlphaBlending();

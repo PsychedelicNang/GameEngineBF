@@ -30,7 +30,7 @@ private:
 	bool m_canReadCpu;
 	HQUERY m_queryHandle;
 	HCOUNTER m_counterHandle;
-	unsigned int m_lastSampleTime;
+	unsigned m_tickCount;
 	int m_cpuUsage;
 };
 

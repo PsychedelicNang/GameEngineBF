@@ -275,6 +275,7 @@ namespace FbxLibraryDLL
 				const char * cPtr = fbxName.Buffer();
 				std::string strName = std::string(cPtr);
 
+				// if this is a phong material, map figure out the values for each of the possible components and store their value inside of a map.
 				if (MaterialComponents::Material::PHONG == m_tempMaterial.m_materialType) {
 					if ("SpecularColor" == strName) { m_tempMaterial.m_mapPropValues[MaterialComponents::Material::SPECULAR] = PropertyHelper(m_tempMaterial, lProperty, MaterialComponents::Material::SPECULAR); }
 					else if ("SpecularFactor" == strName) { m_tempMaterial.m_mapPropValues[MaterialComponents::Material::SPECULAR] = PropertyHelper(m_tempMaterial, lProperty, MaterialComponents::Material::SPECULAR); }
@@ -300,6 +301,7 @@ namespace FbxLibraryDLL
 					else if ("VectorDisplacementFactor" == strName) { m_tempMaterial.m_mapPropValues[MaterialComponents::Material::VECTOR_DISPLACEMENT] = PropertyHelper(m_tempMaterial, lProperty, MaterialComponents::Material::VECTOR_DISPLACEMENT); }
 				}
 
+				// if this is a lambert material, map figure out the values for each of the possible components and store their value inside of a map.
 				else if (MaterialComponents::Material::LAMBERT == m_tempMaterial.m_materialType) {
 					if ("EmissiveColor" == strName) { m_tempMaterial.m_mapPropValues[MaterialComponents::Material::EMISSIVE] = PropertyHelper(m_tempMaterial, lProperty, MaterialComponents::Material::EMISSIVE); }
 					else if ("EmissiveFactor" == strName) { m_tempMaterial.m_mapPropValues[MaterialComponents::Material::EMISSIVE] = PropertyHelper(m_tempMaterial, lProperty, MaterialComponents::Material::EMISSIVE); }
@@ -793,8 +795,8 @@ namespace FbxLibraryDLL
 				_objectToFill.vertices.push_back(vert);
 			}
 
-			//for (unsigned i = 0; i < numOfVertices; i++)
-			//	_objectToFill.vertices[i].position[3] = 1.f;
+			for (unsigned i = 0; i < numOfVertices; i++)
+				_objectToFill.vertices[i].position[3] = 1.f;
 
 			file.close();
 			return true;
