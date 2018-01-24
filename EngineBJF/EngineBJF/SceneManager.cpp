@@ -227,7 +227,7 @@ void SceneManager::Render(void)
 		//m_SkinnedTransforms.transforms = new XMMATRIX[numberOfJoints];
 		for (size_t i = 0; i < numberOfJoints; i++)
 		{
-			m_SkinnedTransforms.transforms[i] = XMMatrixMultiply(XMMatrixInverse(nullptr, m_bindPoseMatrices[i]), m_jointsForFrameToPresent[i]);
+			m_SkinnedTransforms.transforms[i] = XMMatrixTranspose(XMMatrixMultiply(XMMatrixMultiply(XMMatrixInverse(nullptr, m_bindPoseMatrices[i]), m_jointsForFrameToPresent[i]), XMMatrixScaling(2.f, 2.f, 2.f)));
 		}
 
 		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(SkinnedTransforms), D3D11_BIND_CONSTANT_BUFFER);
@@ -421,7 +421,8 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 	m_bindPoseMatrix = XMMATRIX(skelJoints[0].globalTransformArray);
 	//animClip.frames[0].joints
 
-	myTeddyBear->ObjectChangePosition(-3.f, -2.f, -5.f);
+	//myTeddyBear->ObjectChangePosition(-3.f, -2.f, -5.f);
+	myTeddyBear->ObjectChangePosition(7.f, 0.f, 0.f);
 	myBattleMage->ObjectChangePosition(0.f, -2.f, -5.f);
 	Tessellation();
 	//TessellationQuad();
