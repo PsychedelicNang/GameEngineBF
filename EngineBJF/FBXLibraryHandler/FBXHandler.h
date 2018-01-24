@@ -30,7 +30,14 @@ class FBXHandler {
 	std::vector<MyFBXJoint*> fbxJoints;
 	std::vector<MaterialComponents::Material> m_materials;
 	std::vector<AnimationComponents::SkeletonJoints> m_skelJoints;
+
 public:
+	enum FrameRate {
+		frame24 = 0,
+		frame30,
+		frame60
+	};
+
 	bool LoadBasicMeshFromFBXFile(const char* _fileName, std::vector<MeshComponentsBasic::Mesh>& _outVector);
 	void ExportBasicMeshToBinaryFile(const char* _filePath, MeshComponentsBasic::Mesh _mesh);
 	bool ReadInBasicBinaryMeshFile(const char * _fileName, MeshComponentsBasic::OutInformation& _objectToFill, float _scaleAmount = 1.f);
@@ -45,7 +52,7 @@ public:
 	bool ReadInAdvancedBinaryMeshFile(const char * _fileName, MeshComponentsAdvanced::OutInformation& _objectToFill, float _scaleAmount = 1.f);
 
 	bool LoadAdvancedMeshWithSkinnedAndSkeletalAnimationFromFBXFile(const char* _fileName, std::vector<MeshComponentsAnimation::OutInformation>& _outVector,
-		AnimationComponents::BindPose& _bindPose, AnimationComponents::AnimationClip& _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount = 1.f);
+		AnimationComponents::BindPose& _bindPose, AnimationComponents::AnimationClip& _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, FrameRate _frameRate, float _scaleAmount = 1.f);
 
 	void ExportAdvancedMeshWithSkinnedAnimationToBinaryFile(const char* _filePath, MeshComponentsAnimation::OutInformation & _mesh);
 	void ExportAdvancedMeshWithSkinnedAnimationToBinaryFile(const char* _fileName, MeshComponentsAnimation::OutInformation & _mesh,

@@ -829,7 +829,7 @@ bool FBXHandler::ReadInAdvancedBinaryMeshFile(const char * _fileName, MeshCompon
 
 #pragma region AnimationFunctions
 
-bool FBXHandler::LoadAdvancedMeshWithSkinnedAndSkeletalAnimationFromFBXFile(const char * _fileName, std::vector<MeshComponentsAnimation::OutInformation>& _outVector, AnimationComponents::BindPose & _bindPose, AnimationComponents::AnimationClip & _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, float _scaleAmount)
+bool FBXHandler::LoadAdvancedMeshWithSkinnedAndSkeletalAnimationFromFBXFile(const char * _fileName, std::vector<MeshComponentsAnimation::OutInformation>& _outVector, AnimationComponents::BindPose & _bindPose, AnimationComponents::AnimationClip & _animationClip, std::vector<AnimationComponents::SkeletonJoints>& _skelJoints, FrameRate _frameRate, float _scaleAmount)
 {
 	int m_meshControlPointCount;
 
@@ -899,6 +899,7 @@ bool FBXHandler::LoadAdvancedMeshWithSkinnedAndSkeletalAnimationFromFBXFile(cons
 
 					AnimationComponents::SkeletonJoints* rootSkelTransform = new AnimationComponents::SkeletonJoints();
 					FbxMatrix currentMatrix = currentNode->EvaluateGlobalTransform();
+					//FbxMatrix currentMatrix = currentNode->EvaluateLocalTransform();
 					int count = 0;
 					for (int y = 0; y < 4; y++)
 					{
@@ -930,6 +931,7 @@ bool FBXHandler::LoadAdvancedMeshWithSkinnedAndSkeletalAnimationFromFBXFile(cons
 
 				AnimationComponents::SkeletonJoints* rootSkelTransform = new AnimationComponents::SkeletonJoints();
 				FbxMatrix currentMatrix = fbxJoints[k]->node->EvaluateGlobalTransform();
+				//FbxMatrix currentMatrix = fbxJoints[k]->node->EvaluateLocalTransform();
 				int count = 0;
 				for (int y = 0; y < 4; y++)
 				{
@@ -952,10 +954,28 @@ bool FBXHandler::LoadAdvancedMeshWithSkinnedAndSkeletalAnimationFromFBXFile(cons
 	FbxTimeSpan localTimeSpan = currentAnimStack->GetLocalTimeSpan();
 	FbxTime animDuration = localTimeSpan.GetDuration();
 
-	//FbxTime::EMode::eFrames24 gives 24 frames per second
-	FbxLongLong frameCount = animDuration.GetFrameCount(FbxTime::EMode::eFrames24);
-	_animationClip.duration = animDuration.GetSecondDouble();
+	FbxTime::EMode frameRate;
 
+	//FbxTime::EMode::eFrames24 gives 24 frames per second
+	switch (_frameRate)
+	{
+	case FBXHandler::frame24:
+		frameRate = FbxTime::EMode::eFrames24;
+		break;
+	case FBXHandler::frame30:
+		frameRate = FbxTime::EMode::eFrames30;
+		break;
+	case FBXHandler::frame60:
+		frameRate = FbxTime::EMode::eFrames60;
+		break;
+	default:
+		frameRate = FbxTime::EMode::eFrames24;
+		break;
+	}
+
+	FbxLongLong frameCount = animDuration.GetFrameCount(frameRate);
+	_animationClip.duration = animDuration.GetSecondDouble();
+	
 	//bind pose is at 0
 	for (FbxLongLong i = 0; i < frameCount; i++)
 	{
@@ -964,12 +984,13 @@ bool FBXHandler::LoadAdvancedMeshWithSkinnedAndSkeletalAnimationFromFBXFile(cons
 		currentKeyframe.joints.resize(_skelJoints.size());
 		_bindPose.joints.resize(_skelJoints.size());
 
-		animDuration.SetFrame(i, FbxTime::EMode::eFrames24);
+		animDuration.SetFrame(i, frameRate);
 		currentKeyframe.time = animDuration.GetSecondDouble();
 		int index = 0;
 		for each (MyFBXJoint* theJoint in fbxJoints)
 		{
 			FbxMatrix currentMatrix = theJoint->node->EvaluateGlobalTransform(animDuration);
+			//FbxMatrix currentMatrix = theJoint->node->EvaluateLocalTransform(animDuration);
 			int count = 0;
 			for (int y = 0; y < 4; y++)
 			{
@@ -1267,7 +1288,7 @@ bool FBXHandler::LoadAdvancedMeshWithSkinnedAndSkeletalAnimationFromFBXFile(cons
 							currVert.position[0] = static_cast<float>(mCurrentVertex[0]);
 							currVert.position[1] = static_cast<float>(mCurrentVertex[1]);
 							currVert.position[2] = static_cast<float>(mCurrentVertex[2]);
-							currVert.position[3] = 1;
+							currVert.position[3] = 1.f;
 
 							if (mHasNormal)
 							{
