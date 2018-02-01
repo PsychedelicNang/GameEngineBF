@@ -565,6 +565,7 @@ void SceneManager::CheckWindowsMessage(UINT _message, HWND _hWnd)
 			ScreenToClient(_hWnd, &currCursorPos);
 			GetCamera()->CameraMouseLook(GetCamera()->GetCameraFloat4x4(), (currCursorPos.x - prevCursorPos.x) * m_timeBetweenFrames, (currCursorPos.y - prevCursorPos.y) * m_timeBetweenFrames);
 			prevCursorPos = currCursorPos;
+			SetPhysicalCursorPos((1024 / 2) + 850, (768 / 2) + 250);
 		}
 		GetCursorPos(&prevCursorPos);
 		ScreenToClient(_hWnd, &prevCursorPos);
