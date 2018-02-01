@@ -3,7 +3,7 @@
 SceneManager::SceneManager()
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	//_CrtSetBreakAlloc(272);
+	//_CrtSetBreakAlloc(240);
 	m_libraryLoadedMaterial = false;
 	m_libraryLoadedMesh = false;
 	myCube				= new Object();
@@ -46,7 +46,7 @@ SceneManager::~SceneManager()
 	if (myMaterialHandler) delete myMaterialHandler;
 	if (myMeshHandler) delete myMeshHandler;
 	if (myAnimationHandler) delete myAnimationHandler;
-	if (myGInput) 	myGInput->DecrementCount();
+	if (myGInput) 		myGInput->DecrementCount();
 	if (myParticleSystem) delete myParticleSystem;
 	if (myFPSInformation) delete myFPSInformation;
 	if (myCPUInformation) delete myCPUInformation;
