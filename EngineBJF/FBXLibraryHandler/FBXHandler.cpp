@@ -882,7 +882,7 @@ bool FBXHandler::LoadAdvancedMeshWithSkinnedAndSkeletalAnimationFromFBXFile(cons
 	}
 
 	FbxPose* currentPose = lScene->GetPose(0);
-	if (currentPose->IsBindPose())
+	if (currentPose && currentPose->IsBindPose())
 	{
 		int nodeCount = currentPose->GetCount();
 		for (int j = 0; j < nodeCount; j++)
@@ -1058,7 +1058,7 @@ bool FBXHandler::LoadAdvancedMeshWithSkinnedAndSkeletalAnimationFromFBXFile(cons
 	m_skelJoints = _skelJoints;
 
 	FbxPose* currentBindPose = lScene->GetPose(0);
-	if (currentBindPose->IsBindPose())
+	if (currentBindPose && currentBindPose->IsBindPose())
 	{
 		int nodeCount = currentBindPose->GetCount();
 		for (int i = 0; i < nodeCount; i++)

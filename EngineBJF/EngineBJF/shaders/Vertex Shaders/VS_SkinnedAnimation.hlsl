@@ -30,7 +30,6 @@ struct PixelShaderInput
 	float4 normal : NORMALS;
 };
 
-
 PixelShaderInput main(VertexShaderInput input)
 {
     PixelShaderInput output;

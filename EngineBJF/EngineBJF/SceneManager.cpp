@@ -268,7 +268,7 @@ void SceneManager::Render(void)
 	m_deviceContext->HSSetShader(m_tessellationStuff.hullShader.Get(), NULL, 0);
 	m_deviceContext->DSSetShader(m_tessellationStuff.domainShader.Get(), NULL, 0);
 	
-	//m_deviceContext->Draw(3, 0);
+	m_deviceContext->Draw(3, 0);
 	m_deviceContext->HSSetShader(NULL, NULL, 0);
 	m_deviceContext->DSSetShader(NULL, NULL, 0);
 	/********************Tessellation******************************/
@@ -580,7 +580,7 @@ void SceneManager::CheckWindowsMessage(UINT _message, HWND _hWnd)
 		break;
 	}
 }
-
+ 
 void SceneManager::RunDebugMessage(void)
 {
 	//printf(myCamera->GetCameraEye().m128_f32[0]);

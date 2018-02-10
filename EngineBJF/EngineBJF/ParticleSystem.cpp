@@ -121,7 +121,7 @@ bool ParticleSystem::InitializeParticleSystem()
 	m_particleDeviationZ = 2.0f;
 
 	// Set the speed and speed variation of particles.
-	m_particleVelocity = 20.0f;
+	m_particleVelocity = 5.0f;
 	m_particleVelocityVariation = 0.2f;
 
 	// Set the physical size of the particles.
