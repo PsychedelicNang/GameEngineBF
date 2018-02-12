@@ -40,6 +40,9 @@
     <Filter Include="Shaders\Hull Shaders">
       <UniqueIdentifier>{8673c8f5-73e4-4e7e-9e5c-23f5d31ec48a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Geometry Shaders">
+      <UniqueIdentifier>{127441f8-f07b-44bc-9a93-39694d7b68b3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -108,6 +111,9 @@
     <ClInclude Include="CPUInformation.h">
       <Filter>Header Files\New classes</Filter>
     </ClInclude>
+    <ClInclude Include="BetterParticleSystem.h">
+      <Filter>Header Files\New classes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp">
@@ -154,6 +160,9 @@
     </ClCompile>
     <ClCompile Include="CPUInformation.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BetterParticleSystem.cpp">
+      <Filter>Source Files\New classes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -232,6 +241,18 @@
     </FxCompile>
     <FxCompile Include="shaders\Vertex Shaders\VS_Particle.hlsl">
       <Filter>Shaders\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Geometry Shaders\GS_StandardParticles.hlsl">
+      <Filter>Shaders\Geometry Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Vertex Shaders\VS_StandardParticles.hlsl">
+      <Filter>Shaders\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Vertex Shaders\VS_ForGeometryShaderTest.hlsl">
+      <Filter>Shaders\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Pixel Shaders\PS_ForGeometryShaderTest.hlsl">
+      <Filter>Shaders\Pixel Shaders</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

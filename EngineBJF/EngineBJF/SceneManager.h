@@ -123,6 +123,29 @@ private:
 		} m_modelCameraConstantBufferData;
 	} m_tessellationStuff, m_tessellationQuad;
 
+	struct GeometryShaderStuff {
+		ComPtr<ID3D11InputLayout>		inputLayout;
+		ComPtr<ID3D11VertexShader>		vertexShader;
+		ComPtr<ID3D11GeometryShader>	geometryShader;
+		ComPtr<ID3D11PixelShader>		pixelShader;
+		ComPtr<ID3D11Buffer>			vertexBuffer;
+		ComPtr<ID3D11Buffer>			modelConstantBuffer;
+		ComPtr<ID3D11Buffer>			viewProjectionConstantBuffer;
+
+		struct ModelConstantBuffer {
+			XMFLOAT4X4 model;
+		};
+		ModelConstantBuffer m_modelConstantBuffer;
+
+		struct ViewProjectionConstantBuffer {
+			XMFLOAT4X4 view;
+			XMFLOAT4X4 projection;
+		};
+		ViewProjectionConstantBuffer m_viewProjectionConstantBuffer;
+	};
+
+	GeometryShaderStuff* m_geometryShaderStuff;
+
 	struct PPVStuff {
 		std::vector<ID3D11ShaderResourceView*> m_materialsSRVs;
 		ComPtr<ID3D11PixelShader> m_PS;
@@ -174,6 +197,7 @@ private:
 	void InitializeConstantBuffer(ComPtr<ID3D11Buffer>& _buffer);
 	void InitializeShadersAndInputLayout(ComPtr<ID3D11PixelShader>& _PS, ComPtr<ID3D11VertexShader>& _VS, ComPtr<ID3D11InputLayout>& _IL);
 	void InitializeSamplerState(ComPtr<ID3D11SamplerState>& _samplerState);
+	void InitializeGeometryShaderStuff();
 
 	bool LoadCompiledShaderData(char **byteCode, size_t &byteCodeSize, const char *fileName);
 	void UpdateStandardConstantBuffer(XMMATRIX _modelsMatrix);
@@ -186,6 +210,7 @@ private:
 
 	void TessellationQuad(void);
 	void UpdateTessellationQuadConstantBuffer(void);
+	void UpdatedGeometryShaderConstantBuffer(void);
 
 	void PlayAnimation(void);
 

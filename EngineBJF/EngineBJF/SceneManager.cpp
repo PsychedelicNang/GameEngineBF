@@ -20,6 +20,7 @@ SceneManager::SceneManager()
 	myParticleSystem	= new ParticleSystem();
 	myFPSInformation	= new FPSInformation();
 	myCPUInformation	= new CPUInformation();
+	m_geometryShaderStuff = new GeometryShaderStuff();
 	mouseMove = false;
 	m_rotate = false;
 	m_cameraState = cameraDefault;
@@ -50,6 +51,7 @@ SceneManager::~SceneManager()
 	if (myParticleSystem) delete myParticleSystem;
 	if (myFPSInformation) delete myFPSInformation;
 	if (myCPUInformation) delete myCPUInformation;
+	if (m_geometryShaderStuff) delete m_geometryShaderStuff;
 }
 
 void SceneManager::Initialize(int _screenWidth, int _screenHeight, HWND _hWnd)
@@ -104,6 +106,58 @@ void SceneManager::InitializeSamplerState(ComPtr<ID3D11SamplerState>& _samplerSt
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 
 	myD3DClass->GetDevice()->CreateSamplerState(&samplerDesc, _samplerState.GetAddressOf());
+}
+
+void SceneManager::InitializeGeometryShaderStuff()
+{
+	D3D11_BUFFER_DESC quadBuffDesc;
+	quadBuffDesc.Usage = D3D11_USAGE_IMMUTABLE;
+	quadBuffDesc.ByteWidth = sizeof(VertexPosition) * 3;
+	//quadBuffDesc.ByteWidth = sizeof(VertexPosition);
+	quadBuffDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	quadBuffDesc.CPUAccessFlags = 0;
+	quadBuffDesc.MiscFlags = 0;
+
+	VertexPosition vertices[] =
+	{
+		XMFLOAT4(+10.f, 0.f, 0.f, 1.f),
+		XMFLOAT4(-10.f, 0.f, 0.f, 1.f),
+		XMFLOAT4(-0.f, 10.f, 0.f, 1.f)
+	};
+
+	//VertexPosition temp[] = { XMFLOAT4(+10.f, 0.f, 0.f, 1.f) };
+	D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
+	vertexBufferData.pSysMem = vertices;
+//	vertexBufferData.pSysMem = temp;
+	vertexBufferData.SysMemPitch = 0;
+	vertexBufferData.SysMemSlicePitch = 0;
+	HRESULT hr = myD3DClass->GetDevice()->CreateBuffer(&quadBuffDesc, &vertexBufferData, m_geometryShaderStuff->vertexBuffer.GetAddressOf());
+
+	char* bytecode = nullptr;
+	size_t byteCodeSize = 0;
+	LoadCompiledShaderData(&bytecode, byteCodeSize, "Shaders/Pixel Shaders/PS_ForGeometryShaderTest.cso");
+	myD3DClass->GetDevice()->CreatePixelShader(bytecode, byteCodeSize, nullptr, m_geometryShaderStuff->pixelShader.GetAddressOf());
+	delete[] bytecode;
+
+	char* bytecode1 = nullptr;
+	size_t byteCodeSize1 = 0;
+	LoadCompiledShaderData(&bytecode1, byteCodeSize1, "Shaders/Geometry Shaders/GS_StandardParticles.cso");
+	myD3DClass->GetDevice()->CreateGeometryShader(bytecode1, byteCodeSize1, nullptr, m_geometryShaderStuff->geometryShader.GetAddressOf());
+	delete[] bytecode1;
+
+	char* bytecode2 = nullptr;
+	size_t byteCodeSize2 = 0;
+	LoadCompiledShaderData(&bytecode2, byteCodeSize2, "Shaders/Vertex Shaders/VS_ForGeometryShaderTest.cso");
+	myD3DClass->GetDevice()->CreateVertexShader(bytecode2, byteCodeSize2, nullptr, m_geometryShaderStuff->vertexShader.GetAddressOf());
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] = { "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 };
+	hr = myD3DClass->GetDevice()->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), bytecode2, byteCodeSize2, m_geometryShaderStuff->inputLayout.GetAddressOf());
+	delete[] bytecode2;
+
+	CD3D11_BUFFER_DESC constantBufferDesc(sizeof(GeometryShaderStuff::ModelConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+	myD3DClass->GetDevice()->CreateBuffer(&constantBufferDesc, nullptr, m_geometryShaderStuff->modelConstantBuffer.GetAddressOf());
+
+	CD3D11_BUFFER_DESC constantBufferDesc2(sizeof(GeometryShaderStuff::ViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+	myD3DClass->GetDevice()->CreateBuffer(&constantBufferDesc2, nullptr, m_geometryShaderStuff->viewProjectionConstantBuffer.GetAddressOf());
 }
 
 void SceneManager::SetPipelineStates(PipelineState& _pipeState)
@@ -292,6 +346,26 @@ void SceneManager::Render(void)
 	//m_deviceContext->DSSetShader(NULL, NULL, 0);
 	/********************TessellationQuad******************************/
 
+
+	/********************GeometryShader******************************/
+	UINT stride2 = sizeof(VertexPosition);
+	UINT offset2 = 0;
+	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
+	m_deviceContext->IASetInputLayout(m_geometryShaderStuff->inputLayout.Get());
+	m_deviceContext->VSSetShader(m_geometryShaderStuff->vertexShader.Get(), nullptr, 0);
+	m_deviceContext->PSSetShader(m_geometryShaderStuff->pixelShader.Get(), nullptr, 0);
+	m_deviceContext->GSSetShader(m_geometryShaderStuff->geometryShader.Get(), nullptr, 0);
+	m_deviceContext->IASetVertexBuffers(0, 1, m_geometryShaderStuff->vertexBuffer.GetAddressOf(), &stride2, &offset2);
+
+	UpdatedGeometryShaderConstantBuffer();
+	m_deviceContext->Draw(3, 0);
+	m_deviceContext->GSSetShader(NULL, nullptr, 0);
+	/********************GeometryShader******************************/
+
 	myD3DClass->EnableAlphaBlending();
 	m_deviceContext->IASetInputLayout(m_particlePipeline.input_layout.Get());
 	m_deviceContext->VSSetShader(m_particlePipeline.vertex_shader.Get(), NULL, 0);
@@ -351,6 +425,17 @@ void SceneManager::UpdateTessellationQuadConstantBuffer(void)
 
 	myD3DClass->GetDeviceContext()->HSSetConstantBuffers(1, 1, m_tessellationQuad.m_modelCameraConstantBuffer.GetAddressOf());
 	myD3DClass->GetDeviceContext()->DSSetConstantBuffers(2, 1, m_tessellationQuadConstantBuffer.GetAddressOf());
+}
+
+void SceneManager::UpdatedGeometryShaderConstantBuffer(void)
+{
+	XMStoreFloat4x4(&m_geometryShaderStuff->m_modelConstantBuffer.model, XMMatrixTranspose(XMMatrixTranslation(10.f, 0.f, 10.f)));
+	myD3DClass->GetDeviceContext()->UpdateSubresource(m_geometryShaderStuff->modelConstantBuffer.Get(), 0, NULL, &m_geometryShaderStuff->m_modelConstantBuffer, 0, 0);
+	XMStoreFloat4x4(&m_geometryShaderStuff->m_viewProjectionConstantBuffer.view, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.view)));
+	XMStoreFloat4x4(&m_geometryShaderStuff->m_viewProjectionConstantBuffer.projection, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.projection)));
+	myD3DClass->GetDeviceContext()->UpdateSubresource(m_geometryShaderStuff->viewProjectionConstantBuffer.Get(), 0, NULL, &m_geometryShaderStuff->m_viewProjectionConstantBuffer, 0, 0);
+	myD3DClass->GetDeviceContext()->VSSetConstantBuffers(0, 1, m_geometryShaderStuff->modelConstantBuffer.GetAddressOf());
+	myD3DClass->GetDeviceContext()->GSSetConstantBuffers(0, 1, m_geometryShaderStuff->viewProjectionConstantBuffer.GetAddressOf());
 }
 
 bool SceneManager::LoadCompiledShaderData(char **byteCode, size_t &byteCodeSize, const char *fileName)
@@ -429,6 +514,8 @@ void SceneManager::RunTaskList(int _screenWidth, int _screenHeight, bool _vsync,
 
 	myFPSInformation->Initialize();
 	myCPUInformation->Initialize();
+
+	InitializeGeometryShaderStuff();
 }
 
 float SceneManager::GetTimeBetweenFrames()

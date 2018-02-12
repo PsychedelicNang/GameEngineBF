@@ -17,6 +17,11 @@ struct SimpleVertex
 	DirectX::XMFLOAT3 position;
 };
 
+struct VertexPosition
+{
+	DirectX::XMFLOAT4 position;
+};
+
 struct VertexPositionColorUVNormal {
 	DirectX::XMFLOAT4 position;
 	DirectX::XMFLOAT4 color;
