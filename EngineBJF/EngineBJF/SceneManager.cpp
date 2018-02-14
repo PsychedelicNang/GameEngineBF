@@ -112,23 +112,23 @@ void SceneManager::InitializeGeometryShaderStuff()
 {
 	D3D11_BUFFER_DESC quadBuffDesc;
 	quadBuffDesc.Usage = D3D11_USAGE_IMMUTABLE;
-	quadBuffDesc.ByteWidth = sizeof(VertexPosition) * 3;
-	//quadBuffDesc.ByteWidth = sizeof(VertexPosition);
+	//quadBuffDesc.ByteWidth = sizeof(VertexPosition) * 3;
+	quadBuffDesc.ByteWidth = sizeof(VertexPosition);
 	quadBuffDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	quadBuffDesc.CPUAccessFlags = 0;
 	quadBuffDesc.MiscFlags = 0;
 
-	VertexPosition vertices[] =
-	{
-		XMFLOAT4(+10.f, 0.f, 0.f, 1.f),
-		XMFLOAT4(-10.f, 0.f, 0.f, 1.f),
-		XMFLOAT4(-0.f, 10.f, 0.f, 1.f)
-	};
+	//VertexPosition vertices[] =
+	//{
+	//	XMFLOAT4(+10.f, 0.f, 0.f, 1.f),
+	//	XMFLOAT4(-10.f, 0.f, 0.f, 1.f),
+	//	XMFLOAT4(-0.f, 10.f, 0.f, 1.f)
+	//};
 
-	//VertexPosition temp[] = { XMFLOAT4(+10.f, 0.f, 0.f, 1.f) };
+	VertexPosition temp[] = { XMFLOAT4(+5.f, 0.f, 0.f, 1.f) };
 	D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
-	vertexBufferData.pSysMem = vertices;
-//	vertexBufferData.pSysMem = temp;
+	//vertexBufferData.pSysMem = vertices;
+	vertexBufferData.pSysMem = temp;
 	vertexBufferData.SysMemPitch = 0;
 	vertexBufferData.SysMemSlicePitch = 0;
 	HRESULT hr = myD3DClass->GetDevice()->CreateBuffer(&quadBuffDesc, &vertexBufferData, m_geometryShaderStuff->vertexBuffer.GetAddressOf());
@@ -352,7 +352,7 @@ void SceneManager::Render(void)
 	UINT offset2 = 0;
 	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
 	m_deviceContext->IASetInputLayout(m_geometryShaderStuff->inputLayout.Get());
@@ -362,7 +362,7 @@ void SceneManager::Render(void)
 	m_deviceContext->IASetVertexBuffers(0, 1, m_geometryShaderStuff->vertexBuffer.GetAddressOf(), &stride2, &offset2);
 
 	UpdatedGeometryShaderConstantBuffer();
-	m_deviceContext->Draw(3, 0);
+	m_deviceContext->Draw(1, 0);
 	m_deviceContext->GSSetShader(NULL, nullptr, 0);
 	/********************GeometryShader******************************/
 
