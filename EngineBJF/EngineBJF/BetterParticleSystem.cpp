@@ -3,7 +3,7 @@
 BetterParticleSystem::BetterParticleSystem()
 {
 	m_simpleParticles = 0;
-	m_particleCount = 1024;
+	m_particleCount = 10000;
 }
 
 BetterParticleSystem::~BetterParticleSystem()
@@ -30,6 +30,13 @@ bool BetterParticleSystem::Initialize(ComPtr<ID3D11Device>& _device, WCHAR * _fi
 
 	// Create the buffers that will be used to render the particles with.
 	result = InitializeBuffers(_device);
+	if (!result)
+	{
+		return false;
+	}
+
+	CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ParticleSystemProperties), D3D11_BIND_CONSTANT_BUFFER);
+	result = _device->CreateBuffer(&constantBufferDesc, nullptr, m_particleSystemProperties.GetAddressOf());
 	if (!result)
 	{
 		return false;
@@ -83,6 +90,16 @@ bool BetterParticleSystem::InitializeParticleSystem()
 
 	// Clear the initial accumulated time for the particle per second emission rate.
 	m_accumulatedTime = 0.0f;
+
+	m_particleSystemProperiesStruct.m_particleDeviationX = 0.5f;
+	m_particleSystemProperiesStruct.m_particleDeviationY = 0.1f;
+	m_particleSystemProperiesStruct.m_particleDeviationZ = 2.0f;
+	m_particleSystemProperiesStruct.m_particleVelocity = 5.0f;
+	m_particleSystemProperiesStruct.m_particleVelocityVariation = 0.2f;
+	m_particleSystemProperiesStruct.m_particleSize = 0.2f;
+	m_particleSystemProperiesStruct.m_particlesPerSecond = 100.0f;
+	m_particleSystemProperiesStruct.m_deltaTime = 0.f;
+	m_particleSystemProperiesStruct.m_maxParticles = 10000;
 
 	return true;
 }

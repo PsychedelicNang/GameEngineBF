@@ -1,3 +1,18 @@
+texture2D theTexture : register(t0);
+SamplerState envFilter : register(s0);
+uint primitiveId : SV_PrimitiveID;
+
+struct SimpleParticle
+{
+	float3 initialPosition  : INITIALPOS;
+	float3 initialVelocity  : INITIALVEL;
+	float2 size			    : SIZE;
+	float age : AGE;
+	uint type				: TYPE;
+};
+
+RWStructuredBuffer<SimpleParticle> results : register(u0);
+
 cbuffer ViewProjectConstantBuffer : register(b0)
 {
 	matrix view;
@@ -21,6 +36,9 @@ void main(
 	inout TriangleStream< GSOutput > output
 )
 {
+
+	//	float4 diffuseColor = diffuse.Sample(envFilter, input.uvs.xy);
+
 	GSOutput verts[6] =
 	{
 		{ float4(0, 0, 0, 1), float4(0.3f, 0.f, 0.3f, 1.f) },

@@ -43,10 +43,22 @@ public:
 
 	int m_currentParticleCount;
 	float m_accumulatedTime;
-
+public:
 	ComPtr<ID3D11ShaderResourceView> m_texture;
 	ComPtr<ID3D11UnorderedAccessView> m_UAV;
 	SimpleParticle* m_particleList;
+
+	ComPtr<ID3D11Buffer>	m_particleSystemProperties;
+
+	struct ParticleSystemProperties {
+		XMFLOAT4X4 m_model;
+		float m_particleDeviationX, m_particleDeviationY, m_particleDeviationZ;
+		float m_particleVelocity, m_particleVelocityVariation;
+		float m_particleSize, m_particlesPerSecond;
+		float m_deltaTime;
+		unsigned m_maxParticles;
+	};
+	ParticleSystemProperties m_particleSystemProperiesStruct;
 
 	unsigned m_particleCount;
 	ComPtr<ID3D11Buffer> m_structuredBuffer;

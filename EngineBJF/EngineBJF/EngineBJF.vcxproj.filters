@@ -43,6 +43,9 @@
     <Filter Include="Shaders\Geometry Shaders">
       <UniqueIdentifier>{127441f8-f07b-44bc-9a93-39694d7b68b3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Compute Shaders">
+      <UniqueIdentifier>{6f28ebbf-657c-4f41-bb1b-30c247df962d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -242,9 +245,6 @@
     <FxCompile Include="shaders\Vertex Shaders\VS_Particle.hlsl">
       <Filter>Shaders\Vertex Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\Geometry Shaders\GS_StandardParticles.hlsl">
-      <Filter>Shaders\Geometry Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="shaders\Vertex Shaders\VS_StandardParticles.hlsl">
       <Filter>Shaders\Vertex Shaders</Filter>
     </FxCompile>
@@ -253,6 +253,18 @@
     </FxCompile>
     <FxCompile Include="shaders\Pixel Shaders\PS_ForGeometryShaderTest.hlsl">
       <Filter>Shaders\Pixel Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Geometry Shaders\GS_StandardParticle.hlsl">
+      <Filter>Shaders\Geometry Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Geometry Shaders\GS_StandardTest.hlsl">
+      <Filter>Shaders\Geometry Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Vertex Shaders\VS_EmptyForParticleSystem.hlsl">
+      <Filter>Shaders\Vertex Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\Compute Shaders\CS_StandardParticle.hlsl">
+      <Filter>Shaders\Compute Shaders</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

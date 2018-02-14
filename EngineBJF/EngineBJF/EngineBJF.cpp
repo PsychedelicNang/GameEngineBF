@@ -210,8 +210,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     return 0;
 #endif
 #pragma endregion
-
 	sceneManager->CheckWindowsMessage(message, hWnd);
+
 	switch (message)
 	{
 	case WM_DESTROY:

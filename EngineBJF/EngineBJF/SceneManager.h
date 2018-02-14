@@ -20,6 +20,7 @@
 #include "ParticleSystem.h"
 #include "FPSInformation.h"
 #include "CPUInformation.h"
+#include "BetterParticleSystem.h"
 
 // Time
 #include "XTime.h"
@@ -44,7 +45,7 @@ public:
 
 private:
 	const bool FULL_SCREEN = false;
-	const bool VSYNC_ENABLED = true;
+	const bool VSYNC_ENABLED = false;
 	const float SCREEN_FAR = 1000.0f;
 	const float SCREEN_NEAR = 0.1f;
 	float m_movementScale;
@@ -66,6 +67,7 @@ private:
 	ParticleSystem*					myParticleSystem;
 	FPSInformation*					myFPSInformation;
 	CPUInformation*					myCPUInformation;
+	BetterParticleSystem*			myBetterParticleSystem;
 
 	GW::SYSTEM::GInput*				myGInput;
 	XTime m_timer;
@@ -146,6 +148,28 @@ private:
 
 	GeometryShaderStuff* m_geometryShaderStuff;
 
+	struct ParticleSystemStruct {
+		ComPtr<ID3D11VertexShader>		m_vertexShader;
+		ComPtr<ID3D11GeometryShader>	m_geometryShader;
+		ComPtr<ID3D11ComputeShader>		m_computeShader;
+		ComPtr<ID3D11PixelShader>		m_pixelShader;
+		ComPtr<ID3D11Buffer>			m_modelConstantBuffer;
+		ComPtr<ID3D11Buffer>			m_viewProjectionConstantBuffer;
+
+		struct ModelConstantBuffer {
+			XMFLOAT4X4 model;
+		};
+		ModelConstantBuffer m_modelConstantBufferStruct;
+
+		struct ViewProjectionConstantBuffer {
+			XMFLOAT4X4 view;
+			XMFLOAT4X4 projection;
+		};
+		ViewProjectionConstantBuffer m_viewProjectionConstantBufferStruct;
+	};
+
+	ParticleSystemStruct* m_particleSystemStruct;
+
 	struct PPVStuff {
 		std::vector<ID3D11ShaderResourceView*> m_materialsSRVs;
 		ComPtr<ID3D11PixelShader> m_PS;
@@ -211,6 +235,7 @@ private:
 	void TessellationQuad(void);
 	void UpdateTessellationQuadConstantBuffer(void);
 	void UpdatedGeometryShaderConstantBuffer(void);
+	void UpdatedParticleSystemConstantBuffer(void);
 
 	void PlayAnimation(void);
 
