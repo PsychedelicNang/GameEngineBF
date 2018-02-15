@@ -4,6 +4,8 @@ BetterParticleSystem::BetterParticleSystem()
 {
 	m_simpleParticles = 0;
 	m_particleCount = 10000;
+	m_randomNumbers = new RandomNumbers();
+	numberOfRandomNumbers = 0;
 }
 
 BetterParticleSystem::~BetterParticleSystem()
@@ -36,7 +38,14 @@ bool BetterParticleSystem::Initialize(ComPtr<ID3D11Device>& _device, WCHAR * _fi
 	}
 
 	CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ParticleSystemProperties), D3D11_BIND_CONSTANT_BUFFER);
-	result = _device->CreateBuffer(&constantBufferDesc, nullptr, m_particleSystemProperties.GetAddressOf());
+	result = _device->CreateBuffer(&constantBufferDesc, nullptr, m_particleSystemPropertiesConstantBuffer.GetAddressOf());
+
+	CD3D11_BUFFER_DESC constantBufferDesc2(sizeof(XMFLOAT4) * numberOfRandomNumbers + sizeof(XMFLOAT3) * numberOfRandomNumbers + sizeof(float) * numberOfRandomNumbers, D3D11_BIND_CONSTANT_BUFFER);
+	result = _device->CreateBuffer(&constantBufferDesc2, nullptr, m_randomNumbersConstantBuffer.GetAddressOf());
+
+	CD3D11_BUFFER_DESC constantBufferDesc3(sizeof(ParticleSystemDynamicProperties), D3D11_BIND_CONSTANT_BUFFER);
+	result = _device->CreateBuffer(&constantBufferDesc3, nullptr, m_particleSystemDynamicPropertiesConstantBuffer.GetAddressOf());
+
 	if (!result)
 	{
 		return false;
@@ -76,12 +85,6 @@ bool BetterParticleSystem::InitializeParticleSystem()
 	// Set the maximum number of particles allowed in the particle system.
 	m_maxParticles = 5000;
 
-	// Create the particle list.
-	if (!m_particleList)
-	{
-		return false;
-	}
-
 	// Initialize the particle list.
 	m_simpleParticles = new SimpleParticle[m_particleCount];
 	
@@ -98,8 +101,37 @@ bool BetterParticleSystem::InitializeParticleSystem()
 	m_particleSystemProperiesStruct.m_particleVelocityVariation = 0.2f;
 	m_particleSystemProperiesStruct.m_particleSize = 0.2f;
 	m_particleSystemProperiesStruct.m_particlesPerSecond = 100.0f;
-	m_particleSystemProperiesStruct.m_deltaTime = 0.f;
 	m_particleSystemProperiesStruct.m_maxParticles = 10000;
+
+	XMStoreFloat4x4(&m_particleSystemDynamicProperties.m_model, XMMatrixIdentity());
+	m_particleSystemDynamicProperties.m_deltaTime = 0.f;
+
+	numberOfRandomNumbers = 100;
+	m_randomNumbers->m_randomColors = new XMFLOAT4[numberOfRandomNumbers];
+	m_randomNumbers->m_randomPositions = new XMFLOAT3[numberOfRandomNumbers];
+	m_randomNumbers->m_randomSpeed = new float[numberOfRandomNumbers];
+
+	for (unsigned i = 0; i < m_particleCount; i++)
+	{
+		if (i < numberOfRandomNumbers)
+		{
+			m_randomNumbers->m_randomPositions[i].x = (((float)rand() - (float)rand()) / RAND_MAX) * m_particleDeviationX;
+			m_randomNumbers->m_randomPositions[i].y = (((float)rand() - (float)rand()) / RAND_MAX) * m_particleDeviationY;
+			m_randomNumbers->m_randomPositions[i].z = (((float)rand() - (float)rand()) / RAND_MAX) * m_particleDeviationZ;
+
+			m_randomNumbers->m_randomSpeed[i] = m_particleVelocity + (((float)rand() - (float)rand()) / RAND_MAX) * m_particleVelocityVariation;
+
+			m_randomNumbers->m_randomColors[i].x = (((float)rand() - (float)rand()) / RAND_MAX) + 0.5f;
+			m_randomNumbers->m_randomColors[i].y = (((float)rand() - (float)rand()) / RAND_MAX) + 0.5f;
+			m_randomNumbers->m_randomColors[i].z = (((float)rand() - (float)rand()) / RAND_MAX) + 0.5f;
+			m_randomNumbers->m_randomColors[i].w = (((float)rand() - (float)rand()) / RAND_MAX) + 0.5f;
+		}
+
+		m_simpleParticles[i].m_age = 0.f;
+		m_simpleParticles[i].m_position = m_randomNumbers->m_randomPositions[i % numberOfRandomNumbers];
+		m_simpleParticles[i].m_color = m_randomNumbers->m_randomColors[i % numberOfRandomNumbers];
+		m_simpleParticles[i].m_speed = m_randomNumbers->m_randomSpeed[i % numberOfRandomNumbers];
+	}
 
 	return true;
 }
@@ -111,7 +143,8 @@ bool BetterParticleSystem::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 	HRESULT result;
 
 	// Set up the description of the dynamic vertex buffer.
-	particleBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	ZeroMemory(&particleBufferDesc, sizeof(particleBufferDesc));
+	particleBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	particleBufferDesc.ByteWidth = sizeof(SimpleParticle) * m_particleCount;
 	particleBufferDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
 	particleBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
@@ -130,12 +163,30 @@ bool BetterParticleSystem::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 		return false;
 	}
 
+	D3D11_UNORDERED_ACCESS_VIEW_DESC UAVDesc;
+	D3D11_BUFFER_UAV UAVBuffer;
+	ZeroMemory(&UAVBuffer, sizeof(UAVBuffer));
+	ZeroMemory(&UAVDesc, sizeof(UAVDesc));
+	UAVBuffer.FirstElement = 0;
+	UAVBuffer.NumElements = m_particleCount;
+
+	UAVDesc.Format = DXGI_FORMAT_UNKNOWN;
+	UAVDesc.Buffer = UAVBuffer;
+	UAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+
+	result = _device->CreateUnorderedAccessView(m_structuredBuffer.Get(), &UAVDesc, m_UAV.GetAddressOf());
+	
+	if (FAILED(result))
+	{
+		return false;
+	}
+
 	return true;
 }
 
-bool BetterParticleSystem::InitializeUAV(ComPtr<ID3D11Device>& _device)
+BetterParticleSystem::RandomNumbers::RandomNumbers()
 {
-	D3D11_UNORDERED_ACCESS_VIEW_DESC UAVDesc;
-	UAVDesc.Format = DXGI_FORMAT_UNKNOWN;
-	return false;
+	m_randomColors = 0;
+	m_randomPositions = 0;
+	m_randomSpeed = 0;
 }

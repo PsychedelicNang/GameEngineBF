@@ -266,6 +266,9 @@
     <FxCompile Include="shaders\Compute Shaders\CS_StandardParticle.hlsl">
       <Filter>Shaders\Compute Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="shaders\Pixel Shaders\PS_StandardParticles.hlsl">
+      <Filter>Shaders\Pixel Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Teddy_Idle.fbx" />

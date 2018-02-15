@@ -1,17 +1,15 @@
-texture2D theTexture : register(t0);
-SamplerState envFilter : register(s0);
 uint primitiveId : SV_PrimitiveID;
 
 struct SimpleParticle
 {
-	float3 initialPosition  : INITIALPOS;
-	float3 initialVelocity  : INITIALVEL;
-	float2 size			    : SIZE;
-	float age : AGE;
-	uint type				: TYPE;
+	float3 position  : POSITION;
+	float3 velocity  : VELOCITY;
+	float4 color	 : COLOR;
+	float2 size		 : SIZE;
+	float age		 : AGE;
 };
 
-RWStructuredBuffer<SimpleParticle> results : register(u0);
+RWStructuredBuffer<SimpleParticle> particles : register(u0);
 
 cbuffer ViewProjectConstantBuffer : register(b0)
 {
@@ -28,6 +26,7 @@ struct GSOutput
 {
 	float4 pos : SV_POSITION;
 	float4 color : COLOR;
+	float2 uvs	 : UVS;
 };
 
 [maxvertexcount(6)]
@@ -36,35 +35,41 @@ void main(
 	inout TriangleStream< GSOutput > output
 )
 {
-
-	//	float4 diffuseColor = diffuse.Sample(envFilter, input.uvs.xy);
+	float2 topLeft = float2(0.0f, 0.0f);
+	float2 topRight = float2(1.0f, 0.0f);
+	float2 bottomLeft = float2(0.0f, 1.0f);
+	float2 bottomRight = float2(1.0f, 1.0f);
 
 	GSOutput verts[6] =
 	{
-		{ float4(0, 0, 0, 1), float4(0.3f, 0.f, 0.3f, 1.f) },
-		{ float4(0, 0, 0, 1), float4(0.6f, 0.f, 0.6f, 1.f) },
-		{ float4(0, 0, 0, 1), float4(1.f, 0.f, 1.f, 1.f) },
-		{ float4(0, 0, 0, 1), float4(0.3f, 0.f, 0.3f, 1.f) },
-		{ float4(0, 0, 0, 1), float4(0.6f, 0.f, 0.6f, 1.f) },
-		{ float4(0, 0, 0, 1), float4(1.f, 0.f, 1.f, 1.f) }
+		{ float4(particles[primitiveId].position, 1), particles[primitiveId].color, bottomLeft },
+		{ float4(particles[primitiveId].position, 1), particles[primitiveId].color, topLeft },
+		{ float4(particles[primitiveId].position, 1), particles[primitiveId].color, topRight },
+		{ float4(particles[primitiveId].position, 1), particles[primitiveId].color, topRight },
+		{ float4(particles[primitiveId].position, 1), particles[primitiveId].color, bottomRight },
+		{ float4(particles[primitiveId].position, 1), particles[primitiveId].color, bottomLeft }
 	};
-	verts[0].pos = input[0].pos;
 
-	verts[1].pos = input[0].pos;
+
+	//GSOutput verts[6] =
+	//{
+	//	{ float4(particles[primitiveId].position, 1), float4(0.3f, 0.f, 0.3f, 1.f) },
+	//	{ float4(particles[primitiveId].position, 1), float4(0.6f, 0.f, 0.6f, 1.f) },
+	//	{ float4(particles[primitiveId].position, 1), float4(1.f, 0.f, 1.f, 1.f) },
+	//	{ float4(particles[primitiveId].position, 1), float4(0.3f, 0.f, 0.3f, 1.f) },
+	//	{ float4(particles[primitiveId].position, 1), float4(0.6f, 0.f, 0.6f, 1.f) },
+	//	{ float4(particles[primitiveId].position, 1), float4(1.f, 0.f, 1.f, 1.f) }
+	//};
+
 	verts[1].pos.y += 10;
 
-	verts[2].pos = input[0].pos;
 	verts[2].pos.x += 10;
 	verts[2].pos.y += 10;
 
-	verts[3].pos = input[0].pos;
 	verts[3].pos.x += 10;
 	verts[3].pos.y += 10;
 
-	verts[4].pos = input[0].pos;
 	verts[4].pos.x += 10;
-
-	verts[5].pos = input[0].pos;
 
 	for (uint i = 0; i < 6; i++)
 	{

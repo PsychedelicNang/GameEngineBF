@@ -149,6 +149,22 @@ private:
 	GeometryShaderStuff* m_geometryShaderStuff;
 
 	struct ParticleSystemStruct {
+		ComPtr<ID3D11InputLayout>		inputLayout;
+		ComPtr<ID3D11VertexShader>		m_vertexShader;
+		ComPtr<ID3D11PixelShader>		m_pixelShader;
+		ComPtr<ID3D11Buffer>			m_modelViewProjectionConstantBuffer;
+
+		struct ModelViewProjectionConstantBuffer {
+			XMFLOAT4X4 model;
+			XMFLOAT4X4 view;
+			XMFLOAT4X4 projection;
+		};
+		ModelViewProjectionConstantBuffer m_modelViewProjectionConstantBufferStruct;
+	};
+
+	ParticleSystemStruct* m_particleSystemStruct;
+
+	struct BetterParticleSystemStruct {
 		ComPtr<ID3D11VertexShader>		m_vertexShader;
 		ComPtr<ID3D11GeometryShader>	m_geometryShader;
 		ComPtr<ID3D11ComputeShader>		m_computeShader;
@@ -168,7 +184,7 @@ private:
 		ViewProjectionConstantBuffer m_viewProjectionConstantBufferStruct;
 	};
 
-	ParticleSystemStruct* m_particleSystemStruct;
+	BetterParticleSystemStruct* m_betterParticleSystemStruct;
 
 	struct PPVStuff {
 		std::vector<ID3D11ShaderResourceView*> m_materialsSRVs;
@@ -240,6 +256,7 @@ private:
 	void PlayAnimation(void);
 
 	void ParticleSystemStuff(void);
+	void BetterParticleSystemStuff(void);
 };
 
 #endif //!_SCENEMANAGER_H_

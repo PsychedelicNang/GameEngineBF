@@ -128,10 +128,10 @@ bool ParticleSystem::InitializeParticleSystem()
 	m_particleSize = 0.2f;
 
 	// Set the number of particles to emit per second.
-	m_particlesPerSecond = 30.0f;
+	m_particlesPerSecond = 5.0f;
 
 	// Set the maximum number of particles allowed in the particle system.
-	m_maxParticles = 5000;
+	m_maxParticles = 10000;
 	
 	// Create the particle list.
 	m_particleList = new Particle[m_maxParticles];
@@ -278,7 +278,7 @@ void ParticleSystem::EmitParticles(float _deltaTime)
 	emitParticle = false;
 
 	// Check if it is time to emit a new particle or not.
-	if (m_accumulatedTime > (10.0f / m_particlesPerSecond))
+	if (m_accumulatedTime > (1.0f / m_particlesPerSecond))
 	{
 		m_accumulatedTime = 0.0f;
 		emitParticle = true;
