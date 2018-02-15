@@ -368,6 +368,7 @@ void SceneManager::Render(void)
 	/********************NewParticleStuff******************************/
 	UINT stride3 = 0;
 	UINT offset3 = 0;
+	m_deviceContext->IASetInputLayout(m_particleSystemStruct->inputLayout.Get());
 	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 	m_deviceContext->VSSetShader(m_particleSystemStruct->m_vertexShader.Get(), nullptr, 0);
 	m_deviceContext->PSSetShader(m_particleSystemStruct->m_pixelShader.Get(), nullptr, 0);
@@ -377,18 +378,18 @@ void SceneManager::Render(void)
 	XMStoreFloat4x4(&m_betterParticleSystemStruct->m_viewProjectionConstantBufferStruct.view, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.view)));
 	XMStoreFloat4x4(&m_betterParticleSystemStruct->m_viewProjectionConstantBufferStruct.projection, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.projection)));
 	m_deviceContext->UpdateSubresource(m_betterParticleSystemStruct->m_viewProjectionConstantBuffer.Get(), 0, NULL, &m_betterParticleSystemStruct->m_viewProjectionConstantBufferStruct, 0, 0);
+	m_deviceContext->GSSetShader(m_betterParticleSystemStruct->m_geometryShader.Get(), nullptr, 0);
 	m_deviceContext->GSSetConstantBuffers(0, 1, m_betterParticleSystemStruct->m_viewProjectionConstantBuffer.GetAddressOf());
 	m_deviceContext->GSSetShaderResources(0, 1, myBetterParticleSystem->m_shaderResourceView.GetAddressOf());
-	m_deviceContext->GSSetShader(m_betterParticleSystemStruct->m_geometryShader.Get(), nullptr, 0);
 
 	//The other CS update subresource doesn't need to happen every frame, just the dynamic stuff
 	myBetterParticleSystem->m_particleSystemDynamicProperties.m_deltaTime = m_timeBetweenFrames;
 	m_deviceContext->UpdateSubresource(myBetterParticleSystem->m_particleSystemDynamicPropertiesConstantBuffer.Get(), 0, NULL, &myBetterParticleSystem->m_particleSystemDynamicProperties, 0, 0);
+	m_deviceContext->CSSetShader(m_betterParticleSystemStruct->m_computeShader.Get(), nullptr, 0);
 	m_deviceContext->CSSetConstantBuffers(0, 1, myBetterParticleSystem->m_particleSystemPropertiesConstantBuffer.GetAddressOf());
 	m_deviceContext->CSSetConstantBuffers(1, 1, myBetterParticleSystem->m_randomNumbersConstantBuffer.GetAddressOf());
 	m_deviceContext->CSSetConstantBuffers(2, 1, myBetterParticleSystem->m_particleSystemDynamicPropertiesConstantBuffer.GetAddressOf());
 	m_deviceContext->CSSetUnorderedAccessViews(0, 1, myBetterParticleSystem->m_UAV.GetAddressOf(), 0);
-	m_deviceContext->CSSetShader(m_betterParticleSystemStruct->m_computeShader.Get(), nullptr, 0);
 
 	m_deviceContext->IASetVertexBuffers(0, 0, nullptr, &stride3, &offset3);
 	m_deviceContext->IASetIndexBuffer(0, DXGI_FORMAT_UNKNOWN, 0);
@@ -1147,6 +1148,13 @@ void SceneManager::BetterParticleSystemStuff(void)
 	size_t byteCodeSize2 = 0;
 	LoadCompiledShaderData(&bytecode2, byteCodeSize2, "Shaders/Vertex Shaders/VS_EmptyForParticleSystem.cso");
 	myD3DClass->GetDevice()->CreateVertexShader(bytecode2, byteCodeSize2, nullptr, m_betterParticleSystemStruct->m_vertexShader.GetAddressOf());
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] = {
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+	result = myD3DClass->GetDevice()->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), bytecode2, byteCodeSize2, m_betterParticleSystemStruct->m_inputLayout.GetAddressOf());
+
 	delete[] bytecode2;
 
 	char* bytecode3 = nullptr;
@@ -1160,6 +1168,7 @@ void SceneManager::BetterParticleSystemStuff(void)
 	LoadCompiledShaderData(&bytecode4, byteCodeSize4, "Shaders/Compute Shaders/CS_StandardParticle.cso");
 	myD3DClass->GetDevice()->CreateComputeShader(bytecode4, byteCodeSize4, nullptr, m_betterParticleSystemStruct->m_computeShader.GetAddressOf());
 	delete[] bytecode4;
+
 
 	CD3D11_BUFFER_DESC constantBufferDesc(sizeof(BetterParticleSystemStruct::ModelConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
 	myD3DClass->GetDevice()->CreateBuffer(&constantBufferDesc, nullptr, m_betterParticleSystemStruct->m_modelConstantBuffer.GetAddressOf());

@@ -165,6 +165,7 @@ private:
 	ParticleSystemStruct* m_particleSystemStruct;
 
 	struct BetterParticleSystemStruct {
+		ComPtr<ID3D11InputLayout>		m_inputLayout;
 		ComPtr<ID3D11VertexShader>		m_vertexShader;
 		ComPtr<ID3D11GeometryShader>	m_geometryShader;
 		ComPtr<ID3D11ComputeShader>		m_computeShader;

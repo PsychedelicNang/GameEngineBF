@@ -17,7 +17,9 @@ cbuffer ViewProjectConstantBuffer : register(b0)
 
 struct GSInput
 {
-	float4 pos : SV_POSITION;
+    float4 pos : SV_POSITION;
+    float4 color : COLOR;
+    float2 uvs : UVS;
 };
 
 struct GSOutput
