@@ -365,38 +365,38 @@ void SceneManager::Render(void)
 	m_deviceContext->GSSetShader(NULL, nullptr, 0);
 	/********************GeometryShader******************************/
 
-	///********************NewParticleStuff******************************/
-	//UINT stride3 = 0;
-	//UINT offset3 = 0;
-	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-	//m_deviceContext->VSSetShader(m_particleSystemStruct->m_vertexShader.Get(), nullptr, 0);
-	//m_deviceContext->PSSetShader(m_particleSystemStruct->m_pixelShader.Get(), nullptr, 0);
-	//m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
-	//m_deviceContext->PSSetShaderResources(0, 1, myBetterParticleSystem->m_texture.GetAddressOf());
+	/********************NewParticleStuff******************************/
+	UINT stride3 = 0;
+	UINT offset3 = 0;
+	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	m_deviceContext->VSSetShader(m_particleSystemStruct->m_vertexShader.Get(), nullptr, 0);
+	m_deviceContext->PSSetShader(m_particleSystemStruct->m_pixelShader.Get(), nullptr, 0);
+	m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
+	m_deviceContext->PSSetShaderResources(0, 1, myBetterParticleSystem->m_texture.GetAddressOf());
 
-	//XMStoreFloat4x4(&m_particleSystemStruct->m_viewProjectionConstantBufferStruct.view, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.view)));
-	//XMStoreFloat4x4(&m_particleSystemStruct->m_viewProjectionConstantBufferStruct.projection, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.projection)));
-	//m_deviceContext->UpdateSubresource(m_particleSystemStruct->m_viewProjectionConstantBuffer.Get(), 0, NULL, &m_particleSystemStruct->m_viewProjectionConstantBufferStruct, 0, 0);
-	//m_deviceContext->GSSetConstantBuffers(0, 1, m_particleSystemStruct->m_viewProjectionConstantBuffer.GetAddressOf());
-	//m_deviceContext->GSSetShader(m_particleSystemStruct->m_geometryShader.Get(), nullptr, 0);
+	XMStoreFloat4x4(&m_betterParticleSystemStruct->m_viewProjectionConstantBufferStruct.view, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.view)));
+	XMStoreFloat4x4(&m_betterParticleSystemStruct->m_viewProjectionConstantBufferStruct.projection, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.projection)));
+	m_deviceContext->UpdateSubresource(m_betterParticleSystemStruct->m_viewProjectionConstantBuffer.Get(), 0, NULL, &m_betterParticleSystemStruct->m_viewProjectionConstantBufferStruct, 0, 0);
+	m_deviceContext->GSSetConstantBuffers(0, 1, m_betterParticleSystemStruct->m_viewProjectionConstantBuffer.GetAddressOf());
+	m_deviceContext->GSSetShaderResources(0, 1, myBetterParticleSystem->m_shaderResourceView.GetAddressOf());
+	m_deviceContext->GSSetShader(m_betterParticleSystemStruct->m_geometryShader.Get(), nullptr, 0);
 
-	////The other CS update subresource doesn't need to happen every frame, just the dynamic stuff
-	//myBetterParticleSystem->m_particleSystemDynamicProperties.m_deltaTime = m_timeBetweenFrames;
-	//m_deviceContext->UpdateSubresource(myBetterParticleSystem->m_particleSystemDynamicPropertiesConstantBuffer.Get(), 0, NULL, &myBetterParticleSystem->m_particleSystemDynamicProperties, 0, 0);
-	//m_deviceContext->CSSetConstantBuffers(0, 1, myBetterParticleSystem->m_particleSystemPropertiesConstantBuffer.GetAddressOf());
-	//m_deviceContext->CSSetConstantBuffers(1, 1, myBetterParticleSystem->m_randomNumbersConstantBuffer.GetAddressOf());
-	//m_deviceContext->CSSetConstantBuffers(2, 1, myBetterParticleSystem->m_particleSystemDynamicPropertiesConstantBuffer.GetAddressOf());
-	//m_deviceContext->CSSetUnorderedAccessViews(0, 1, myBetterParticleSystem->m_UAV.GetAddressOf(), 0);
-	//m_deviceContext->CSSetShader(m_particleSystemStruct->m_computeShader.Get(), nullptr, 0);
+	//The other CS update subresource doesn't need to happen every frame, just the dynamic stuff
+	myBetterParticleSystem->m_particleSystemDynamicProperties.m_deltaTime = m_timeBetweenFrames;
+	m_deviceContext->UpdateSubresource(myBetterParticleSystem->m_particleSystemDynamicPropertiesConstantBuffer.Get(), 0, NULL, &myBetterParticleSystem->m_particleSystemDynamicProperties, 0, 0);
+	m_deviceContext->CSSetConstantBuffers(0, 1, myBetterParticleSystem->m_particleSystemPropertiesConstantBuffer.GetAddressOf());
+	m_deviceContext->CSSetConstantBuffers(1, 1, myBetterParticleSystem->m_randomNumbersConstantBuffer.GetAddressOf());
+	m_deviceContext->CSSetConstantBuffers(2, 1, myBetterParticleSystem->m_particleSystemDynamicPropertiesConstantBuffer.GetAddressOf());
+	m_deviceContext->CSSetUnorderedAccessViews(0, 1, myBetterParticleSystem->m_UAV.GetAddressOf(), 0);
+	m_deviceContext->CSSetShader(m_betterParticleSystemStruct->m_computeShader.Get(), nullptr, 0);
 
+	m_deviceContext->IASetVertexBuffers(0, 0, nullptr, &stride3, &offset3);
+	m_deviceContext->IASetIndexBuffer(0, DXGI_FORMAT_UNKNOWN, 0);
 
-	//m_deviceContext->IASetVertexBuffers(0, 0, nullptr, &stride3, &offset3);
-	//m_deviceContext->IASetIndexBuffer(0, DXGI_FORMAT_UNKNOWN, 0);
-
-	//m_deviceContext->Draw(myBetterParticleSystem->m_particleCount, 0);
-	//m_deviceContext->CSSetShader(NULL, nullptr, 0);
-	//m_deviceContext->GSSetShader(NULL, nullptr, 0);
-	///********************NewParticleStuff******************************/
+	m_deviceContext->Draw(myBetterParticleSystem->m_particleCount, 0);
+	m_deviceContext->CSSetShader(NULL, nullptr, 0);
+	m_deviceContext->GSSetShader(NULL, nullptr, 0);
+	/********************NewParticleStuff******************************/
 
 	/********************OldParticleStuff******************************/
 	myD3DClass->EnableAlphaBlending();
@@ -472,7 +472,7 @@ void SceneManager::UpdatedGeometryShaderConstantBuffer(void)
 
 void SceneManager::UpdatedParticleSystemConstantBuffer(void)
 {
-	XMStoreFloat4x4(&m_particleSystemStruct->m_modelViewProjectionConstantBufferStruct.model, XMMatrixTranspose(XMMatrixTranslation(2.f, 5.f, 7.f)));
+	XMStoreFloat4x4(&m_particleSystemStruct->m_modelViewProjectionConstantBufferStruct.model, XMMatrixTranspose(XMMatrixTranslation(7.f, 7.f, 7.f)));
 	XMStoreFloat4x4(&m_particleSystemStruct->m_modelViewProjectionConstantBufferStruct.view, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.view)));
 	XMStoreFloat4x4(&m_particleSystemStruct->m_modelViewProjectionConstantBufferStruct.projection, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.projection)));
 	myD3DClass->GetDeviceContext()->UpdateSubresource(m_particleSystemStruct->m_modelViewProjectionConstantBuffer.Get(), 0, NULL, &m_particleSystemStruct->m_modelViewProjectionConstantBufferStruct, 0, 0);

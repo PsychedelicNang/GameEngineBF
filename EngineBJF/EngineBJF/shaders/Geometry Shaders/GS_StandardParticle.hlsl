@@ -1,5 +1,3 @@
-uint primitiveId : SV_PrimitiveID;
-
 struct SimpleParticle
 {
 	float3 position  : POSITION;
@@ -9,7 +7,7 @@ struct SimpleParticle
 	float age		 : AGE;
 };
 
-RWStructuredBuffer<SimpleParticle> particles : register(u0);
+StructuredBuffer<SimpleParticle> particles : register(t0);
 
 cbuffer ViewProjectConstantBuffer : register(b0)
 {
@@ -32,7 +30,8 @@ struct GSOutput
 [maxvertexcount(6)]
 void main(
 	point GSInput input[1],
-	inout TriangleStream< GSOutput > output
+	inout TriangleStream<GSOutput> output, 
+    uint primitiveId : SV_PrimitiveID
 )
 {
 	float2 topLeft = float2(0.0f, 0.0f);

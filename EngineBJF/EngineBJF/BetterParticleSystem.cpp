@@ -146,7 +146,7 @@ bool BetterParticleSystem::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 	ZeroMemory(&particleBufferDesc, sizeof(particleBufferDesc));
 	particleBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	particleBufferDesc.ByteWidth = sizeof(SimpleParticle) * m_particleCount;
-	particleBufferDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
+	particleBufferDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
 	particleBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
 	particleBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 	particleBufferDesc.StructureByteStride = sizeof(SimpleParticle);
@@ -175,6 +175,24 @@ bool BetterParticleSystem::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 	UAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 
 	result = _device->CreateUnorderedAccessView(m_structuredBuffer.Get(), &UAVDesc, m_UAV.GetAddressOf());
+
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	D3D11_BUFFER_SRV srvBuffer;
+	ZeroMemory(&srvDesc, sizeof(srvDesc));
+	ZeroMemory(&srvBuffer, sizeof(srvBuffer));
+	srvBuffer.FirstElement = 0;
+	srvBuffer.NumElements = m_particleCount;
+
+	srvDesc.Buffer = srvBuffer;
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+
+	result = _device->CreateShaderResourceView(m_structuredBuffer.Get(), &srvDesc, m_shaderResourceView.GetAddressOf());
 	
 	if (FAILED(result))
 	{

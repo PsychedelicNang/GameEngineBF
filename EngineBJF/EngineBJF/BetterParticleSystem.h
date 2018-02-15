@@ -84,6 +84,7 @@ public:
 	ComPtr<ID3D11Buffer> m_structuredBuffer;
 	ComPtr<ID3D11Buffer> m_indexBuffer;
 	ComPtr<ID3D11Buffer> m_randomNumbersConstantBuffer;
+	ComPtr<ID3D11ShaderResourceView> m_shaderResourceView;
 };
 
 #endif // !_BETTERPARTICLESYSTEM_H_
