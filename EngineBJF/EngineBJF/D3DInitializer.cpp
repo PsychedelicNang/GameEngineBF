@@ -15,6 +15,8 @@ D3DInitializer::D3DInitializer()
 	m_rasterState				= nullptr;
 	m_alphaEnabledBlendState	= nullptr;
 	m_alphaDisabledBlendState	= nullptr;
+	m_screenWidth = 0;
+	m_screenHeight = 0;
 }
 
 D3DInitializer::~D3DInitializer()
@@ -73,6 +75,21 @@ void D3DInitializer::BeginScene(float _red, float _green, float _blue, float _al
 	color[2] = _blue;
 	color[3] = _alpha;
 
+	// Setup the viewport for rendering.
+	m_viewport.Width = m_screenWidth;
+	m_viewport.Height = m_screenHeight;
+	m_viewport.MinDepth = 0.0f;
+	m_viewport.MaxDepth = 1.0f;
+	m_viewport.TopLeftX = 0.0f;
+	m_viewport.TopLeftY = 0.0f;
+
+	// Bind the render target view and depth stencil buffer to the output render pipeline.
+	m_deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
+	// Now set the rasterizer state.
+	m_deviceContext->RSSetState(m_rasterState.Get());
+	// Create the viewport.
+	m_deviceContext->RSSetViewports(1, &m_viewport);
+
 	// Clear the back buffer.
 	m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), color);
 
@@ -82,6 +99,21 @@ void D3DInitializer::BeginScene(float _red, float _green, float _blue, float _al
 
 void D3DInitializer::BeginScene(float _color[4])
 {
+	// Setup the viewport for rendering.
+	m_viewport.Width = m_screenWidth;
+	m_viewport.Height = m_screenHeight;
+	m_viewport.MinDepth = 0.0f;
+	m_viewport.MaxDepth = 1.0f;
+	m_viewport.TopLeftX = 0.0f;
+	m_viewport.TopLeftY = 0.0f;
+
+	// Bind the render target view and depth stencil buffer to the output render pipeline.
+	m_deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
+	// Now set the rasterizer state.
+	m_deviceContext->RSSetState(m_rasterState.Get());
+	// Create the viewport.
+	m_deviceContext->RSSetViewports(1, &m_viewport);
+
 	// Clear the back buffer.
 	m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), _color);
 
@@ -126,6 +158,8 @@ void D3DInitializer::EndScene()
 		// Present as fast as possible.
 		m_swapChain->Present(0, 0);
 	}
+
+	m_deviceContext->ClearState();
 }
 
 ComPtr<ID3D11Device> D3DInitializer::GetDevice()
@@ -585,6 +619,9 @@ bool D3DInitializer::InitializeBlendState()
 
 bool D3DInitializer::InitializeViewport(int _screenWidth, int _screenHeight)
 {
+	m_screenWidth = (float)_screenWidth;
+	m_screenHeight = (float)_screenHeight;
+
 	// Setup the viewport for rendering.
 	m_viewport.Width = (float)_screenWidth;
 	m_viewport.Height = (float)_screenHeight;

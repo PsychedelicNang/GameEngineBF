@@ -1,11 +1,11 @@
 struct PSOutput
 {
-    float4 pos : SV_POSITION;
+    float4 pos : POSITION;
     float4 color : COLOR;
     float2 uvs : UVS;
 };
 
-PSOutput main(PSOutput input)
+PSOutput main()
 {
     PSOutput output;
     output.pos = float4(0, 0, 0, 0);

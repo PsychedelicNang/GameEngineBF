@@ -9,13 +9,12 @@ cbuffer ParticleSystemPropertiesConstantBuffer : register(b0)
 	float2 padding;
 }
 
-cbuffer RandomNumbersConstantBuffer : register(b1)
-{
-	//[#] must == numberOfRandomNumbers
-	float4 randomColors[100];
-	float3 randomPositions[100];
-	float  randomSpeed[100];
-}
+//cbuffer RandomNumbersConstantBuffer : register(b1)
+//{
+//	//[#] must == numberOfRandomNumbers
+//	float4 randomColors[100];
+//	float4 randomPositionsAndSpeed[100];	//xyz == position, w == speed
+//}
 
 cbuffer ParticleSystemDyamicPropertiesConstantBuffer : register(b2)
 {
@@ -26,12 +25,8 @@ cbuffer ParticleSystemDyamicPropertiesConstantBuffer : register(b2)
 
 struct SimpleParticle
 {
-	float3 position  : POSITION;
-	float3 velocity  : VELOCITY;
-	float4 color	 : COLOR; 
-	float2 size		 : SIZE;
-	float age		 : AGE;
-	float speed : SPEED;
+	float4 position;
+	float4 color;
 };
 
 RWStructuredBuffer<SimpleParticle> particles : register(u0);
@@ -41,18 +36,24 @@ void main( uint3 DTid : SV_DispatchThreadID,  uint groupIndex : SV_GroupIndex )
 {
 	// SV_DispatchThreadID tells us which particle we are
 	uint particleIndex = (DTid.x * DTid.y * DTid.z) + groupIndex;
+	//uint particleIndex = groupIndex;
 
-	particles[particleIndex].age += deltaTime;
+	//particles[particleIndex].age += deltaTime;
 
-	// If the particles is older than 10 seconds, reset the particle
-	if (particles[particleIndex].age > 10.f)
-	{
-		particles[particleIndex].age = 0.0f;
-		particles[particleIndex].position = initialPosition + randomPositions[groupIndex];
-		particles[particleIndex].velocity = initialVelocity * randomSpeed[groupIndex];
-		particles[particleIndex].color = randomColors[groupIndex];
-		particles[particleIndex].size = particleSize;
-	}
+	//// If the particles is older than 10 seconds, reset the particle
+	//if (particles[particleIndex].age > 10.f)
+	//{
+	//	particles[particleIndex].age = 0.0f;
+	//	particles[particleIndex].position = initialPosition + randomPositionsAndSpeed[groupIndex].xyz;
+	//	particles[particleIndex].velocity = initialVelocity * randomPositionsAndSpeed[groupIndex].w;
+	//	particles[particleIndex].color = randomColors[groupIndex];
+	//	particles[particleIndex].size = particleSize;
+	//}
 
-	particles[particleIndex].position.y -= (particleVelocity * deltaTime * 0.1f);
+	//particles[particleIndex].position.x = randomPositionsAndSpeed[groupIndex].x;
+	//particles[particleIndex].position.z = randomPositionsAndSpeed[groupIndex].z;
+
+	//particles[particleIndex].position.y -= (particleVelocity * deltaTime);
+
+	//particles[particleIndex].position = mul(particles[particleIndex].position, model);
 }

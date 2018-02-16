@@ -232,149 +232,168 @@ void SceneManager::Update(void)
 	}
 
 	myCamera->CreateViewAndPerspectiveMatrix();
+
+	///The other CS update subresource doesn't need to happen every frame, just the dynamic stuff
+	myBetterParticleSystem->m_particleSystemDynamicProperties.m_deltaTime = m_timeBetweenFrames;
+	XMStoreFloat4x4(&myBetterParticleSystem->m_particleSystemDynamicProperties.m_model, XMMatrixTranspose(XMMatrixTranslation(0.0f, 0.0f, 10.0f)));
+	//myD3DClass->GetDeviceContext()->UpdateSubresource(myBetterParticleSystem->m_randomNumbersConstantBuffer.Get(), 0, NULL, myBetterParticleSystem->m_randomNumbers, 0, 0);
+	myD3DClass->GetDeviceContext()->UpdateSubresource(myBetterParticleSystem->m_particleSystemPropertiesConstantBuffer.Get(), 0, NULL, &myBetterParticleSystem->m_particleSystemProperiesStruct, 0, 0);
+	myD3DClass->GetDeviceContext()->UpdateSubresource(myBetterParticleSystem->m_particleSystemDynamicPropertiesConstantBuffer.Get(), 0, NULL, &myBetterParticleSystem->m_particleSystemDynamicProperties, 0, 0);
+	myD3DClass->GetDeviceContext()->CSSetShader(m_betterParticleSystemStruct->m_computeShader.Get(), nullptr, 0);
+	myD3DClass->GetDeviceContext()->CSSetConstantBuffers(0, 1, myBetterParticleSystem->m_particleSystemPropertiesConstantBuffer.GetAddressOf());
+	//myD3DClass->GetDeviceContext()->CSSetConstantBuffers(1, 1, myBetterParticleSystem->m_randomNumbersConstantBuffer.GetAddressOf());
+	myD3DClass->GetDeviceContext()->CSSetConstantBuffers(2, 1, myBetterParticleSystem->m_particleSystemDynamicPropertiesConstantBuffer.GetAddressOf());
+	myD3DClass->GetDeviceContext()->CSSetUnorderedAccessViews(0, 1, myBetterParticleSystem->m_UAV.GetAddressOf(), 0);
+
+	myD3DClass->GetDeviceContext()->Dispatch(10, 10, 1);
+	
+	myD3DClass->GetDeviceContext()->ClearState();
 }
 
 void SceneManager::Render(void)
 {
-	//float RGBA[4] = { .2f, .5f, 1.f, 1.f };
-	float RGBA[4] = { 0.f, 0.f, 0.f, 1.f };
+	float RGBA[4] = { .2f, .5f, 1.f, 1.f };
+	//float RGBA[4] = { 0.f, 0.f, 0.f, 1.f };
 
 	myD3DClass->BeginScene(RGBA);
 
 	ComPtr<ID3D11DeviceContext> m_deviceContext = myD3DClass->GetDeviceContext();
 	ComPtr<ID3D11Device> m_device = myD3DClass->GetDevice();		
-#if 1
-	if (m_libraryLoadedMesh && m_libraryLoadedMesh)
-	{
-		m_deviceContext->IASetInputLayout(m_PPVBattleMage.m_IL.Get());
-		m_deviceContext->VSSetShader(m_PPVBattleMage.m_VS.Get(), NULL, 0);
-		m_deviceContext->PSSetShader(m_PPVBattleMage.m_PS.Get(), NULL, 0);
-		m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
-		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVBattleMage.m_materialsSRVs.data()[1]);	// 1, 0, 3 because of the input from shaders... diffuse, emissive, specular
-		m_deviceContext->PSSetShaderResources(1, 1, &m_PPVBattleMage.m_materialsSRVs.data()[0]);	// Skip [2] because we are not using normal mapping right now
-		m_deviceContext->PSSetShaderResources(2, 1, &m_PPVBattleMage.m_materialsSRVs.data()[3]);
-		UpdateStandardConstantBuffer(myCube->GetObjectMatrix());
-		myCube->Render(m_deviceContext);
-
-		UpdateStandardConstantBuffer(myBattleMage->GetObjectMatrix());
-		myBattleMage->Render(m_deviceContext);
-
-		UpdateStandardConstantBuffer(myTeddyBear->GetObjectMatrix());
-		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
-		m_deviceContext->PSSetShaderResources(1, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
-		//m_deviceContext->PSSetShaderResources(2, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
-		myTeddyBear->Render(m_deviceContext);
-
-		/**********************Skeleton Animation**********************/
-		SetPipelineStates(m_defaultPipeline);
-		UpdateStandardConstantBuffer(XMMatrixIdentity());
-		//UpdateStandardConstantBuffer(XMMatrixTranslation(100, 0, 0));
-		PlayAnimation();
-		myDebugRenderer->CreateVertexBuffer(m_device);
-		myDebugRenderer->Render(m_device, m_deviceContext);
-		/**********************Skeleton Animation**********************/
-
-
-		/**********************Skinned Animation**********************/
-		//Float4x4 joints_for_vs[NumJoints]
-		//for i = 0; i < NumJoints; ++i        
-		//	joints_for_vs[i] = multiply(invBind[i], tweenJoint[i])
-		//upload_joints_to_gpu(joints_for_vs)
-
-		size_t numberOfJoints = m_jointsForFrameToPresent.size();
-		//m_SkinnedTransforms.transforms = new XMMATRIX[numberOfJoints];
-		for (size_t i = 0; i < numberOfJoints; i++)
-		{
-			m_SkinnedTransforms.transforms[i] = XMMatrixTranspose(XMMatrixMultiply(XMMatrixMultiply(XMMatrixInverse(nullptr, m_bindPoseMatrices[i]), m_jointsForFrameToPresent[i]), XMMatrixScaling(2.f, 2.f, 2.f)));
-		}
-
-		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(SkinnedTransforms), D3D11_BIND_CONSTANT_BUFFER);
-		myD3DClass->GetDevice()->CreateBuffer(&constantBufferDesc, nullptr, m_skinnedAnimationConstantBuffer.GetAddressOf());
-
-		//UpdateStandardConstantBuffer(XMMatrixTranslation(-100, 0, 0));
-		UpdateStandardConstantBuffer(myTeddyBearAnim->GetObjectMatrix());
-		myD3DClass->GetDeviceContext()->UpdateSubresource(m_skinnedAnimationConstantBuffer.Get(), 0, NULL, &m_SkinnedTransforms, 0, 0);
-		myD3DClass->GetDeviceContext()->VSSetConstantBuffers(1, 1, m_skinnedAnimationConstantBuffer.GetAddressOf());
-
-		m_deviceContext->IASetInputLayout(m_PPVSkinnedAnimation.m_IL.Get());
-		m_deviceContext->VSSetShader(m_PPVSkinnedAnimation.m_VS.Get(), NULL, 0);
-		m_deviceContext->PSSetShader(m_PPVSkinnedAnimation.m_PS.Get(), NULL, 0);
-		m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
-		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
-		//m_deviceContext->PSSetShaderResources(1, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
-		myTeddyBearAnim->Render(m_deviceContext);
-
-		m_skinnedAnimationConstantBuffer.Reset();
-		/**********************Skinned Animation**********************/
-	}
-	
-	SetPipelineStates(m_defaultPipeline);
-	UpdateStandardConstantBuffer(XMMatrixIdentity());
-	myTerrain->Render(m_deviceContext);
-
-	/********************Tessellation******************************/
-	m_deviceContext->IASetInputLayout(m_tessellationStuff.inputLayout.Get());
-	
-	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-	UINT stride = sizeof(VertexPositionColor);
-	UINT offset = 0;
-	
-	UpdateTessellationConstantBuffer();
-	m_deviceContext->IASetVertexBuffers(0, 1, m_tessellationStuff.m_quadVertexBuffer.GetAddressOf(), &stride, &offset);
-	m_deviceContext->VSSetShader(m_tessellationStuff.vertexShader.Get(), NULL, 0);
-	m_deviceContext->PSSetShader(m_tessellationStuff.pixelShader.Get(), NULL, 0);
-	m_deviceContext->HSSetShader(m_tessellationStuff.hullShader.Get(), NULL, 0);
-	m_deviceContext->DSSetShader(m_tessellationStuff.domainShader.Get(), NULL, 0);
-	
-	m_deviceContext->Draw(3, 0);
-	m_deviceContext->HSSetShader(NULL, NULL, 0);
-	m_deviceContext->DSSetShader(NULL, NULL, 0);
-	/********************Tessellation******************************/
-
-	/********************TessellationQuad******************************/
-	//m_deviceContext->IASetInputLayout(m_tessellationQuad.inputLayout.Get());
-	//
-	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
-	//UINT stride = sizeof(VertexPositionColor);
-	//UINT offset = 0;
-	//
-	//UpdateTessellationQuadConstantBuffer();
-	//m_deviceContext->IASetVertexBuffers(0, 1, m_tessellationQuad.m_quadVertexBuffer.GetAddressOf(), &stride, &offset);
-	//m_deviceContext->VSSetShader(m_tessellationQuad.vertexShader.Get(), NULL, 0);
-	//m_deviceContext->PSSetShader(m_tessellationQuad.pixelShader.Get(), NULL, 0);
-	//m_deviceContext->HSSetShader(m_tessellationQuad.hullShader.Get(), NULL, 0);
-	//m_deviceContext->DSSetShader(m_tessellationQuad.domainShader.Get(), NULL, 0);
-	//
-	//m_deviceContext->Draw(4, 0);
-	//m_deviceContext->HSSetShader(NULL, NULL, 0);
-	//m_deviceContext->DSSetShader(NULL, NULL, 0);
-	/********************TessellationQuad******************************/
-
-	/********************GeometryShader******************************/
-	UINT stride2 = sizeof(VertexPosition);
-	UINT offset2 = 0;
-	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-	m_deviceContext->IASetInputLayout(m_geometryShaderStuff->inputLayout.Get());
-	m_deviceContext->VSSetShader(m_geometryShaderStuff->vertexShader.Get(), nullptr, 0);
-	m_deviceContext->PSSetShader(m_geometryShaderStuff->pixelShader.Get(), nullptr, 0);
-	m_deviceContext->GSSetShader(m_geometryShaderStuff->geometryShader.Get(), nullptr, 0);
-	m_deviceContext->IASetVertexBuffers(0, 1, m_geometryShaderStuff->vertexBuffer.GetAddressOf(), &stride2, &offset2);
-
-	UpdatedGeometryShaderConstantBuffer();
-	m_deviceContext->Draw(1, 0);
-	m_deviceContext->GSSetShader(NULL, nullptr, 0);
-	/********************GeometryShader******************************/
+//#if 1
+//	if (m_libraryLoadedMesh && m_libraryLoadedMesh)
+//	{
+//		m_deviceContext->IASetInputLayout(m_PPVBattleMage.m_IL.Get());
+//		m_deviceContext->VSSetShader(m_PPVBattleMage.m_VS.Get(), NULL, 0);
+//		m_deviceContext->PSSetShader(m_PPVBattleMage.m_PS.Get(), NULL, 0);
+//		m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
+//		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVBattleMage.m_materialsSRVs.data()[1]);	// 1, 0, 3 because of the input from shaders... diffuse, emissive, specular
+//		m_deviceContext->PSSetShaderResources(1, 1, &m_PPVBattleMage.m_materialsSRVs.data()[0]);	// Skip [2] because we are not using normal mapping right now
+//		m_deviceContext->PSSetShaderResources(2, 1, &m_PPVBattleMage.m_materialsSRVs.data()[3]);
+//		UpdateStandardConstantBuffer(myCube->GetObjectMatrix());
+//		myCube->Render(m_deviceContext);
+//
+//		UpdateStandardConstantBuffer(myBattleMage->GetObjectMatrix());
+//		myBattleMage->Render(m_deviceContext);
+//
+//		UpdateStandardConstantBuffer(myTeddyBear->GetObjectMatrix());
+//		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
+//		m_deviceContext->PSSetShaderResources(1, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
+//		//m_deviceContext->PSSetShaderResources(2, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
+//		myTeddyBear->Render(m_deviceContext);
+//
+//		/**********************Skeleton Animation**********************/
+//		SetPipelineStates(m_defaultPipeline);
+//		UpdateStandardConstantBuffer(XMMatrixIdentity());
+//		//UpdateStandardConstantBuffer(XMMatrixTranslation(100, 0, 0));
+//		PlayAnimation();
+//		myDebugRenderer->CreateVertexBuffer(m_device);
+//		myDebugRenderer->Render(m_device, m_deviceContext);
+//		/**********************Skeleton Animation**********************/
+//
+//
+//		/**********************Skinned Animation**********************/
+//		//Float4x4 joints_for_vs[NumJoints]
+//		//for i = 0; i < NumJoints; ++i        
+//		//	joints_for_vs[i] = multiply(invBind[i], tweenJoint[i])
+//		//upload_joints_to_gpu(joints_for_vs)
+//
+//		size_t numberOfJoints = m_jointsForFrameToPresent.size();
+//		//m_SkinnedTransforms.transforms = new XMMATRIX[numberOfJoints];
+//		for (size_t i = 0; i < numberOfJoints; i++)
+//		{
+//			m_SkinnedTransforms.transforms[i] = XMMatrixTranspose(XMMatrixMultiply(XMMatrixMultiply(XMMatrixInverse(nullptr, m_bindPoseMatrices[i]), m_jointsForFrameToPresent[i]), XMMatrixScaling(2.f, 2.f, 2.f)));
+//		}
+//
+//		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(SkinnedTransforms), D3D11_BIND_CONSTANT_BUFFER);
+//		myD3DClass->GetDevice()->CreateBuffer(&constantBufferDesc, nullptr, m_skinnedAnimationConstantBuffer.GetAddressOf());
+//
+//		//UpdateStandardConstantBuffer(XMMatrixTranslation(-100, 0, 0));
+//		UpdateStandardConstantBuffer(myTeddyBearAnim->GetObjectMatrix());
+//		myD3DClass->GetDeviceContext()->UpdateSubresource(m_skinnedAnimationConstantBuffer.Get(), 0, NULL, &m_SkinnedTransforms, 0, 0);
+//		myD3DClass->GetDeviceContext()->VSSetConstantBuffers(1, 1, m_skinnedAnimationConstantBuffer.GetAddressOf());
+//
+//		m_deviceContext->IASetInputLayout(m_PPVSkinnedAnimation.m_IL.Get());
+//		m_deviceContext->VSSetShader(m_PPVSkinnedAnimation.m_VS.Get(), NULL, 0);
+//		m_deviceContext->PSSetShader(m_PPVSkinnedAnimation.m_PS.Get(), NULL, 0);
+//		m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
+//		m_deviceContext->PSSetShaderResources(0, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
+//		//m_deviceContext->PSSetShaderResources(1, 1, &m_PPVStuff.m_materialsSRVs.data()[0]);
+//		myTeddyBearAnim->Render(m_deviceContext);
+//
+//		m_skinnedAnimationConstantBuffer.Reset();
+//		/**********************Skinned Animation**********************/
+//	}
+//	
+	//SetPipelineStates(m_defaultPipeline);
+	//UpdateStandardConstantBuffer(XMMatrixIdentity());
+	//myTerrain->Render(m_deviceContext);
+//
+//	/********************Tessellation******************************/
+//	m_deviceContext->IASetInputLayout(m_tessellationStuff.inputLayout.Get());
+//	
+//	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+//	UINT stride = sizeof(VertexPositionColor);
+//	UINT offset = 0;
+//	
+//	UpdateTessellationConstantBuffer();
+//	m_deviceContext->IASetVertexBuffers(0, 1, m_tessellationStuff.m_quadVertexBuffer.GetAddressOf(), &stride, &offset);
+//	m_deviceContext->VSSetShader(m_tessellationStuff.vertexShader.Get(), NULL, 0);
+//	m_deviceContext->PSSetShader(m_tessellationStuff.pixelShader.Get(), NULL, 0);
+//	m_deviceContext->HSSetShader(m_tessellationStuff.hullShader.Get(), NULL, 0);
+//	m_deviceContext->DSSetShader(m_tessellationStuff.domainShader.Get(), NULL, 0);
+//	
+//	m_deviceContext->Draw(3, 0);
+//	m_deviceContext->HSSetShader(NULL, NULL, 0);
+//	m_deviceContext->DSSetShader(NULL, NULL, 0);
+//	/********************Tessellation******************************/
+//
+//	/********************TessellationQuad******************************/
+//	//m_deviceContext->IASetInputLayout(m_tessellationQuad.inputLayout.Get());
+//	//
+//	//m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
+//	//UINT stride = sizeof(VertexPositionColor);
+//	//UINT offset = 0;
+//	//
+//	//UpdateTessellationQuadConstantBuffer();
+//	//m_deviceContext->IASetVertexBuffers(0, 1, m_tessellationQuad.m_quadVertexBuffer.GetAddressOf(), &stride, &offset);
+//	//m_deviceContext->VSSetShader(m_tessellationQuad.vertexShader.Get(), NULL, 0);
+//	//m_deviceContext->PSSetShader(m_tessellationQuad.pixelShader.Get(), NULL, 0);
+//	//m_deviceContext->HSSetShader(m_tessellationQuad.hullShader.Get(), NULL, 0);
+//	//m_deviceContext->DSSetShader(m_tessellationQuad.domainShader.Get(), NULL, 0);
+//	//
+//	//m_deviceContext->Draw(4, 0);
+//	//m_deviceContext->HSSetShader(NULL, NULL, 0);
+//	//m_deviceContext->DSSetShader(NULL, NULL, 0);
+//	/********************TessellationQuad******************************/
+//
+//	/********************GeometryShader******************************/
+//	UINT stride2 = sizeof(VertexPosition);
+//	UINT offset2 = 0;
+//	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+//	m_deviceContext->IASetInputLayout(m_geometryShaderStuff->inputLayout.Get());
+//	m_deviceContext->VSSetShader(m_geometryShaderStuff->vertexShader.Get(), nullptr, 0);
+//	m_deviceContext->PSSetShader(m_geometryShaderStuff->pixelShader.Get(), nullptr, 0);
+//	m_deviceContext->GSSetShader(m_geometryShaderStuff->geometryShader.Get(), nullptr, 0);
+//	m_deviceContext->IASetVertexBuffers(0, 1, m_geometryShaderStuff->vertexBuffer.GetAddressOf(), &stride2, &offset2);
+//
+//	UpdatedGeometryShaderConstantBuffer();
+//	m_deviceContext->Draw(1, 0);
+//	m_deviceContext->GSSetShader(NULL, nullptr, 0);
+//	/********************GeometryShader******************************/
 
 	/********************NewParticleStuff******************************/
+	myD3DClass->EnableAlphaBlending();
 	UINT stride3 = 0;
 	UINT offset3 = 0;
-	m_deviceContext->IASetInputLayout(m_particleSystemStruct->inputLayout.Get());
+	//m_deviceContext->IASetInputLayout(m_betterParticleSystemStruct->m_inputLayout.Get());
+	m_deviceContext->IASetInputLayout(nullptr);
 	m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-	m_deviceContext->VSSetShader(m_particleSystemStruct->m_vertexShader.Get(), nullptr, 0);
-	m_deviceContext->PSSetShader(m_particleSystemStruct->m_pixelShader.Get(), nullptr, 0);
+	m_deviceContext->VSSetShader(m_betterParticleSystemStruct->m_vertexShader.Get(), nullptr, 0);
+	m_deviceContext->PSSetShader(m_betterParticleSystemStruct->m_pixelShader.Get(), nullptr, 0);
 	m_deviceContext->PSSetSamplers(0, 1, m_samplerState.GetAddressOf());
 	m_deviceContext->PSSetShaderResources(0, 1, myBetterParticleSystem->m_texture.GetAddressOf());
 
+	XMStoreFloat4x4(&m_betterParticleSystemStruct->m_viewProjectionConstantBufferStruct.model, XMMatrixTranspose(XMMatrixIdentity()));
 	XMStoreFloat4x4(&m_betterParticleSystemStruct->m_viewProjectionConstantBufferStruct.view, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.view)));
 	XMStoreFloat4x4(&m_betterParticleSystemStruct->m_viewProjectionConstantBufferStruct.projection, XMMatrixTranspose(XMLoadFloat4x4(&myCamera->m_constantBufferData.projection)));
 	m_deviceContext->UpdateSubresource(m_betterParticleSystemStruct->m_viewProjectionConstantBuffer.Get(), 0, NULL, &m_betterParticleSystemStruct->m_viewProjectionConstantBufferStruct, 0, 0);
@@ -382,21 +401,13 @@ void SceneManager::Render(void)
 	m_deviceContext->GSSetConstantBuffers(0, 1, m_betterParticleSystemStruct->m_viewProjectionConstantBuffer.GetAddressOf());
 	m_deviceContext->GSSetShaderResources(0, 1, myBetterParticleSystem->m_shaderResourceView.GetAddressOf());
 
-	//The other CS update subresource doesn't need to happen every frame, just the dynamic stuff
-	myBetterParticleSystem->m_particleSystemDynamicProperties.m_deltaTime = m_timeBetweenFrames;
-	m_deviceContext->UpdateSubresource(myBetterParticleSystem->m_particleSystemDynamicPropertiesConstantBuffer.Get(), 0, NULL, &myBetterParticleSystem->m_particleSystemDynamicProperties, 0, 0);
-	m_deviceContext->CSSetShader(m_betterParticleSystemStruct->m_computeShader.Get(), nullptr, 0);
-	m_deviceContext->CSSetConstantBuffers(0, 1, myBetterParticleSystem->m_particleSystemPropertiesConstantBuffer.GetAddressOf());
-	m_deviceContext->CSSetConstantBuffers(1, 1, myBetterParticleSystem->m_randomNumbersConstantBuffer.GetAddressOf());
-	m_deviceContext->CSSetConstantBuffers(2, 1, myBetterParticleSystem->m_particleSystemDynamicPropertiesConstantBuffer.GetAddressOf());
-	m_deviceContext->CSSetUnorderedAccessViews(0, 1, myBetterParticleSystem->m_UAV.GetAddressOf(), 0);
-
-	m_deviceContext->IASetVertexBuffers(0, 0, nullptr, &stride3, &offset3);
+	m_deviceContext->IASetVertexBuffers(0, 0, nullptr, 0, 0);
 	m_deviceContext->IASetIndexBuffer(0, DXGI_FORMAT_UNKNOWN, 0);
 
 	m_deviceContext->Draw(myBetterParticleSystem->m_particleCount, 0);
 	m_deviceContext->CSSetShader(NULL, nullptr, 0);
 	m_deviceContext->GSSetShader(NULL, nullptr, 0);
+	myD3DClass->DisableAlphaBlending();
 	/********************NewParticleStuff******************************/
 
 	/********************OldParticleStuff******************************/
@@ -409,7 +420,7 @@ void SceneManager::Render(void)
 	myParticleSystem->Render(m_deviceContext);
 	myD3DClass->DisableAlphaBlending();
 	/********************OldParticleStuff******************************/
-#endif
+//#endif
 
 	m_deviceContext.Reset();
 	m_device.Reset();
@@ -1136,7 +1147,6 @@ void SceneManager::ParticleSystemStuff(void)
 void SceneManager::BetterParticleSystemStuff(void)
 {
 	bool result = myBetterParticleSystem->Initialize(myD3DClass->GetDevice(), L"star.png");
-	myD3DClass->GetDeviceContext()->UpdateSubresource(myBetterParticleSystem->m_randomNumbersConstantBuffer.Get(), 0, NULL, &myBetterParticleSystem->m_randomNumbers, 0, 0);
 
 	char* bytecode = nullptr;
 	size_t byteCodeSize = 0;
@@ -1151,7 +1161,7 @@ void SceneManager::BetterParticleSystemStuff(void)
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "UVS", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 	result = myD3DClass->GetDevice()->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), bytecode2, byteCodeSize2, m_betterParticleSystemStruct->m_inputLayout.GetAddressOf());
 

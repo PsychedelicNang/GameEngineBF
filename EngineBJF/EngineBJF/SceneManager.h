@@ -179,6 +179,7 @@ private:
 		ModelConstantBuffer m_modelConstantBufferStruct;
 
 		struct ViewProjectionConstantBuffer {
+			XMFLOAT4X4 model;
 			XMFLOAT4X4 view;
 			XMFLOAT4X4 projection;
 		};

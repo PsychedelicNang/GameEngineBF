@@ -40,7 +40,8 @@ bool BetterParticleSystem::Initialize(ComPtr<ID3D11Device>& _device, WCHAR * _fi
 	CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ParticleSystemProperties), D3D11_BIND_CONSTANT_BUFFER);
 	result = _device->CreateBuffer(&constantBufferDesc, nullptr, m_particleSystemPropertiesConstantBuffer.GetAddressOf());
 
-	CD3D11_BUFFER_DESC constantBufferDesc2(sizeof(XMFLOAT4) * numberOfRandomNumbers + sizeof(XMFLOAT3) * numberOfRandomNumbers + sizeof(float) * numberOfRandomNumbers, D3D11_BIND_CONSTANT_BUFFER);
+	unsigned size = (sizeof(XMFLOAT4) * numberOfRandomNumbers) + (sizeof(XMFLOAT3) * numberOfRandomNumbers) + (sizeof(float) * numberOfRandomNumbers);
+	CD3D11_BUFFER_DESC constantBufferDesc2((sizeof(XMFLOAT4) * numberOfRandomNumbers) + (sizeof(XMFLOAT3) * numberOfRandomNumbers) + (sizeof(float) * numberOfRandomNumbers), D3D11_BIND_CONSTANT_BUFFER);
 	result = _device->CreateBuffer(&constantBufferDesc2, nullptr, m_randomNumbersConstantBuffer.GetAddressOf());
 
 	CD3D11_BUFFER_DESC constantBufferDesc3(sizeof(ParticleSystemDynamicProperties), D3D11_BIND_CONSTANT_BUFFER);
@@ -94,6 +95,8 @@ bool BetterParticleSystem::InitializeParticleSystem()
 	// Clear the initial accumulated time for the particle per second emission rate.
 	m_accumulatedTime = 0.0f;
 
+	m_particleSystemProperiesStruct.m_initialPosition = XMFLOAT3(0.0f, 5.0f, 0.0f);
+	m_particleSystemProperiesStruct.m_initialVelocity = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	m_particleSystemProperiesStruct.m_particleDeviationX = 0.5f;
 	m_particleSystemProperiesStruct.m_particleDeviationY = 0.1f;
 	m_particleSystemProperiesStruct.m_particleDeviationZ = 2.0f;
@@ -101,36 +104,106 @@ bool BetterParticleSystem::InitializeParticleSystem()
 	m_particleSystemProperiesStruct.m_particleVelocityVariation = 0.2f;
 	m_particleSystemProperiesStruct.m_particleSize = 0.2f;
 	m_particleSystemProperiesStruct.m_particlesPerSecond = 100.0f;
-	m_particleSystemProperiesStruct.m_maxParticles = 10000;
+	m_particleSystemProperiesStruct.m_maxParticles = (unsigned)10000;
 
 	XMStoreFloat4x4(&m_particleSystemDynamicProperties.m_model, XMMatrixIdentity());
 	m_particleSystemDynamicProperties.m_deltaTime = 0.f;
 
 	numberOfRandomNumbers = 100;
 	m_randomNumbers->m_randomColors = new XMFLOAT4[numberOfRandomNumbers];
-	m_randomNumbers->m_randomPositions = new XMFLOAT3[numberOfRandomNumbers];
-	m_randomNumbers->m_randomSpeed = new float[numberOfRandomNumbers];
+	m_randomNumbers->m_randomPositionsAndSpeed = new XMFLOAT4[numberOfRandomNumbers];
 
+	XMFLOAT4 color = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.f);
+	float x = 0.f;
+	float y = 0.f;
+	float z = 0.f;
 	for (unsigned i = 0; i < m_particleCount; i++)
 	{
-		if (i < numberOfRandomNumbers)
+		if (i == 1)
 		{
-			m_randomNumbers->m_randomPositions[i].x = (((float)rand() - (float)rand()) / RAND_MAX) * m_particleDeviationX;
-			m_randomNumbers->m_randomPositions[i].y = (((float)rand() - (float)rand()) / RAND_MAX) * m_particleDeviationY;
-			m_randomNumbers->m_randomPositions[i].z = (((float)rand() - (float)rand()) / RAND_MAX) * m_particleDeviationZ;
-
-			m_randomNumbers->m_randomSpeed[i] = m_particleVelocity + (((float)rand() - (float)rand()) / RAND_MAX) * m_particleVelocityVariation;
-
-			m_randomNumbers->m_randomColors[i].x = (((float)rand() - (float)rand()) / RAND_MAX) + 0.5f;
-			m_randomNumbers->m_randomColors[i].y = (((float)rand() - (float)rand()) / RAND_MAX) + 0.5f;
-			m_randomNumbers->m_randomColors[i].z = (((float)rand() - (float)rand()) / RAND_MAX) + 0.5f;
-			m_randomNumbers->m_randomColors[i].w = (((float)rand() - (float)rand()) / RAND_MAX) + 0.5f;
+			// just to skip the first case..
 		}
+		else if (i % 100 == 1)
+		{
+			y += 1.f;
+			x = 0.f;
+		}
+		else if (i % 200 == 1)
+		{
+			y += 1.f;
+			x = 0.f;
+		}
+		else if (i % 300 == 1)
+		{
+			y += 1.f;
+			x = 0.f;
+		}
+		else if (i % 400 == 1)
+		{
+			y += 1.f;
+			x = 0.f;
+		}
+		else if (i % 500 == 1)
+		{
+			y += 1.f;
+			x = 0.f;
+		}
+		else if (i % 600 == 1)
+		{
+			y += 1.f;
+			x = 0.f;
+		}
+		else if (i % 700 == 1)
+		{
+			y += 1.f;
+			x = 0.f;
+		}
+		else if (i % 800 == 1)
+		{
+			y += 1.f;
+			x = 0.f;
+		}
+		else if (i % 900 == 1)
+		{
+			y += 1.f;
+			x = 0.f;
+		}
+		x += .5f;
+		//z += .5f;
+		//color.x += 0.05;
+		//color.y += 0.05;
+		//color.z += 0.05;
 
-		m_simpleParticles[i].m_age = 0.f;
-		m_simpleParticles[i].m_position = m_randomNumbers->m_randomPositions[i % numberOfRandomNumbers];
-		m_simpleParticles[i].m_color = m_randomNumbers->m_randomColors[i % numberOfRandomNumbers];
-		m_simpleParticles[i].m_speed = m_randomNumbers->m_randomSpeed[i % numberOfRandomNumbers];
+		//if (color.x >= 1.f)
+		//{
+		//	color.x = 0.0f;
+		//	color.y = 0.0f;
+		//	color.z = 0.0f;
+		//}
+		//if (i < numberOfRandomNumbers)
+		//{
+		//	m_randomNumbers->m_randomPositionsAndSpeed[i].x = (((float)rand() - (float)rand()) / RAND_MAX) * m_particleDeviationX;
+		//	m_randomNumbers->m_randomPositionsAndSpeed[i].y = (((float)rand() - (float)rand()) / RAND_MAX) * m_particleDeviationY;
+		//	m_randomNumbers->m_randomPositionsAndSpeed[i].z = (((float)rand() - (float)rand()) / RAND_MAX) * m_particleDeviationZ;
+		//	m_randomNumbers->m_randomPositionsAndSpeed[i].w = m_particleVelocity + (((float)rand() - (float)rand()) / RAND_MAX) * m_particleVelocityVariation;
+
+		//	m_randomNumbers->m_randomColors[i].x = (((float)rand() - (float)rand()) / RAND_MAX) + 0.5f;
+		//	m_randomNumbers->m_randomColors[i].y = (((float)rand() - (float)rand()) / RAND_MAX) + 0.5f;
+		//	m_randomNumbers->m_randomColors[i].z = (((float)rand() - (float)rand()) / RAND_MAX) + 0.5f;
+		//	m_randomNumbers->m_randomColors[i].w = (((float)rand() - (float)rand()) / RAND_MAX) + 0.5f;
+		//}
+
+		//m_simpleParticles[i].m_age = 0.f;
+		//m_simpleParticles[i].m_position.x = m_randomNumbers->m_randomPositionsAndSpeed[i % numberOfRandomNumbers].x;
+		//m_simpleParticles[i].m_position.y = m_randomNumbers->m_randomPositionsAndSpeed[i % numberOfRandomNumbers].y;
+		//m_simpleParticles[i].m_position.z = m_randomNumbers->m_randomPositionsAndSpeed[i % numberOfRandomNumbers].z;
+		//m_simpleParticles[i].m_color = m_randomNumbers->m_randomColors[i % numberOfRandomNumbers];
+		//m_simpleParticles[i].m_speed = m_randomNumbers->m_randomPositionsAndSpeed[i % numberOfRandomNumbers].w;
+		m_simpleParticles[i].m_position.x = x;
+		m_simpleParticles[i].m_position.y = y;
+		m_simpleParticles[i].m_position.z = z;
+		m_simpleParticles[i].m_position.w = 1.f;
+		m_simpleParticles[i].m_color = color;
 	}
 
 	return true;
@@ -205,6 +278,17 @@ bool BetterParticleSystem::InitializeBuffers(ComPtr<ID3D11Device>& _device)
 BetterParticleSystem::RandomNumbers::RandomNumbers()
 {
 	m_randomColors = 0;
-	m_randomPositions = 0;
-	m_randomSpeed = 0;
+	m_randomPositionsAndSpeed = 0;
+}
+
+BetterParticleSystem::RandomNumbers::~RandomNumbers()
+{
+	delete[] m_randomColors;
+	delete[] m_randomPositionsAndSpeed;
+}
+
+BetterParticleSystem::SimpleParticle::SimpleParticle()
+{
+	m_position = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
+	m_color = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
 }

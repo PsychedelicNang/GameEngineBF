@@ -1,23 +1,21 @@
 struct SimpleParticle
 {
-	float3 position  : POSITION;
-	float3 velocity  : VELOCITY;
-	float4 color	 : COLOR;
-	float2 size		 : SIZE;
-	float age		 : AGE;
+	float4 position;
+	float4 color;
 };
 
 StructuredBuffer<SimpleParticle> particles : register(t0);
 
 cbuffer ViewProjectConstantBuffer : register(b0)
 {
+	matrix model;
 	matrix view;
 	matrix projection;
 }
 
 struct GSInput
 {
-    float4 pos : SV_POSITION;
+    float4 pos : POSITION;
     float4 color : COLOR;
     float2 uvs : UVS;
 };
@@ -41,39 +39,36 @@ void main(
 	float2 bottomLeft = float2(0.0f, 1.0f);
 	float2 bottomRight = float2(1.0f, 1.0f);
 
-	GSOutput verts[6] =
-	{
-		{ float4(particles[primitiveId].position, 1), particles[primitiveId].color, bottomLeft },
-		{ float4(particles[primitiveId].position, 1), particles[primitiveId].color, topLeft },
-		{ float4(particles[primitiveId].position, 1), particles[primitiveId].color, topRight },
-		{ float4(particles[primitiveId].position, 1), particles[primitiveId].color, topRight },
-		{ float4(particles[primitiveId].position, 1), particles[primitiveId].color, bottomRight },
-		{ float4(particles[primitiveId].position, 1), particles[primitiveId].color, bottomLeft }
-	};
-
-
 	//GSOutput verts[6] =
 	//{
-	//	{ float4(particles[primitiveId].position, 1), float4(0.3f, 0.f, 0.3f, 1.f) },
-	//	{ float4(particles[primitiveId].position, 1), float4(0.6f, 0.f, 0.6f, 1.f) },
-	//	{ float4(particles[primitiveId].position, 1), float4(1.f, 0.f, 1.f, 1.f) },
-	//	{ float4(particles[primitiveId].position, 1), float4(0.3f, 0.f, 0.3f, 1.f) },
-	//	{ float4(particles[primitiveId].position, 1), float4(0.6f, 0.f, 0.6f, 1.f) },
-	//	{ float4(particles[primitiveId].position, 1), float4(1.f, 0.f, 1.f, 1.f) }
+	//	{ particles[primitiveId].position, particles[primitiveId].color, bottomLeft },
+	//	{ particles[primitiveId].position, particles[primitiveId].color, topLeft },
+	//	{ particles[primitiveId].position, particles[primitiveId].color, topRight },
+	//	{ particles[primitiveId].position, particles[primitiveId].color, topRight },
+	//	{ particles[primitiveId].position, particles[primitiveId].color, bottomRight },
+	//	{ particles[primitiveId].position, particles[primitiveId].color, bottomLeft }
 	//};
 
-	verts[1].pos.y += 10;
+	GSOutput verts[6] =
+	{
+		{ particles[primitiveId].position, float4(0.3f, 0.f, 0.3f, 1.f) , bottomLeft },
+		{ particles[primitiveId].position, float4(0.6f, 0.f, 0.6f, 1.f) , topLeft },
+		{ particles[primitiveId].position, float4(1.f, 0.f, 1.f, 1.f)   , topRight },
+		{ particles[primitiveId].position, float4(0.3f, 0.f, 0.3f, 1.f) , topRight },
+		{ particles[primitiveId].position, float4(0.6f, 0.f, 0.6f, 1.f) , bottomRight },
+		{ particles[primitiveId].position, float4(1.f, 0.f, 1.f, 1.f)   , bottomLeft }
+	};
 
-	verts[2].pos.x += 10;
-	verts[2].pos.y += 10;
-
-	verts[3].pos.x += 10;
-	verts[3].pos.y += 10;
-
-	verts[4].pos.x += 10;
+	verts[1].pos.y += 1;
+	verts[2].pos.x += 1;
+	verts[2].pos.y += 1;
+	verts[3].pos.x += 1;
+	verts[3].pos.y += 1;
+	verts[4].pos.x += 1;
 
 	for (uint i = 0; i < 6; i++)
 	{
+		verts[i].pos = mul(verts[i].pos, model);
 		verts[i].pos = mul(verts[i].pos, view);
 		verts[i].pos = mul(verts[i].pos, projection);
 	}

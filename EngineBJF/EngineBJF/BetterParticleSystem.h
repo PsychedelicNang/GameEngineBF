@@ -16,14 +16,27 @@ public:
 	BetterParticleSystem();
 	~BetterParticleSystem();
 
+	//struct SimpleParticle
+	//{
+	//	SimpleParticle();
+	//	XMFLOAT3 m_position;
+	//	float padding00;
+	//	XMFLOAT3 m_velocity;
+	//	float padding01;
+	//	XMFLOAT4 m_color;
+	//	XMFLOAT2 m_size;
+	//	XMFLOAT2 padding02;
+	//	float m_age;
+	//	XMFLOAT3 padding03;
+	//	float m_speed;
+	//	XMFLOAT3 padding04;
+	//};
+
 	struct SimpleParticle
 	{
-		XMFLOAT3 m_position;
-		XMFLOAT3 m_velocity;
+		SimpleParticle();
+		XMFLOAT4 m_position;
 		XMFLOAT4 m_color;
-		XMFLOAT2 m_size;
-		float m_age;
-		float m_speed;
 	};
 
 	SimpleParticle* m_simpleParticles;
@@ -31,9 +44,9 @@ public:
 	struct RandomNumbers
 	{
 		RandomNumbers();
+		~RandomNumbers();
 		XMFLOAT4* m_randomColors;
-		XMFLOAT3* m_randomPositions;
-		float*	  m_randomSpeed;
+		XMFLOAT4* m_randomPositionsAndSpeed;	// xyz == pos, w == speed
 	};
 
 	RandomNumbers* m_randomNumbers;

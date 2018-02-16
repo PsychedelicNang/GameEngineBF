@@ -78,8 +78,9 @@ private:
 	D3D11_VIEWPORT						m_viewport;
 	XMMATRIX m_projectionMatrix;
 	XMMATRIX m_worldMatrix;
-	XMMATRIX m_orthographicMatrix;
-	// View matrix is inside of Camera.h
+	XMMATRIX m_orthographicMatrix;	// View matrix is inside of Camera.h
+	float m_screenWidth;
+	float m_screenHeight;
 
 private:
 	bool InitializeVideoCardInformation(int _screenWidth, int _screenHeight, unsigned& _refreshRateNumerator, unsigned& _refreshRateDenominator);
