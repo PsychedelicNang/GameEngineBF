@@ -3,7 +3,7 @@
 BetterParticleSystem::BetterParticleSystem()
 {
 	m_simpleParticles = 0;
-	m_particleCount = 10000;
+	m_particleCount = 1000;
 	m_randomNumbers = new RandomNumbers();
 	numberOfRandomNumbers = 0;
 }
@@ -11,6 +11,15 @@ BetterParticleSystem::BetterParticleSystem()
 BetterParticleSystem::~BetterParticleSystem()
 {
 	delete[] m_simpleParticles;
+	delete m_randomNumbers;
+	m_texture.Reset();
+	m_UAV.Reset();
+	m_particleSystemPropertiesConstantBuffer.Reset();
+	m_particleSystemDynamicPropertiesConstantBuffer.Reset();
+	m_structuredBuffer.Reset();
+	m_indexBuffer.Reset();
+	m_randomNumbersConstantBuffer.Reset();
+	m_shaderResourceView.Reset();
 }
 
 bool BetterParticleSystem::Initialize(ComPtr<ID3D11Device>& _device, WCHAR * _fileName)
@@ -119,57 +128,23 @@ bool BetterParticleSystem::InitializeParticleSystem()
 	float z = 0.f;
 	for (unsigned i = 0; i < m_particleCount; i++)
 	{
-		if (i == 1)
+		if (i == 0)
 		{
-			// just to skip the first case..
+
 		}
-		else if (i % 100 == 1)
-		{
-			y += 1.f;
-			x = 0.f;
-		}
-		else if (i % 200 == 1)
-		{
-			y += 1.f;
-			x = 0.f;
-		}
-		else if (i % 300 == 1)
-		{
-			y += 1.f;
-			x = 0.f;
-		}
-		else if (i % 400 == 1)
-		{
-			y += 1.f;
-			x = 0.f;
-		}
-		else if (i % 500 == 1)
-		{
-			y += 1.f;
-			x = 0.f;
-		}
-		else if (i % 600 == 1)
-		{
-			y += 1.f;
-			x = 0.f;
-		}
-		else if (i % 700 == 1)
-		{
-			y += 1.f;
-			x = 0.f;
-		}
-		else if (i % 800 == 1)
-		{
-			y += 1.f;
-			x = 0.f;
-		}
-		else if (i % 900 == 1)
+		else if (i % 100 == 0)
 		{
 			y += 1.f;
 			x = 0.f;
 		}
 		x += .5f;
-		//z += .5f;
+
+		//if (i % 2 == 0)
+		//{
+		//	y = 1.f;
+		//}
+		//else y = 0;
+		z -= .1f;
 		//color.x += 0.05;
 		//color.y += 0.05;
 		//color.z += 0.05;

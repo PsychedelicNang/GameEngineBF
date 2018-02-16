@@ -31,12 +31,12 @@ struct SimpleParticle
 
 RWStructuredBuffer<SimpleParticle> particles : register(u0);
 
-[numthreads(10, 10, 1)] // Launch 100 threads per group ( 10 * 10 * 1) == 100 ... must be <= 1024
-void main( uint3 DTid : SV_DispatchThreadID,  uint groupIndex : SV_GroupIndex )
+[numthreads(100, 1, 1)]
+void main( uint3 dispatchThreadID : SV_DispatchThreadID,  uint groupIndex : SV_GroupIndex, uint3 groupThreadID : SV_GroupThreadID )
 {
-	// SV_DispatchThreadID tells us which particle we are
-	uint particleIndex = (DTid.x * DTid.y * DTid.z) + groupIndex;
-	//uint particleIndex = groupIndex;
+	//(_y * _RSWidth) + _x;
+
+	uint particleIndex = (dispatchThreadID.y * 100) + groupIndex;
 
 	//particles[particleIndex].age += deltaTime;
 
@@ -50,10 +50,10 @@ void main( uint3 DTid : SV_DispatchThreadID,  uint groupIndex : SV_GroupIndex )
 	//	particles[particleIndex].size = particleSize;
 	//}
 
-	//particles[particleIndex].position.x = randomPositionsAndSpeed[groupIndex].x;
+  //  particles[particleIndex].position.x -= 5.0f * deltaTime;
 	//particles[particleIndex].position.z = randomPositionsAndSpeed[groupIndex].z;
 
-	//particles[particleIndex].position.y -= (particleVelocity * deltaTime);
+	particles[particleIndex].position.y -= (particleVelocity * deltaTime);
 
 	//particles[particleIndex].position = mul(particles[particleIndex].position, model);
 }
