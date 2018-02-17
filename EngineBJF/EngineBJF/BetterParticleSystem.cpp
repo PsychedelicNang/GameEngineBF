@@ -137,14 +137,14 @@ bool BetterParticleSystem::InitializeParticleSystem()
 			y += 1.f;
 			x = 0.f;
 		}
-		x += .5f;
+		x += .05f;
 
 		//if (i % 2 == 0)
 		//{
 		//	y = 1.f;
 		//}
 		//else y = 0;
-		z -= .1f;
+		z -= .001f;
 		//color.x += 0.05;
 		//color.y += 0.05;
 		//color.z += 0.05;
