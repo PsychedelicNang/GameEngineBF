@@ -31,7 +31,8 @@ float4 main(PixelShaderInput input) : SV_TARGET
 	float3 viewDir = float3(viewDirResult.x, viewDirResult.y, viewDirResult.z);
 	float3 halfDir = normalize(normalize(lightDir) + viewDir);
 	float specular = pow(max(dot(halfDir, normalize(input.normal)), 0.f), shininess);
-
+	
+	//float4 color = specularColor * specular;
 	float4 color = diffuseColor * diffuse + emissiveColor + specularColor * specular;
 	//float4 color = diffuseColor + emissiveColor + specularColor * specular;
 	//float4 color = float4(coolar);
