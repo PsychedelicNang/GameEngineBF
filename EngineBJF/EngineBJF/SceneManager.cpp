@@ -246,7 +246,6 @@ void SceneManager::Update(void)
 	//myD3DClass->GetDeviceContext()->CSSetConstantBuffers(1, 1, myBetterParticleSystem->m_randomNumbersConstantBuffer.GetAddressOf());
 	myD3DClass->GetDeviceContext()->CSSetConstantBuffers(2, 1, myBetterParticleSystem->m_particleSystemDynamicPropertiesConstantBuffer.GetAddressOf());
 	myD3DClass->GetDeviceContext()->CSSetUnorderedAccessViews(0, 1, myBetterParticleSystem->m_UAV.GetAddressOf(), 0);
-	
 	myD3DClass->GetDeviceContext()->Dispatch(1, 10, 1);
 	
 	myD3DClass->GetDeviceContext()->ClearState();
