@@ -15,6 +15,7 @@
 #include "AnimationComponents.h"
 
 class FBXHandler {
+
 	struct MyFBXJoint {
 		FbxNode* node;
 		int parentIndex;
