@@ -7,6 +7,7 @@
 #define WIDTH 1024
 #define HEIGHT 768
 
+
 // Global Variables:
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text

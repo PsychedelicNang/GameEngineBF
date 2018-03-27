@@ -539,8 +539,9 @@ bool FBXHandler::LoadAdvancedMeshFromFBXFile(const char * _fileName, std::vector
 			FbxNodeAttribute::EType geoNodeType = geometry->GetAttributeType();
 			if (FbxNodeAttribute::eMesh == geoNodeType)
 			{
-				FbxMesh* theMesh = (FbxMesh*)geometry;
 				MeshComponentsAdvanced::OutInformation meshInst;
+				meshInst.meshName = std::string(tNode->GetName());
+				FbxMesh* theMesh = (FbxMesh*)geometry;
 
 				int mPolygonCount = theMesh->GetPolygonCount();
 				int mPolygonVertexCount = theMesh->GetControlPointsCount();
