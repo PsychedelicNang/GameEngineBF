@@ -7,6 +7,38 @@ FBXHandler::FBXHandler()
 	m_materials = { 0 };
 }
 
+// Takes in the current index and returns the new index
+int LoadMeshHelper(int _meshIndex, FbxNode* _inOutFbxNode) {
+	int childCount = _inOutFbxNode->GetChildCount();
+
+	if (childCount > 0) {
+		for (int currIndex = 0; currIndex < childCount; currIndex++)
+		{
+			FbxNode* currNode = _inOutFbxNode->GetChild(currIndex);
+
+			int childCountAgain = currNode->GetChildCount();
+
+			if (childCountAgain > 0)
+			{
+				LoadMeshHelper(_meshIndex, currNode);
+			}
+
+			else
+			{
+				// fill out the current mesh
+
+				++_meshIndex;
+			}
+		}
+	}
+
+	else
+	{
+		// fill out the current mesh
+		++_meshIndex;
+	}
+}
+
 bool FBXHandler::LoadBasicMeshFromFBXFile(const char * _fileName, std::vector<MeshComponentsBasic::Mesh>& _outVector)
 {
 	// Initialize the SDK manager. This object handles all our memory management.
@@ -33,12 +65,32 @@ bool FBXHandler::LoadBasicMeshFromFBXFile(const char * _fileName, std::vector<Me
 	// The file is imported; so get rid of the importer.
 	lImporter->Destroy();
 
+	unsigned nodeCount = lScene->GetGeometryCount();
+
+	unsigned meshIndex = 0;
+
 	FbxNode* lRootNode = lScene->GetRootNode();
 	if (lRootNode)
 	{
+		int childCount = lRootNode->GetChildCount();
 		for (int i = 0; i < lRootNode->GetChildCount(); i++)
 		{
 			FbxNode* tNode = lRootNode->GetChild(i);
+			const char * name = tNode->GetName();
+
+			int check = tNode->GetChildCount();
+
+			if (check > 0)
+			{
+				LoadMeshHelper(meshIndex, tNode);
+			}
+
+			else
+			{
+				// fill out the current mesh
+				++meshIndex;
+			}
+
 			FbxGeometry* geometry = (FbxGeometry*)tNode->GetNodeAttribute();
 			FbxNodeAttribute::EType geoNodeType = geometry->GetAttributeType();
 			if (FbxNodeAttribute::eMesh == geoNodeType)
@@ -73,6 +125,10 @@ bool FBXHandler::LoadBasicMeshFromFBXFile(const char * _fileName, std::vector<Me
 					meshInst.verticesBuffer.push_back(currPos);
 				}
 				_outVector.push_back(meshInst);
+			}
+			else
+			{
+				ok = 3;
 			}
 		}
 	}
@@ -537,6 +593,7 @@ bool FBXHandler::LoadAdvancedMeshFromFBXFile(const char * _fileName, std::vector
 	FbxNode* lRootNode = lScene->GetRootNode();
 	if (lRootNode)
 	{
+		int childCount = lRootNode->GetChildCount();
 		for (int i = 0; i < lRootNode->GetChildCount(); i++)
 		{
 			FbxNode* tNode = lRootNode->GetChild(i);
@@ -544,8 +601,9 @@ bool FBXHandler::LoadAdvancedMeshFromFBXFile(const char * _fileName, std::vector
 			FbxNodeAttribute::EType geoNodeType = geometry->GetAttributeType();
 			if (FbxNodeAttribute::eMesh == geoNodeType)
 			{
-				FbxMesh* theMesh = (FbxMesh*)geometry;
 				MeshComponentsAdvanced::OutInformation meshInst;
+				meshInst.meshName = std::string(tNode->GetName());
+				FbxMesh* theMesh = (FbxMesh*)geometry;
 
 				int mPolygonCount = theMesh->GetPolygonCount();
 				int mPolygonVertexCount = theMesh->GetControlPointsCount();

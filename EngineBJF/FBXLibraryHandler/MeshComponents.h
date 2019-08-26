@@ -29,6 +29,7 @@ namespace MeshComponentsAdvanced {
 		//Tangents?
 	};
 	struct OutInformation {
+		std::string meshName;
 		std::vector<unsigned> indices;
 		std::vector<VertexAdvanced> vertices;
 	};
