@@ -37,6 +37,8 @@ int LoadMeshHelper(int _meshIndex, FbxNode* _inOutFbxNode) {
 		// fill out the current mesh
 		++_meshIndex;
 	}
+
+	return _meshIndex;
 }
 
 bool FBXHandler::LoadBasicMeshFromFBXFile(const char * _fileName, std::vector<MeshComponentsBasic::Mesh>& _outVector)
@@ -128,7 +130,7 @@ bool FBXHandler::LoadBasicMeshFromFBXFile(const char * _fileName, std::vector<Me
 			}
 			else
 			{
-				ok = 3;
+				//ok = 3;
 			}
 		}
 	}
